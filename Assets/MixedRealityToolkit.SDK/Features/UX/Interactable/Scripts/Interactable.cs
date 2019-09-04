@@ -5,6 +5,7 @@ using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -763,7 +764,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             else
             {
                 int selectedMode = Mathf.Clamp(Dimensions, 1, 3);
-                Debug.Log("SetToggled(bool) called, but SelectionMode is set to " + (SelectionModes)(selectedMode - 1) + ", so DimensionIndex was unchanged.");
+                UnityEngine.Debug.Log("SetToggled(bool) called, but SelectionMode is set to " + (SelectionModes)(selectedMode - 1) + ", so DimensionIndex was unchanged.");
             }
         }
 
@@ -941,9 +942,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public void OnFocusEnter(FocusEventData eventData)
         {
+            UnityEngine.Debug.Log("OnFocusEntered");
+
             if (CanInteract())
             {
-                Debug.Assert(focusingPointers.Count > 0,
+                UnityEngine.Debug.Assert(focusingPointers.Count > 0,
                     "OnFocusEnter called but focusingPointers == 0. Most likely caused by the presence of a child object " +
                     "that is handling IMixedRealityFocusChangedHandler");
                 SetFocus(true);
@@ -984,7 +987,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         protected void StopClickTimer()
         {
-            Debug.Assert(clickValidTimer != null, "StopClickTimer called but no click timer is running");
+            UnityEngine.Debug.Assert(clickValidTimer != null, "StopClickTimer called but no click timer is running");
             StopCoroutine(clickValidTimer);
             clickValidTimer = null;
         }
