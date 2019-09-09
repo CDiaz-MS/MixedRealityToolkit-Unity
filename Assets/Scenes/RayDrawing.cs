@@ -33,11 +33,6 @@ public class RayDrawing : MonoBehaviour
                     Vector3 upIdx = indexFingerTip.Up * 0.3f;
                     Gizmos.DrawRay(pos, upIdx);
 
-                    //// AVG OF UP AND FORWARD
-                    //Gizmos.color = Color.black;
-                    //Vector3 avgUpForwardIdx = (upIdx + forwardIdx) * 0.5f;
-                    //Gizmos.DrawRay(pos, avgUpForwardIdx);
-
                     // DOWN
                     Gizmos.color = Color.green;
                     Vector3 downIdx = indexFingerTip.Up * -0.3f;
@@ -91,18 +86,14 @@ public class RayDrawing : MonoBehaviour
         Vector3 back = transform.TransformDirection(Vector3.back) * 10;
         Gizmos.DrawRay(transform.position, back);
 
-
     }
 
     public MixedRealityPose GetIndexPosition()
     {
         MixedRealityPose idx;
         HandJointUtils.TryGetJointPose(TrackedHandJoint.IndexTip, Handedness.Right, out idx);
-        
-
         return idx;
     }
-
 
     public void GetLinePointerDirection()
     {

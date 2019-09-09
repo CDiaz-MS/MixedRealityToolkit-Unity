@@ -5,7 +5,10 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/MixedRealityToolkit.Examples/Demos/HandTracking/Scenes/HandInteractionExamples.unity
     guid: 3dd4a396b5225f8469b9a1eb608bfa57
+  - enabled: 1
+    path: Assets/Scenes/issue_5053.unity
+    guid: 086d92d11df034f4580dee2c561e407b
   m_configObjects: {}

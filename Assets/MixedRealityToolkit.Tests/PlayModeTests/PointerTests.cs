@@ -16,7 +16,6 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 {
     class PointerTests 
     {
-
         // this method is called once before we enter play mode and execute any of the tests
         // do any kind of setup here that can't be done in playmode
 
@@ -24,6 +23,8 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         public void Setup()
         {
             PlayModeTestUtilities.Setup();
+            TestUtilities.PlayspaceToOriginLookingForward();
+
         }
 
         [TearDown]
@@ -32,12 +33,11 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             PlayModeTestUtilities.TearDown();
         }
 
-
         #region Tests
 
         /// <summary>
-        /// Tests that right after being instantiated, the pointer's direction matches
-        /// the rotation of the hand.
+        /// Tests that right after being instantiated, the pointer's direction 
+        /// is in the same general direction as the forward direction of the camera
         /// </summary>
         /// <returns></returns>
         /// 
@@ -66,39 +66,43 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             var linePointer = handController.InputSource.Pointers.First(x => x is LinePointer);
             Assert.IsNotNull(linePointer);
 
-            // Make sure that the z value of the direction of the ray in the line pointer is not negative
-            // A negative value for z in the direction vector means that the ray is not pointing forward
-            Assert.Positive(Mathf.Sign(linePointer.Rays[0].Direction.z));
-            Debug.Log("Ray Direction1: " + linePointer.Rays[0].Direction);
+            // Take dot product of camera forward and line pointer
+            float dot = Vector3.Dot(linePointer.Rays[0].Direction, Camera.main.transform.forward);
+            Debug.Log("Dot Product: " + dot);
 
-            //Wait and move to position 2 
-            yield return new WaitForSeconds(2);
+            // Check if the dot product is greater than 0.5
+            // Making sure the pointer is pointing in the same general direction as the camera
+            // A dot of 1 means we are facing the exact same direction but greater than 0.5 is same general direction
+            Assert.GreaterOrEqual(dot, 0.5f);
+
+            // Position 2
+            yield return new WaitForSeconds(1);
             yield return rightHand.MoveTo(new Vector3(-1.0f, 0, 2.0f));
 
-            // Make sure z is positive after move
-            Assert.Positive(Mathf.Sign(linePointer.Rays[0].Direction.z));
-            Debug.Log("Ray Direction2: " + linePointer.Rays[0].Direction);
+            float dot2 = Vector3.Dot(linePointer.Rays[0].Direction, Camera.main.transform.forward);
+            Debug.Log("Dot Product2: " + dot2);
 
-            //Wait and move to position 3 
-            yield return new WaitForSeconds(2);
-            yield return rightHand.MoveTo(new Vector3(1.0f, 0, 2.0f));
+            Assert.GreaterOrEqual(dot2, 0.5f);
 
-            // Make sure z is positive after move
-            Assert.Positive(Mathf.Sign(linePointer.Rays[0].Direction.z));
-            Debug.Log("Ray Direction3: " + linePointer.Rays[0].Direction);
+            // Position 3 
+            yield return new WaitForSeconds(1);
+            yield return rightHand.MoveTo(new Vector3(1.0f, -1.0f, 2.0f));
 
-            //Wait and move to position 4
-            yield return new WaitForSeconds(2);
+            float dot3 = Vector3.Dot(linePointer.Rays[0].Direction, Camera.main.transform.forward);
+            Debug.Log("Dot Product3: " + dot3);
+
+            Assert.GreaterOrEqual(dot3, 0.5f);
+
+            // Position 4 
+            yield return new WaitForSeconds(1);
             yield return rightHand.MoveTo(new Vector3(1.0f, 1.0f, 2.0f));
 
-            // Make sure z is positive after move
-            Assert.Positive(Mathf.Sign(linePointer.Rays[0].Direction.z));
-            Debug.Log("Ray Direction4: " + linePointer.Rays[0].Direction);
+            float dot4 = Vector3.Dot(linePointer.Rays[0].Direction, Camera.main.transform.forward);
+            Debug.Log("Dot Product4: " + dot4);
 
+            Assert.GreaterOrEqual(dot4, 0.5f);
         }
-
         #endregion
-
     }
 }
 #endif
