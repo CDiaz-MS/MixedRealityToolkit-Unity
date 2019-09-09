@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="System.Collections.Generic.HashSet&lt;T&gt;" Collapsed="true">
+    <Position X="5" Y="1.25" Width="1.5" />
+    <TypeIdentifier />
+    <Lollipop Position="0.2" />
+  </Class>
+  <Interface Name="Microsoft.MixedReality.Toolkit.Input.IMixedRealityInputSystem">
+    <Position X="0.5" Y="0.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>ACIEECCASwAAJ+giEMVgqAIjAwAAiAEAAAGyAAYAHwA=</HashCode>
+      <FileName>Assets\MixedRealityToolkit\Interfaces\InputSystem\IMixedRealityInputSystem.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="DetectedControllers" />
+      <Property Name="EyeGazeProvider" />
+    </ShowAsAssociation>
+  </Interface>
+  <Interface Name="Microsoft.MixedReality.Toolkit.Input.IMixedRealityEyeGazeProvider">
+    <Position X="5" Y="3.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAQAAAAAAAAAKAAAAAAIAAAAAAAAAgAAAAAA=</HashCode>
+      <FileName>Assets\MixedRealityToolkit\Interfaces\InputSystem\IMixedRealityEyeGazeProvider.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
