@@ -19,6 +19,8 @@ public class RayDrawing : MonoBehaviour
             {
                 if (source.SourceType == InputSourceType.Hand)
                 {
+                    // Draw direction vectors on the index finger if we are in play mode and the hand is active
+
                     MixedRealityPose indexFingerTip = GetIndexPosition();
                     Vector3 pos = GetIndexPosition().Position;
                     GetLinePointerDirection();
@@ -56,6 +58,8 @@ public class RayDrawing : MonoBehaviour
             }
         }
 
+        // Draw world direction vectors during edit and play mode
+
         // FORWARD
         Gizmos.color = Color.red;
         Vector3 forward = transform.TransformDirection(Vector3.forward) * 10;
@@ -88,12 +92,17 @@ public class RayDrawing : MonoBehaviour
 
     }
 
+    
     public MixedRealityPose GetIndexPosition()
     {
+        // Get position of tip of index finger
         MixedRealityPose idx;
         HandJointUtils.TryGetJointPose(TrackedHandJoint.IndexTip, Handedness.Right, out idx);
         return idx;
     }
+
+
+
 
     public void GetLinePointerDirection()
     {
@@ -105,6 +114,7 @@ public class RayDrawing : MonoBehaviour
                 {
                     if (p is LinePointer)
                     {
+                        // Print direction of line pointer ray to console 
                         var plp = p as LinePointer;
                         Debug.Log(plp.Rays[0].Direction);
 
