@@ -61,7 +61,7 @@ There's two types of tests that can be added for new code
 ## Play mode tests
 
 Play mode tests will be executed in Unity's play mode and should be added into MixedRealityToolkit.Tests > PlaymodeTests.
-To create a new test the following template can be used:
+To create a new test inherit the following class BasePlayModeTests:
 
 ``` csharp
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -77,58 +77,120 @@ To create a new test the following template can be used:
 // play mode tests in this check.
 
 using NUnit.Framework;
-using UnityEngine.TestTools;
-using System.Collections;
 
 namespace Microsoft.MixedReality.Toolkit.Tests
 {
-    public class ExampleTest : IPrebuildSetup
+    /// <summary>
+    /// Base class to handle typical code setup/teardown and test utilities
+    /// </summary>
+    public abstract class BasePlayModeTests
     {
-
-        // this method is called once before we enter play mode and execute any of the tests
-        // do any kind of setup here that can't be done in playmode
-        public void Setup()
-        {
-            // eg installing unity packages is only possible in edit mode
-            // so if a test requires TextMeshPro we will need to check for the package before entering play mode
-            PlayModeTestUtilities.EnsureTextMeshProEssentials();
-        }
-
-        // do common setup for each of your tests here - this will be called for each individual test after entering playmode
         [SetUp]
-        public void Init()
+        public virtual void Setup()
         {
-            // in most play mode test cases you would want to at least create an MRTK GameObject using the default profile
-            TestUtilities.InitializeMixedRealityToolkit(true);
+            // NOTE: This setup initializes the main camera at Vector3(0, 1.5, -2.0)
+            PlayModeTestUtilities.Setup();
         }
 
-
-        // destroy commonly initialized objects here - this will be called after each of your tests has finished
         [TearDown]
-        public void Shutdown()
+        public virtual void TearDown()
         {
-            // call shutdown if you've created an mrtk GameObject in your test
-            TestUtilities.ShutdownMixedRealityToolkit();
+            PlayModeTestUtilities.TearDown();
         }
-
-
-        #region Tests
-
-        [UnityTest]
-        /// the name of this method will be used as test name in the unity test runner
-        public IEnumerator TestMyFeature()
-        {
-            // write your test here
-            yield return null;
-        }
-
-        #endregion
     }
 }
-
 #endif
 
 ```
+
+## Creating a Play Mode test example
+The following is an example of a play mode test that creates and moves an input hand:
+
+``` csharp
+#if !WINDOWS_UWP
+
+using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.Toolkit.Utilities;
+using NUnit.Framework;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.RegularExpressions;
+using UnityEngine;
+using UnityEngine.TestTools;
+
+namespace Microsoft.MixedReality.Toolkit.Tests
+{
+    class PointerTests: BasePlayModeTests
+    {
+        // this method is called once before we enter play mode and execute any of the tests
+        // do any kind of setup here that can't be done in playmode
+
+        [SetUp]
+        public void Setup()
+        {
+            PlayModeTestUtilities.Setup();
+
+            // Initialize camera position at (0,0,0)
+            TestUtilities.PlayspaceToOriginLookingForward();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            PlayModeTestUtilities.TearDown();
+        }
+
+        #region Tests
+
+        /// <summary>
+        /// Tests that right after being instantiated, the pointer's direction 
+        /// is in the same general direction as the forward direction of the camera
+        /// </summary>
+        /// <returns></returns>
+        /// 
+        [UnityTest]
+        public IEnumerator TestPointerDirectionMatchesHandRayFirstFrame()
+        {
+            // Get the input system
+            var inputSystem = PlayModeTestUtilities.GetInputSystem();
+
+            // Create a new test hand for input
+            var rightHand = new TestHand(Handedness.Right);
+
+            // Initialize the position of the hand
+            Vector3 initialPos = new Vector3(0.01f, 0.1f, 0.5f);
+
+            // Show the hand
+            yield return rightHand.Show(initialPos);
+
+            // Get detected controllers
+            var controllers = inputSystem.DetectedControllers;
+
+            //return first hand controller that is right and source type hand
+            var handController = inputSystem.DetectedControllers.First(x => x.ControllerHandedness == Utilities.Handedness.Right && x.InputSource.SourceType == InputSourceType.Hand);
+            Debug.Assert(handController != null);
+
+            // Get the line pointer from the hand controller
+            var linePointer = handController.InputSource.Pointers.First(x => x is LinePointer);
+            Assert.IsNotNull(linePointer);
+
+            // Wait one second and move the right hand to a new position
+            yield return new WaitForSeconds(1);
+            yield return rightHand.MoveTo(new Vector3(1.0f, -1.0f, 2.0f));
+
+        }
+        #endregion
+    }
+}
+#endif
+
+```
+
+
+
+
 
 ## Edit mode tests
 
