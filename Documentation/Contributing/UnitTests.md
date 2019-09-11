@@ -88,7 +88,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         [SetUp]
         public virtual void Setup()
         {
-            // NOTE: This setup initializes the main camera at Vector3(0, 1.5, -2.0)
+            // NOTE: This setup initializes the main camera at Vector3(1.0f, 1.5f, -2.0f)
             PlayModeTestUtilities.Setup();
         }
 
@@ -103,8 +103,8 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
 ```
 
-## Creating a Play Mode test example
-The following is an example of a play mode test that creates and moves an input hand:
+## Play Mode test example
+The following is an example of a play mode test that shows and moves an input hand:
 
 ``` csharp
 #if !WINDOWS_UWP
@@ -114,44 +114,31 @@ using Microsoft.MixedReality.Toolkit.Utilities;
 using NUnit.Framework;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Microsoft.MixedReality.Toolkit.Tests
 {
-    class PointerTests: BasePlayModeTests
+    class ExamplePlayModeTests : BasePlayModeTests
     {
-        // this method is called once before we enter play mode and execute any of the tests
-        // do any kind of setup here that can't be done in playmode
-
-        [SetUp]
-        public void Setup()
+        // Override Setup() in BasePlayModeTests to change the starting camera position
+        public override void Setup()
         {
-            PlayModeTestUtilities.Setup();
-
-            // Initialize camera position at (0,0,0)
+            base.Setup();
+            
+            // Set camera position to Vector3(0,0,0) default is Vector3(1.0f, 1.5f. -2.0f))
             TestUtilities.PlayspaceToOriginLookingForward();
-        }
 
-        [TearDown]
-        public void TearDown()
-        {
-            PlayModeTestUtilities.TearDown();
         }
 
         #region Tests
 
         /// <summary>
-        /// Tests that right after being instantiated, the pointer's direction 
-        /// is in the same general direction as the forward direction of the camera
+        /// Example test that shows a hand, gets the line pointer and moves the hand
         /// </summary>
-        /// <returns></returns>
-        /// 
         [UnityTest]
-        public IEnumerator TestPointerDirectionMatchesHandRayFirstFrame()
+        public IEnumerator ExampleTest()
         {
             // Get the input system
             var inputSystem = PlayModeTestUtilities.GetInputSystem();
@@ -160,15 +147,12 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             var rightHand = new TestHand(Handedness.Right);
 
             // Initialize the position of the hand
-            Vector3 initialPos = new Vector3(0.01f, 0.1f, 0.5f);
+            Vector3 initialPos = new Vector3(0f, 0f, 0.5f);
 
             // Show the hand
             yield return rightHand.Show(initialPos);
 
-            // Get detected controllers
-            var controllers = inputSystem.DetectedControllers;
-
-            //return first hand controller that is right and source type hand
+            // Get hand controller 
             var handController = inputSystem.DetectedControllers.First(x => x.ControllerHandedness == Utilities.Handedness.Right && x.InputSource.SourceType == InputSourceType.Hand);
             Debug.Assert(handController != null);
 
@@ -178,8 +162,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
             // Wait one second and move the right hand to a new position
             yield return new WaitForSeconds(1);
-            yield return rightHand.MoveTo(new Vector3(1.0f, -1.0f, 2.0f));
-
+            yield return rightHand.MoveTo(new Vector3(0, 0, 2.0f));
         }
         #endregion
     }
