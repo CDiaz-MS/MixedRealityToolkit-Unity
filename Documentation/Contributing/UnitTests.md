@@ -60,8 +60,7 @@ There's two types of tests that can be added for new code
 
 ## Play mode tests
 
-Play mode tests will be executed in Unity's play mode and should be added into MixedRealityToolkit.Tests > PlaymodeTests.
-To create a new test inherit the following class BasePlayModeTests:
+New play mode tests inherit from [BasePlayModeTests](xref:Microsoft.MixedReality.Toolkit.Tests.BasePlayModeTests) shown below:
 
 ``` csharp
 // Copyright (c) Microsoft Corporation. All rights reserved.
@@ -103,11 +102,21 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
 ```
 
-## Play Mode test example
-The following is an example of a play mode test that shows and moves an input hand:
+## Creating a new play mode test
+To create a new play mode test:
+- Navigate to Assets > MixedRealityToolkit.Tests > PlayModeTests
+- Right click, Create > Testing > C# Test Script
+- Replace the default template with the example starter test below
 
 ``` csharp
 #if !WINDOWS_UWP
+// When the .NET scripting backend is enabled and C# projects are built
+// The assembly that this file is part of is still built for the player,
+// even though the assembly itself is marked as a test assembly (this is not
+// expected because test assemblies should not be included in player builds).
+// Because the .NET backend is deprecated in 2018 and removed in 2019 and this
+// issue will likely persist for 2018, this issue is worked around by wrapping all
+// play mode tests in this check.
 
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
@@ -127,15 +136,14 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         {
             base.Setup();
             
-            // Set camera position to Vector3(0,0,0) default is Vector3(1.0f, 1.5f. -2.0f))
+            // Set camera position to Vector3(0,0,0), the default is Vector3(1.0f, 1.5f. -2.0f))
             TestUtilities.PlayspaceToOriginLookingForward();
-
         }
 
         #region Tests
 
         /// <summary>
-        /// Example test that shows a hand, gets the line pointer and moves the hand
+        /// Example starter test that shows a hand, gets the line pointer and moves the hand
         /// </summary>
         [UnityTest]
         public IEnumerator ExampleTest()
@@ -160,8 +168,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             var linePointer = handController.InputSource.Pointers.First(x => x is LinePointer);
             Assert.IsNotNull(linePointer);
 
-            // Wait one second and move the right hand to a new position
-            yield return new WaitForSeconds(1);
+            // Move the right hand to a new position
             yield return rightHand.MoveTo(new Vector3(0, 0, 2.0f));
         }
         #endregion
@@ -170,10 +177,6 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 #endif
 
 ```
-
-
-
-
 
 ## Edit mode tests
 
