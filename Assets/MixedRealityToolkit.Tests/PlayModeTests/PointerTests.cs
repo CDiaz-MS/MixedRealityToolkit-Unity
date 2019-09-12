@@ -1,13 +1,9 @@
 ﻿#if !WINDOWS_UWP
-
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using NUnit.Framework;
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
@@ -51,7 +47,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
             //return first hand controller that is right and source type hand
             var handController = inputSystem.DetectedControllers.First(x => x.ControllerHandedness == Utilities.Handedness.Right && x.InputSource.SourceType == InputSourceType.Hand);
-            Debug.Assert(handController != null);
+            Assert.IsNotNull(handController);
 
             // Get the line pointer from the hand controller
             var linePointer = handController.InputSource.Pointers.First(x => x is LinePointer);

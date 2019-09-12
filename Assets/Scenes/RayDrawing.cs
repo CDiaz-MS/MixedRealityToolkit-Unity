@@ -116,6 +116,8 @@ public class RayDrawing : MonoBehaviour
                     {
                         // Print direction of line pointer ray to console 
                         var plp = p as LinePointer;
+                        gameObject.transform.position = plp.Position;
+
                         Debug.Log(plp.Rays[0].Direction);
 
                     }
