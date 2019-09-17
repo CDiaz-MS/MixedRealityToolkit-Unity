@@ -11,11 +11,10 @@ namespace Microsoft.MixedReality.Toolkit.UI
     /// <summary>
     /// Theme scriptableObject for loading theme settings
     /// </summary>
-    [CreateAssetMenu(fileName = "Theme", menuName = "Mixed Reality Toolkit/Interactable/Theme", order = 1)]
+    [CreateAssetMenu(fileName = "Theme", menuName = "Mixed Reality Toolkit/Theme", order = 1)]
     public class Theme : ScriptableObject
     {
         [FormerlySerializedAs("Settings")]
-        [FormerlySerializedAs("Definitions")]
         [SerializeField]
         private List<ThemeDefinition> definitions;
 

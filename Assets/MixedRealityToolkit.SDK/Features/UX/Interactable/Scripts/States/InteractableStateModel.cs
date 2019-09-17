@@ -31,9 +31,22 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             return Bit;
         }
+
+        public bool CompareState(State other)
+        {
+            return this.Name == other.Name
+                && this.Index == other.Index
+                && this.Bit == other.Bit
+                && this.Value == other.Value
+                && this.ActiveIndex == other.ActiveIndex;
+        }
     }
-    
-    public abstract class InteractableStateModel
+
+    /// <summary>
+    /// Base class for defining state model logic to use in conjunction with the State class
+    /// Allows for retrieving current state mode and comparing states
+    /// </summary>
+    public abstract class BaseStateModel
     {
         protected State currentState;
         protected List<State> stateList;
@@ -100,7 +113,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public State GetState(int index)
         {
-            if (allStates.Length > index && index > 0)
+            if (allStates.Length > index && index >= 0)
             {
                 State state = allStates[index];
                 return state;
@@ -108,11 +121,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
             return new State();
         }
 
-        public InteractableStateModel()
+        public BaseStateModel()
         {
         }
 
-        public InteractableStateModel(State defaultState)
+        public BaseStateModel(State defaultState)
         {
             currentState = defaultState;
         }
