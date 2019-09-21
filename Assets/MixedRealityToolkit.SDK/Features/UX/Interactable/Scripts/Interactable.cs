@@ -510,6 +510,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private void OnEnable()
         {
+            if (!Enabled)
+            {
+                SetDisabled(false);
+            }
+
             if (!RequiresFocus)
             {
                 RegisterGlobalSpeechHandler(true);
@@ -528,7 +533,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             if (focusingPointers.Count == 0)
             {
                 ResetBaseStates();
-                RefreshSetup();
             }
         }
 
@@ -543,6 +547,9 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 RegisterGlobalInputHandler(false);
             }
+
+            SetDisabled(true);
+            InternalUpdate();
         }
 
         private void RegisterGlobalInputHandler(bool globalInput)
@@ -606,7 +613,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     activeThemes[i].OnUpdate(StateManager.CurrentState().ActiveIndex, forceUpdate);
                 }
             }
-
+           
             if (lastState != StateManager.CurrentState())
             {
                 for (int i = 0; i < handlers.Count; i++)
@@ -754,6 +761,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             IsDisabled = disabled;
             Enabled = !disabled;
             SetState(InteractableStates.InteractableStateEnum.Disabled, disabled);
+            SetFocus(false);
         }
 
         /// <summary>
