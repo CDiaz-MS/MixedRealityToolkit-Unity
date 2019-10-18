@@ -240,18 +240,45 @@ namespace Microsoft.MixedReality.Toolkit.UI
         private Vector3 movingVisualsInitialLocalPosition = Vector3.zero;
 
         /// <summary>
-        /// The position from where the button starts to move.  Projected into world space based on the button's current world space position.
+        /// The position from where the button starts to move.  Projected into world space based on the button's current local space position.
         /// </summary>
         private Vector3 InitialPosition
         {
             get
             {
+                /*
+                if (Application.isPlaying && movingButtonVisuals) // we're using a cached position in play mode as the moving visuals will be moved during button interaction
+                {
+                    // if movingButtonVisuals is the gameobject
+                    if (movingButtonVisuals == gameObject)
+                    {
+                        return PushSpaceSourceTransform.position;
+                    }
+
+                     // the obj does not have a parent
+                    if(PushSpaceSourceParentPosition == Vector3.zero) 
+                    {
+                        // if movingButtonVisuals is a child
+                        Debug.Log(movingButtonVisuals.name + " is a child of " + gameObject.name);
+                        Debug.Log(gameObject.name + " " + PushSpaceSourceParentPosition);
+                        return PushSpaceSourceParentPosition + movingButtonVisuals.transform.TransformVector(movingVisualsInitialLocalPosition);
+                    }
+                }
+                else
+                {
+                    
+                    return PushSpaceSourceTransform.position;
+                }
+                */
+
+                //This is assuming that if movingButtonVisuals is not null than it is a child
                 if (Application.isPlaying && movingButtonVisuals) // we're using a cached position in play mode as the moving visuals will be moved during button interaction
                 {
                     return PushSpaceSourceParentPosition + movingButtonVisuals.transform.TransformVector(movingVisualsInitialLocalPosition);
                 }
                 else
                 {
+                    // if movingButtonVisuals is null then we will just set the Initial position to the position of the gameobject that this script is attached to
                     return PushSpaceSourceTransform.position;
                 }
             }
@@ -275,7 +302,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 Debug.LogWarning("PressableButton will not work if game object layer is set to 'Ignore Raycast'.");
             }
 
-            movingVisualsInitialLocalPosition = movingButtonVisuals.transform.localPosition;
+           //movingVisualsInitialLocalPosition = movingButtonVisuals.transform.localPosition;
+           movingVisualsInitialLocalPosition = PushSpaceSourceTransform.position - PushSpaceSourceParentPosition;
 
             // Ensure everything is set to initial positions correctly.
             UpdateMovingVisualsPosition();
@@ -498,3 +526,4 @@ namespace Microsoft.MixedReality.Toolkit.UI
         #endregion
     }
 }
+ 
