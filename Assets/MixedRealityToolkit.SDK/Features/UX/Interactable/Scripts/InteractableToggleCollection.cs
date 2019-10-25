@@ -14,8 +14,21 @@ namespace Microsoft.MixedReality.Toolkit.UI
         [Tooltip("Interactables that will be managed by this controller")]
         public Interactable[] ToggleList;
 
-        [Tooltip("Currently selected index or default starting index")]
-        public int CurrentIndex;
+        //[Tooltip("Currently selected index or default starting index")]
+        [SerializeField]
+        private int currentIndex;
+        public int CurrentIndex
+        {
+            get
+            {
+                return currentIndex;
+            }
+            set
+            {
+                currentIndex = value;
+                OnIndexUpdate(currentIndex);
+            }
+        }
 
         [Tooltip("exposed selection changed event")]
         public UnityEvent OnSelectionEvents;
@@ -30,12 +43,15 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 ToggleList[i].CanDeselect = false;
             }
 
-            OnSelection(CurrentIndex, true);
+            //OnSelection(CurrentIndex, true);
         }
 
         private void OnEnable()
         {
-            OnSelection(CurrentIndex, true);
+            // Set current index based on what is in the inspector
+            // Is this legal?
+            CurrentIndex = currentIndex;
+            //OnSelection(CurrentIndex, true);
         }
 
         /// <summary>
@@ -57,6 +73,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         /// </summary>
         protected virtual void OnSelection(int index, bool force = false)
         {
+            Debug.Log("On Selection");
             for (int i = 0; i < ToggleList.Length; ++i)
             {
                 if (i != index)
@@ -65,7 +82,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 }
             }
 
-            CurrentIndex = index;
+            currentIndex = index;
 
             if (force)
             {
@@ -75,6 +92,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 OnSelectionEvents.Invoke();
             }
+        }
+
+        private void OnIndexUpdate(int index)
+        {
+            ToggleList[index].TriggerOnClick();
         }
 
         private void OnDestroy()
