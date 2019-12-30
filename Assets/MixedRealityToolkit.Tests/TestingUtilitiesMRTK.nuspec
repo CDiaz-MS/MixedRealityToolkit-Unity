@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package>
+  <metadata>
+    <id>TestingUtilitiesMRTK</id>
+    <version>1.0.0</version>
+    <description>Testing utilities for an MRTK unity project.</description>
+    <authors>Microsoft</authors>
+    <owners>Microsoft,MixedReality</owners>
+    <licenseUrl>https://github.com/Microsoft/MixedRealityToolkit-Unity/blob/mrtk_development/License.txt</licenseUrl>
+    <projectUrl>https://aka.ms/MRTK</projectUrl>
+    <iconUrl>https://microsoft.github.io/MixedRealityToolkit-Unity/Documentation/Images/MRTK_Logo_NuGet.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
+    <tags>Unity MixedReality MixedRealityToolkit MRTK</tags>
+    <dependencies>
+      <dependency id="Microsoft.MixedReality.Toolkit.Foundation" version="2.2.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="TestUtilities.cs" target="PlayModeTests\Utilities\" />
+    <file src="PlayModeTests\PlayModeTestUtilities.cs" target="PlayModeTests\Utilities\" />
+    <file src="PlayModeTests\TestHand.cs" target="PlayModeTests\Utilities\" />
+    <file src="PlayModeTests\Scenes\ExampleTestScene.unity" target="PlayModeTests\Scenes\" />
+    <file src="PlayModeTests\Prefabs\InteractableCube.prefab" target="PlayModeTests\Prefabs\" />
+    <file src="..\Asmdefs\PlayModeTests.asmdef" target="PlayModeTests\" />
+    <file src="PlayModeTests\ExampleTests.cs" target="PlayModeTests\" />
+    <file src="PlayModeTests\ExampleTestsSceneLoading.cs" target="PlayModeTests\" />
+  </files>
+</package>
