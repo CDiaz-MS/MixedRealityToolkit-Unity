@@ -134,7 +134,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
         [SerializeField]
         [Tooltip("If true, the GameObjectToPlace will remain upright and parallel to Vector3.up")]
-        private bool keepOrientationVertical = true;
+        private bool keepOrientationVertical = false;
 
         /// <summary>
         /// If true, the GameObjectToPlace will remain upright and parallel to Vector3.up
