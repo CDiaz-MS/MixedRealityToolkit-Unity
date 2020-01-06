@@ -10,21 +10,24 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 {
-    public class TapToPlace : Solver, IMixedRealityPointerHandler, IMixedRealitySpeechHandler
+    
+    public class TapToPlace : Solver, IMixedRealityPointerHandler
     {
+        [Experimental]
         [SerializeField]
-        [Tooltip("The Game Object that will be moved by the tap gesture if selected")]
+        [Tooltip("The game object that will be placed if it is selected")]
         private GameObject gameObjectToPlace;
 
         /// <summary>
-        /// The Game Object that will be moved by the tap gesture if selected
+        /// The game object that will be placed if it is selected
         /// </summary>
         public GameObject GameObjectToPlace
         {
             get => gameObjectToPlace;
             set
             {
-                if (value != null && gameObjectToPlace != value )
+                // ========================== Check on this =====================================
+                if (value != null && gameObjectToPlace != value)
                 {
                     gameObjectToPlace = value;
 
@@ -32,17 +35,13 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                     if (!ColliderPresent)
                     {
                         Debug.LogError("GameObjectToPlace does not have a collider attached, please add a collider to GameObjectToPlace");
-                    }   
+                    }
                 }
             }
         }
 
-        //[SerializeField]
-        //[Tooltip("A collider must be present on the game object for tap to place to work")]
-        //private bool colliderPresent = false;
-
         /// <summary>
-        /// A collider must be present on the game object for tap to place to work
+        /// Check if a collider is present on the GameObjectToPlace
         /// </summary>
         public bool ColliderPresent
         {
@@ -54,30 +53,17 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 }
 
                 return true;
-            } 
+            }
         }
 
-        //[SerializeField]
-        //[Tooltip("On Application start, start the placement of the gameObject")]
-        //private bool autoStart = false;
-
-        ///// <summary>
-        ///// On Application start, start the placement of the gameObject
-        ///// </summary>
-        //public bool AutoStart
-        //{
-        //    get => autoStart;
-        //    set => autoStart = value;
-        //}
-
         [SerializeField]
-        [Tooltip("If spatial awareness is not enabled, the game object will be placed at a default distance (in meters)")]
+        [Tooltip("The default distance (in meters) an object will be placed relative to the TrackedTargetType forward in the SolverHandler." +
+            "The GameObjectToPlace will be placed at this distance if a surface is not hit by the raycast.")]
         private float defaultPlacementDistance = 1.5f;
 
         /// <summary>
-        /// If spatial awareness is not enabled, the game object will be placed at a default distance (in meters).
-        /// If there is no result from the raycast, the gameobejct will be place a default distance relative to the
-        /// Tracked Target Type, in the Solver Handler which is the source of the raycast.
+        /// The default distance (in meters) an object will be placed relative to the TrackedTargetType forward in the SolverHandler.
+        /// The GameObjectToPlace will be placed at this distance if a surface is not hit by the raycast.
         /// </summary>
         public float DefaultPlacementDistance
         {
@@ -92,16 +78,16 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         }
 
         [SerializeField]
-        [Tooltip("Max distance for raycast to check for surfaces")]
+        [Tooltip("Max distance to place an object if there is a raycast hit on a surface")]
         private float maxRaycastDistance = 20.0f;
 
         /// <summary>
-        /// Max distance for raycast to check for a raycast hit on a surface
+        /// The max distance to place an object if there is a raycast hit on a surface
         /// </summary>
         public float MaxRaycastDistance
         {
-            get => maxRaycastDistance; 
-            set => maxRaycastDistance = value; 
+            get => maxRaycastDistance;
+            set => maxRaycastDistance = value;
         }
 
         [SerializeField]
@@ -110,42 +96,29 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
         /// <summary>
         /// Array of LayerMask to execute from highest to lowest priority. First layermask to provide a raycast hit will be used by component.
-        /// Contains unity physics layers and the spatial awarness physics layer which is the spatial mesh.
         /// </summary>
         public LayerMask[] MagneticSurfaces
         {
-            get => magneticSurfaces; 
+            get => magneticSurfaces;
             set => magneticSurfaces = value;
         }
 
-        [SerializeField]
-        [Tooltip("Keywords for the speech provider to place an object")]
-        private List<string> keywords;
-
-        public List<string> Keywords
-        {
-            get => keywords; 
-            set => keywords = value; 
-        }
-
         /// <summary>
-        /// Is the gameObjectToPlace currently in a state where it is being placed?
+        /// Is the gameObjectToPlace currently in a state where it is being placed? This state is activated when you select and hold 
+        /// the GameObjectToPlace.
         /// </summary>
         public bool IsBeingPlaced { get; protected set; }
 
-        // auto-start, if false disables SolverHandler?
-
-
         [SerializeField]
-        [Tooltip("If the object is on a surface, what is the offset from the surface?")]
+        [Tooltip("The distance between the center of the gameobject to place and a surface along the surface normal, if the raycast hits a surface")]
         private float surfaceNormalOffset = 0.1f;
 
         /// <summary>
-        /// Offset from surface along surface normal
+        /// The distance between the center of the gameobject to place and a surface along the surface normal, if the raycast hits a surface
         /// </summary>
         public float SurfaceNormalOffset
         {
-            get => surfaceNormalOffset; 
+            get => surfaceNormalOffset;
             set
             {
                 if (surfaceNormalOffset != value)
@@ -153,20 +126,22 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                     surfaceNormalOffset = value;
                     // Get info from the box collider to calculate the offset
 
+                    // ========================== Check on this =====================================
+
                 }
             }
         }
 
         [SerializeField]
-        [Tooltip("If true, ensures object is kept vertical for TrackedTarget, SurfaceNormal")]
+        [Tooltip("If true, the GameObjectToPlace will remain upright and parallel to Vector3.up")]
         private bool keepOrientationVertical = true;
 
         /// <summary>
-        /// If true, ensures object is kept vertical for TrackedTarget, SurfaceNormal, and Blended Orientation Modes
+        /// If true, the GameObjectToPlace will remain upright and parallel to Vector3.up
         /// </summary>
         public bool KeepOrientationVertical
         {
-            get => keepOrientationVertical; 
+            get => keepOrientationVertical;
             set
             {
                 if (keepOrientationVertical != value)
@@ -180,16 +155,19 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
         const int DefaultLayer = 0;
 
+        // If true, the raycast did hit a surface
         protected bool didHit;
 
-        protected RaycastHit currentHit;
-
+        // The current ray is based on the TrackedTargetType (Controller Ray, Head, Hand Joint)
         protected RayStep currentRay;
+
+        protected RaycastHit currentHit;
 
         protected override void Start()
         {
             base.Start();
 
+            // If tap to place is added via script, set the GameObjectToPlace as this gameobject 
             if (GameObjectToPlace == null)
             {
                 GameObjectToPlace = gameObject;
@@ -197,71 +175,41 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
             IsBeingPlaced = false;
 
-            // Default tap to place behavior is based on the controller ray
+            // Set the default target transform for the game object to place based on the controller ray!!!!!!!!!!!!
             SolverHandler.TrackedTargetType = TrackedObjectType.ControllerRay;
 
-            // Check status of auto start, not sure about it 
             SolverHandler.UpdateSolvers = false;
-
-            //if (AutoStart)
-            //{
-            //    StartPlacement();
-            //}
         }
 
-        // We need to override OnEnable because we inherit from the solvers
-        protected override void OnEnable()
-        {
-            // Add keywords
-           // keywords.Add("Select");
-            //keywords.Add("Place");
-            
-        }
-
-        private void OnDisable()
+        private void StartPlacement()
         {
 
-        }
-
-        public void StartPlacement()
-        {
-            // If we are placing the gameobject and the gameobject has a collider
-            // if the gameobject we are placing has a collider
-            //   we need to move the object to the ignore raycast while we are placing the object
-            // But then if the gameobject does not have a collider then how will we select and place it?
-
-            if (ColliderPresent)
+            if (GameObjectToPlace != null)
             {
-                // move the gameobject to the 2nd layer to ignore a raycast for now
-                gameObject.layer = IgnoreRaycastLayer;
+
+                // Make sure there is a collider present on the object to ignore the raycast
+                if (ColliderPresent)
+                {
+                    // move the gameobject to the 2nd layer to ignore a raycast, so we can get a raycast hit on a surface in front of the 
+                    // game object to place
+                    gameObject.layer = IgnoreRaycastLayer;
+
+                }
+
+                SolverHandler.UpdateSolvers = true;
+
+                IsBeingPlaced = true;
 
             }
-
-
-            SolverHandler.UpdateSolvers = true;
-
-
-            // Enable pointer events to be detected
-            //CoreServices.InputSystem?.RegisterHandler<IMixedRealityPointerHandler>(this);
-
-            // turn off colliders under GameObject?
-            // Make sure the gameobject has a collider
-
-            IsBeingPlaced = true;
         }
 
-        public void StopPlacement()
+        private void StopPlacement()
         {
-            // Change the physics layer back to default so it can be hit by a raycast
+            // Change the physics layer back to default so it can be hit by a raycast, and recieve pointer events
             gameObject.layer = DefaultLayer;
 
-            // Stop updating the solvers
             SolverHandler.UpdateSolvers = false;
 
-            //CoreServices.InputSystem?.UnregisterHandler<IMixedRealitySpeechHandler>(this);
-            //CoreServices.InputSystem?.UnregisterHandler<IMixedRealityPointerHandler>(this);
-
-            // turn on colliders under GameObject? Need to save set
             IsBeingPlaced = false;
         }
 
@@ -277,43 +225,31 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         {
             if (SolverHandler.TransformTarget != null)
             {
-                // Source of the calculations
-                // Head ray
-                // Controller ray
-                // Ray casted from a specific joint 
+                // The transform target is the transform of the TrackedTargetType, i.e. Controller Ray, Head or Hand Joint
                 var transform = SolverHandler.TransformTarget;
 
-                if (SolverHandler.TrackedTargetType == TrackedObjectType.Head)
-                {
-
-                }
-                
                 Vector3 origin = transform.position;
                 Vector3 endpoint = transform.position + transform.forward;
                 currentRay.UpdateRayStep(ref origin, ref endpoint);
 
-                // Check if the raycast hit something, if true the raycast hit something which means it went
-                // throught the layer masks in priority and got a hit
+                // Check if the current ray hit a magnetic surface
                 didHit = MixedRealityRaycaster.RaycastSimplePhysicsStep(currentRay, MaxRaycastDistance, MagneticSurfaces, false, out currentHit);
             }
         }
 
         protected virtual void SetPosition()
         {
-            // Change the position of the object if there was a hit, if not then place the object at the default distance
-            // relative to whatever the tracking type is. So if the controller ray, take the forward and add default distance
+            // Change the position of the GameObjectToPlace if there was a hit, if not then place the object at the default distance
+            // relative to the TrackedTargetType position
 
             if (didHit)
             {
                 // take the current hit point and add an offset relative to the surface to avoid half of the object in the surface
-                GoalPosition = currentHit.point + (SurfaceNormalOffset * currentHit.normal);
+                GoalPosition = currentHit.point + (currentHit.normal * SurfaceNormalOffset);
             }
-            else // if the raycast did not hit anything set it to the forward of the solver handler source
+            else
             {
-                if (SolverHandler.TransformTarget != null)
-                {
-                    GoalPosition = SolverHandler.TransformTarget.position + (SolverHandler.TransformTarget.forward * DefaultPlacementDistance);
-                }
+                GoalPosition = SolverHandler.TransformTarget.position + (SolverHandler.TransformTarget.forward * DefaultPlacementDistance);   
             }
         }
 
@@ -328,27 +264,22 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 surfaceNormal.y = 0;
             }
 
-
             // if the object is on a surface then change the rotation according to the normal of the hit point
             if (didHit)
             {
                 GoalRotation = Quaternion.LookRotation(-surfaceNormal, Vector3.up);
             }
-            else
+            else // if there is no result from the raycast hit, rotate the object based on the TrackedTargetType ray direction 
             {
                 GoalRotation = Quaternion.LookRotation(direction, Vector3.up);
             }
-
-            // if the object is not on a surface, look at opposite of the source ray
-
-
-            
         }
 
         #region IMixedRealityPointerHandler
 
         /// <inheritdoc/>
-        public void OnPointerDown(MixedRealityPointerEventData eventData) {
+        public void OnPointerDown(MixedRealityPointerEventData eventData)
+        {
             // Update solvers
             Debug.Log("Start Placement");
             StartPlacement();
@@ -369,17 +300,5 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
         #endregion
 
-        #region IMixedRealitySpeechHandler
-
-        /// <inheritdoc/>
-        public void OnSpeechKeywordRecognized(SpeechEventData eventData)
-        {
-            if (enabled && IsBeingPlaced && Keywords.Contains(eventData.Command.Keyword.ToLower()))
-            {
-                StopPlacement();
-            }
-        }
-
-        #endregion
     }
 }
