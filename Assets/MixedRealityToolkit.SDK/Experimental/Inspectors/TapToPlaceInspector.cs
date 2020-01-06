@@ -2,7 +2,11 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using Microsoft.MixedReality.Toolkit.Experimental.Utilities;
+using Microsoft.MixedReality.Toolkit.Utilities;
+using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
 {
@@ -11,34 +15,30 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
     {
         protected TapToPlace instance;
         protected SerializedProperty gameObjectToPlace;
+        protected SerializedProperty rotateAccordingToSurface;
         protected SerializedProperty keepOrientationVertical;
-        //protected SerializedProperty autoStart;
-        //protected SerializedProperty colliderPresent;
+        protected SerializedProperty spatialMeshVisible;
         protected SerializedProperty defaultPlacementDistance;
         protected SerializedProperty maxRaycastDistance;
         protected SerializedProperty magneticSurfaces;
-        protected SerializedProperty trackedTargetType;
-        
+        //protected SerializedProperty spatialMeshVisibility;
 
         protected virtual void OnEnable()
         {
             instance = (TapToPlace)target;
             gameObjectToPlace = serializedObject.FindProperty("gameObjectToPlace");
+            rotateAccordingToSurface = serializedObject.FindProperty("rotateAccordingToSurface");
             defaultPlacementDistance = serializedObject.FindProperty("defaultPlacementDistance");
             magneticSurfaces = serializedObject.FindProperty("magneticSurfaces");
             maxRaycastDistance = serializedObject.FindProperty("maxRaycastDistance");
-
-            trackedTargetType = serializedObject.FindProperty("trackedTargetType");
-            //autoStart = serializedObject.FindProperty("autoStart");
             keepOrientationVertical = serializedObject.FindProperty("keepOrientationVertical");
-
-            // Set the default behavior for the controller ray for the tracked object type
+            spatialMeshVisible = serializedObject.FindProperty("spatialMeshVisible");
+            //spatialMeshVisibility = serializedObject.FindProperty("spatialMeshVisibility");
         }
 
         public override void OnInspectorGUI()
         {
             RenderCustomInspector();
-          
         }
 
         public virtual void RenderCustomInspector()
@@ -49,41 +49,38 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
             bool isPlayMode = EditorApplication.isPlaying || EditorApplication.isPaused;
             using (new EditorGUI.DisabledScope(isPlayMode))
             {
-                EditorGUILayout.PropertyField(gameObjectToPlace, true);
+                EditorGUILayout.PropertyField(gameObjectToPlace);
             }
 
-            // If the GameObject to place is null set it to the gameobject
+            // If the GameObjectToPlace is null set it to the gameobject
             if (instance.GameObjectToPlace == null)
             {
                 instance.GameObjectToPlace = instance.gameObject;
-
-                //// Make sure there is a collider
-                //if (!instance.ColliderPresent)
-                //{
-                //    // TO DO: Add a warning message
-                //}
             }
 
-            // If the object is on a surface and the hand is moved back
-            // Take the object off the surface
+            if (!instance.ColliderPresent)
+            {
+                Debug.Log("A collider needs to be attached to your game object, please attach a collider to use tap to place");
+            }
 
-            // Allow editing of these properties
             UpdateProperties();
 
             serializedObject.ApplyModifiedProperties();
         }
 
+        /// <summary>
+        /// Allow editing of the following properties during edit and playmode
+        /// </summary>
         public virtual void UpdateProperties()
         {
-            // Allow these properties to be edited during play mode
-
-            //EditorGUILayout.PropertyField(autoStart);
+            EditorGUILayout.PropertyField(rotateAccordingToSurface);
             EditorGUILayout.PropertyField(keepOrientationVertical);
+            EditorGUILayout.PropertyField(spatialMeshVisible);
             EditorGUILayout.PropertyField(defaultPlacementDistance);
             EditorGUILayout.PropertyField(maxRaycastDistance);
+            //EditorGUILayout.PropertyField(spatialMeshVisibility);
             EditorGUILayout.PropertyField(magneticSurfaces,true);
             
-
         }
     }
 }
