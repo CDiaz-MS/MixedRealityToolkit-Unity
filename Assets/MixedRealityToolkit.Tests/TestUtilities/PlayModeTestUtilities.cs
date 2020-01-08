@@ -161,7 +161,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// Initializes the MRTK such that there are no other input system listeners
         /// (global or per-interface).
         /// </summary>
-        internal static IEnumerator SetupMrtkWithoutGlobalInputHandlers()
+        public static IEnumerator SetupMrtkWithoutGlobalInputHandlers()
         {
             if (!MixedRealityToolkit.IsInitialized)
             {
@@ -224,13 +224,13 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             iss.InputSimulationProfile = inputSimulationProfiles.Pop();
         }
 
-        internal static void SetHandSimulationMode(HandSimulationMode mode)
+        public static void SetHandSimulationMode(HandSimulationMode mode)
         {
             var iss = GetInputSimulationService();
             iss.HandSimulationMode = mode;
         }
 
-        internal static IEnumerator SetHandState(Vector3 handPos, ArticulatedHandPose.GestureId gestureId, Handedness handedness, InputSimulationService inputSimulationService)
+        public static IEnumerator SetHandState(Vector3 handPos, ArticulatedHandPose.GestureId gestureId, Handedness handedness, InputSimulationService inputSimulationService)
         {
             yield return MoveHandFromTo(handPos, handPos, 2, ArticulatedHandPose.GestureId.Pinch, handedness, inputSimulationService);
         }
@@ -249,7 +249,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             return null;
         }
 
-        internal static IEnumerator MoveHandFromTo(
+        public static IEnumerator MoveHandFromTo(
             Vector3 startPos, Vector3 endPos, int numSteps,
             ArticulatedHandPose.GestureId gestureId, Handedness handedness, InputSimulationService inputSimulationService)
         {
@@ -271,7 +271,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             }
         }
 
-        internal static IEnumerator SetHandRotation(Quaternion fromRotation, Quaternion toRotation, Vector3 handPos, ArticulatedHandPose.GestureId gestureId,
+        public static IEnumerator SetHandRotation(Quaternion fromRotation, Quaternion toRotation, Vector3 handPos, ArticulatedHandPose.GestureId gestureId,
             Handedness handedness, int numSteps, InputSimulationService inputSimulationService)
         {
             Debug.Assert(handedness == Handedness.Right || handedness == Handedness.Left, "handedness must be either right or left");
@@ -292,7 +292,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             }
         }
 
-        internal static IEnumerator HideHand(Handedness handedness, InputSimulationService inputSimulationService)
+        public static IEnumerator HideHand(Handedness handedness, InputSimulationService inputSimulationService)
         {
             yield return null;
 
@@ -306,12 +306,12 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// <summary>
         /// Shows the hand in the open state, at the origin
         /// </summary>
-        internal static IEnumerator ShowHand(Handedness handedness, InputSimulationService inputSimulationService)
+        public static IEnumerator ShowHand(Handedness handedness, InputSimulationService inputSimulationService)
         {
             yield return ShowHand(handedness, inputSimulationService, ArticulatedHandPose.GestureId.Open, Vector3.zero);
         }
 
-        internal static IEnumerator ShowHand(Handedness handedness, InputSimulationService inputSimulationService, ArticulatedHandPose.GestureId handPose, Vector3 handLocation)
+        public static IEnumerator ShowHand(Handedness handedness, InputSimulationService inputSimulationService, ArticulatedHandPose.GestureId handPose, Vector3 handLocation)
         {
             yield return null;
 
@@ -322,7 +322,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             yield return null;
         }
 
-        internal static void InstallTextMeshProEssentials()
+        public static void InstallTextMeshProEssentials()
         {
 #if UNITY_EDITOR
             // Import the TMP Essential Resources package
@@ -343,7 +343,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// Not actually used by any test, but it is useful when debugging since you can
         /// pause the state of the test and inspect the scene.
         /// </summary>
-        internal static IEnumerator WaitForEnterKey()
+        public static IEnumerator WaitForEnterKey()
         {
             Debug.Log(Time.time + "Press Enter...");
             while (!UnityEngine.Input.GetKeyDown(KeyCode.Return))
@@ -359,7 +359,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// We set it fairly conservatively to ensure that after waiting
         /// all input events have been sent.
         /// </summary>
-        internal static IEnumerator WaitForInputSystemUpdate()
+        public static IEnumerator WaitForInputSystemUpdate()
         {
             const int inputSystemUpdateFrames = 10;
             for (int i = 0; i < inputSystemUpdateFrames; i++)

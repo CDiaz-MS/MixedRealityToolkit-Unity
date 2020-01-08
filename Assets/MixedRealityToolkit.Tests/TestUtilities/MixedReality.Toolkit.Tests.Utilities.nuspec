@@ -13,13 +13,18 @@
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <tags>Unity MixedReality MixedRealityToolkit MRTK</tags>
     <dependencies>
-      <dependency id="Microsoft.MixedReality.Toolkit.Foundation" version="2.2.0" />
+      <dependency id="Microsoft.MixedReality.Toolkit.Foundation" version="$version$" />
     </dependencies>
   </metadata>
   <files>
     <!-- Test Utilities -->
-    <file src="..\TestUtilities.cs" target="Utilities\" />
-    <file src="..\PlayModeTests\PlayModeTestUtilities.cs" target="Utilities\" />
-    <file src="..\PlayModeTests\TestHand.cs" target="Utilities\" />
+    <file src="**" exclude="*.nuspec;*.nuspec.meta;*.props;*.props.meta;*.targets;*.targets.meta" target="MRTK\" />
+
+    <!-- Reuse MixedReality.Toolkit.targets, as the MSBuild logic is the same for all MRTK nuget packages. -->
+    <file src="..\..\MixedRealityToolkit\MixedReality.Toolkit.targets" target="build\Microsoft.MixedReality.Toolkit.Tests.Utilities.targets" />
+
+    <file src="..\..\..\Plugins\**\Microsoft.MixedReality.Toolkit.Tests.TestUtilities*" target="Plugins\" />
+    <file src="..\..\..\..\Assets\MixedRealityToolkit.Tests\TestUtilities\**\*.cs" target="contentFiles\any\any\.PkgSrc\MRTK\MixedRealityToolkit.Tests\TestUtilities" />
+    
   </files>
 </package>
