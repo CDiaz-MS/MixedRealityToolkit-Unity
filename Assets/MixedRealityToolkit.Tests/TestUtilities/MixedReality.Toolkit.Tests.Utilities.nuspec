@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Microsoft.MixedReality.Toolkit.Tests.Utilities</id>
-    <version>1.0.0</version>
+    <version>$version$</version>
     <description>Testing utilities for an MRTK unity project.</description>
     <authors>Microsoft</authors>
     <owners>Microsoft,MixedReality</owners>
