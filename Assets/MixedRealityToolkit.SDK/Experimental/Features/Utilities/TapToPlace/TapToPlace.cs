@@ -3,6 +3,7 @@
 
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Physics;
+using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 using System.Collections.Generic;
@@ -26,16 +27,9 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             get => gameObjectToPlace;
             set
             {
-                // ========================== Check on this =====================================
                 if (value != null && gameObjectToPlace != value)
                 {
                     gameObjectToPlace = value;
-
-                    // Make sure new game object has a collider
-                    if (!ColliderPresent)
-                    {
-                        Debug.LogError("GameObjectToPlace does not have a collider attached, please add a collider to GameObjectToPlace");
-                    }
                 }
             }
         }
@@ -55,6 +49,26 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 return true;
             }
         }
+
+
+        //[Tooltip("If true, and the GameObjectToPlace is in currently being placed, the spatial mesh visiblilty is enabled")]
+        //private bool spatialMeshVisibility = true;
+
+        ///// <summary>
+        ///// If true, and the GameObjectToPlace is in currently being placed, the spatial mesh visiblilty is enabled
+        ///// </summary>
+        //public bool SpatialMeshVisibility
+        //{
+        //    get => spatialMeshVisibility;
+        //    set
+        //    {
+        //        if (spatialMeshVisibility != value)
+        //        {
+        //            spatialMeshVisibility = value;
+        //        }
+        //    }
+        //}
+
 
         [SerializeField]
         [Tooltip("The default distance (in meters) an object will be placed relative to the TrackedTargetType forward in the SolverHandler." +
@@ -109,9 +123,14 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         /// </summary>
         public bool IsBeingPlaced { get; protected set; }
 
+        /// <summary>
+        /// If true, the raycast did hit a surface
+        /// </summary>
+        public bool DidHit { get; protected set; }
+
         [SerializeField]
         [Tooltip("The distance between the center of the gameobject to place and a surface along the surface normal, if the raycast hits a surface")]
-        private float surfaceNormalOffset = 0.1f;
+        private float surfaceNormalOffset = 0.0f;
 
         /// <summary>
         /// The distance between the center of the gameobject to place and a surface along the surface normal, if the raycast hits a surface
@@ -124,10 +143,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 if (surfaceNormalOffset != value)
                 {
                     surfaceNormalOffset = value;
-                    // Get info from the box collider to calculate the offset
-
-                    // ========================== Check on this =====================================
-
                 }
             }
         }
@@ -151,20 +166,67 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
         }
 
-        const int IgnoreRaycastLayer = 2;
 
-        const int DefaultLayer = 0;
+        [SerializeField]
+        [Tooltip("If true, the spatial mesh will be visible while the object is in the placing state.")]
+        private bool spatialMeshVisible = true;
 
-        // If true, the raycast did hit a surface
-        protected bool didHit;
+        /// <summary>
+        /// If true, the spatial mesh will be visible while the object is in the placing state.
+        /// </summary>
+        public bool SpatialMeshVisible
+        {
+            get => spatialMeshVisible;
+            set
+            {
+                if (spatialMeshVisible != value)
+                {
+                    spatialMeshVisible = value; 
+                }
+            }
+        }
+
+
+
+
+        [SerializeField]
+        [Tooltip("If false, the game object to place will not change its rotation according to the surface hit.  The object will" +
+            "remain facing the camera while it is in the placing state.  IF true, the object will rotate according to the surface" +
+            "if there is a hit.")]
+        private bool rotateAccordingToSurface = false;
+
+        /// <summary>
+        /// If false, the game object to place will not change its rotation according to the surface hit.  The object will
+        /// remain facing the camera while it is in the placing state.  If true, the object will rotate according to the surface
+        /// if there is a hit."
+        /// </summary>
+        public bool RotateAccordingToSurface
+        {
+            get => rotateAccordingToSurface;
+            set
+            {
+                if (rotateAccordingToSurface != value)
+                {
+                    rotateAccordingToSurface = value;
+                }
+            }
+        }
+
+        private const int IgnoreRaycastLayer = 2;
+
+        private const int DefaultLayer = 0;
 
         // The current ray is based on the TrackedTargetType (Controller Ray, Head, Hand Joint)
         protected RayStep currentRay;
 
         protected RaycastHit currentHit;
 
+        protected float previousFrameNumber;
+
+
         protected override void Start()
         {
+            // Solver is the base class
             base.Start();
 
             // If tap to place is added via script, set the GameObjectToPlace as this gameobject 
@@ -173,40 +235,70 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 GameObjectToPlace = gameObject;
             }
 
-            IsBeingPlaced = false;
+            if(!ColliderPresent)
+            {
+                Debug.LogError("The GameObjectToPlace does not have a collider attached, please attach a collider");
+            }
 
-            // Set the default target transform for the game object to place based on the controller ray!!!!!!!!!!!!
-            SolverHandler.TrackedTargetType = TrackedObjectType.ControllerRay;
+            // There might be cases were this does not work
+            SurfaceNormalOffset = GetComponent<Collider>().bounds.extents.z;
+            // Get the distance between the center in the direction of the normal to calculate the offset
 
             SolverHandler.UpdateSolvers = false;
+
+            IsBeingPlaced = false;
+
         }
 
         private void StartPlacement()
         {
+            // Change the game object layer to ignore a raycast, so we can get a raycast hit on a surface in front of the 
+            // game object to place
+            gameObject.layer = IgnoreRaycastLayer;
 
-            if (GameObjectToPlace != null)
+            if (SpatialMeshVisible)
             {
-
-                // Make sure there is a collider present on the object to ignore the raycast
-                if (ColliderPresent)
-                {
-                    // move the gameobject to the 2nd layer to ignore a raycast, so we can get a raycast hit on a surface in front of the 
-                    // game object to place
-                    gameObject.layer = IgnoreRaycastLayer;
-
-                }
-
-                SolverHandler.UpdateSolvers = true;
-
-                IsBeingPlaced = true;
-
+                SpatialMeshVisibilityToggle(true);
             }
+
+            CoreServices.InputSystem?.RegisterHandler<IMixedRealityPointerHandler>(this);
+
+            SolverHandler.UpdateSolvers = true;
+
+            IsBeingPlaced = true;
+        }
+
+
+        private void SpatialMeshVisibilityToggle(bool spatialMeshVisibility)
+        {
+            IMixedRealityDataProviderAccess spatialAwarenessSystem = CoreServices.SpatialAwarenessSystem as IMixedRealityDataProviderAccess;
+
+            IReadOnlyList<IMixedRealitySpatialAwarenessMeshObserver> observers = spatialAwarenessSystem.GetDataProviders<IMixedRealitySpatialAwarenessMeshObserver>();
+
+            foreach (IMixedRealitySpatialAwarenessMeshObserver observer in observers)
+            {
+                if (spatialMeshVisibility)
+                {
+                    observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.Visible;
+                }
+                else
+                {
+                    observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.None;
+                }    
+            }   
         }
 
         private void StopPlacement()
         {
             // Change the physics layer back to default so it can be hit by a raycast, and recieve pointer events
             gameObject.layer = DefaultLayer;
+
+            CoreServices.InputSystem?.UnregisterHandler<IMixedRealityPointerHandler>(this);
+
+            if (SpatialMeshVisible)
+            {
+                SpatialMeshVisibilityToggle(false);
+            }
 
             SolverHandler.UpdateSolvers = false;
 
@@ -233,7 +325,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 currentRay.UpdateRayStep(ref origin, ref endpoint);
 
                 // Check if the current ray hit a magnetic surface
-                didHit = MixedRealityRaycaster.RaycastSimplePhysicsStep(currentRay, MaxRaycastDistance, MagneticSurfaces, false, out currentHit);
+                DidHit = MixedRealityRaycaster.RaycastSimplePhysicsStep(currentRay, MaxRaycastDistance, MagneticSurfaces, false, out currentHit);
             }
         }
 
@@ -242,10 +334,11 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             // Change the position of the GameObjectToPlace if there was a hit, if not then place the object at the default distance
             // relative to the TrackedTargetType position
 
-            if (didHit)
+            if (DidHit)
             {
                 // take the current hit point and add an offset relative to the surface to avoid half of the object in the surface
                 GoalPosition = currentHit.point + (currentHit.normal * SurfaceNormalOffset);
+                Debug.DrawRay(currentHit.point, currentHit.normal * 0.5f, Color.yellow);
             }
             else
             {
@@ -265,9 +358,12 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
 
             // if the object is on a surface then change the rotation according to the normal of the hit point
-            if (didHit)
+            if (DidHit && rotateAccordingToSurface)
             {
+                // There may need to be an option to opt out of matching the normal of the raycast hit
+                // Maybe make an option to always match the direction even if there is a hit on a surface
                 GoalRotation = Quaternion.LookRotation(-surfaceNormal, Vector3.up);
+
             }
             else // if there is no result from the raycast hit, rotate the object based on the TrackedTargetType ray direction 
             {
@@ -275,28 +371,50 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
         }
 
+
+
         #region IMixedRealityPointerHandler
 
         /// <inheritdoc/>
-        public void OnPointerDown(MixedRealityPointerEventData eventData)
-        {
-            // Update solvers
-            Debug.Log("Start Placement");
-            StartPlacement();
-        }
+        public void OnPointerDown(MixedRealityPointerEventData eventData) { }
 
         /// <inheritdoc/>
         public void OnPointerDragged(MixedRealityPointerEventData eventData) { }
 
         /// <inheritdoc/>
-        public void OnPointerUp(MixedRealityPointerEventData eventData)
-        {
-            Debug.Log("Stop Placement");
-            StopPlacement();
-        }
+        public void OnPointerUp(MixedRealityPointerEventData eventData) { }
 
+
+        
         /// <inheritdoc/>
-        public void OnPointerClicked(MixedRealityPointerEventData eventData) { }
+        public void OnPointerClicked(MixedRealityPointerEventData eventData)
+        {
+
+            // When a click is called in the same second then it is a mistake and no action needs to be taken
+            Debug.Log("Time Difference: " + (Time.time - previousFrameNumber));
+            if ((Time.time - previousFrameNumber) < 1.0f)
+            {
+                Debug.Log("Double Click has occured, cannot trigger an action");
+                return;
+
+            }
+
+            if (!IsBeingPlaced)
+            {
+                Debug.Log("Start Placement");
+                StartPlacement();
+
+            }
+            else
+            {
+                Debug.Log("Stop Placement");
+                StopPlacement();
+            }
+
+            // Get the time of this click action
+            previousFrameNumber = Time.time;
+      
+        }
 
         #endregion
 
