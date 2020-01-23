@@ -11,7 +11,9 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 {
-    
+    /// <summary>
+    /// Tap to place is a far interaction component used to place obejcts relative to a surface.
+    /// </summary>
     public class TapToPlace : Solver, IMixedRealityPointerHandler
     {
         [Experimental]
@@ -50,34 +52,14 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
         }
 
-
-        //[Tooltip("If true, and the GameObjectToPlace is in currently being placed, the spatial mesh visiblilty is enabled")]
-        //private bool spatialMeshVisibility = true;
-
-        ///// <summary>
-        ///// If true, and the GameObjectToPlace is in currently being placed, the spatial mesh visiblilty is enabled
-        ///// </summary>
-        //public bool SpatialMeshVisibility
-        //{
-        //    get => spatialMeshVisibility;
-        //    set
-        //    {
-        //        if (spatialMeshVisibility != value)
-        //        {
-        //            spatialMeshVisibility = value;
-        //        }
-        //    }
-        //}
-
-
         [SerializeField]
         [Tooltip("The default distance (in meters) an object will be placed relative to the TrackedTargetType forward in the SolverHandler." +
-            "The GameObjectToPlace will be placed at this distance if a surface is not hit by the raycast.")]
+            "The GameObjectToPlace will be placed at the default placement distance if a surface is not hit by the raycast.")]
         private float defaultPlacementDistance = 1.5f;
 
         /// <summary>
         /// The default distance (in meters) an object will be placed relative to the TrackedTargetType forward in the SolverHandler.
-        /// The GameObjectToPlace will be placed at this distance if a surface is not hit by the raycast.
+        /// The GameObjectToPlace will be placed at the default placement distance if a surface is not hit by the raycast.
         /// </summary>
         public float DefaultPlacementDistance
         {
@@ -118,7 +100,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         }
 
         /// <summary>
-        /// Is the gameObjectToPlace currently in a state where it is being placed? This state is activated when you select and hold 
+        /// Is the gameObjectToPlace currently in a state where it is being placed? This state is activated when you select
         /// the GameObjectToPlace.
         /// </summary>
         public bool IsBeingPlaced { get; protected set; }
@@ -133,7 +115,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         private float surfaceNormalOffset = 0.0f;
 
         /// <summary>
-        /// The distance between the center of the gameobject to place and a surface along the surface normal, if the raycast hits a surface
+        /// The distance between the center of the gameobject to place and the z extents!!!!!!!!!!!!!!!!!!!!!!!!!!
         /// </summary>
         public float SurfaceNormalOffset
         {
@@ -148,11 +130,11 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         }
 
         [SerializeField]
-        [Tooltip("If true, the GameObjectToPlace will remain upright and parallel to Vector3.up")]
+        [Tooltip("If true, the GameObjectToPlace will remain upright and in line with Vector3.up")]
         private bool keepOrientationVertical = false;
 
         /// <summary>
-        /// If true, the GameObjectToPlace will remain upright and parallel to Vector3.up
+        /// If true, the GameObjectToPlace will remain upright and in line with Vector3.up
         /// </summary>
         public bool KeepOrientationVertical
         {
@@ -186,18 +168,15 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
         }
 
-
-
-
         [SerializeField]
         [Tooltip("If false, the game object to place will not change its rotation according to the surface hit.  The object will" +
-            "remain facing the camera while it is in the placing state.  IF true, the object will rotate according to the surface" +
+            "remain facing the camera while it is in the placing state.  If true, the object will rotate according to the surface normal" +
             "if there is a hit.")]
         private bool rotateAccordingToSurface = false;
 
         /// <summary>
-        /// If false, the game object to place will not change its rotation according to the surface hit.  The object will
-        /// remain facing the camera while it is in the placing state.  If true, the object will rotate according to the surface
+        /// If false, the game object to place will not change its rotation according to the surface hit.  The object will 
+        /// remain facing the camera while it is in the placing state.  If true, the object will rotate according to the surface normal
         /// if there is a hit."
         /// </summary>
         public bool RotateAccordingToSurface
@@ -221,7 +200,9 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
         protected RaycastHit currentHit;
 
-        protected float previousFrameNumber;
+        protected float previousFrameNumber = 0;
+
+        protected bool isSpatialMeshVisibleOnStart;
 
 
         protected override void Start()
@@ -240,9 +221,11 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 Debug.LogError("The GameObjectToPlace does not have a collider attached, please attach a collider");
             }
 
-            // There might be cases were this does not work
+            // There might be cases where this does not work
             SurfaceNormalOffset = GetComponent<Collider>().bounds.extents.z;
-            // Get the distance between the center in the direction of the normal to calculate the offset
+
+            // Check if the Spatial Mesh is already visible on start
+            isSpatialMeshVisibleOnStart  = SpatialMeshVisibilityState();
 
             SolverHandler.UpdateSolvers = false;
 
@@ -266,26 +249,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             SolverHandler.UpdateSolvers = true;
 
             IsBeingPlaced = true;
-        }
-
-
-        private void SpatialMeshVisibilityToggle(bool spatialMeshVisibility)
-        {
-            IMixedRealityDataProviderAccess spatialAwarenessSystem = CoreServices.SpatialAwarenessSystem as IMixedRealityDataProviderAccess;
-
-            IReadOnlyList<IMixedRealitySpatialAwarenessMeshObserver> observers = spatialAwarenessSystem.GetDataProviders<IMixedRealitySpatialAwarenessMeshObserver>();
-
-            foreach (IMixedRealitySpatialAwarenessMeshObserver observer in observers)
-            {
-                if (spatialMeshVisibility)
-                {
-                    observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.Visible;
-                }
-                else
-                {
-                    observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.None;
-                }    
-            }   
         }
 
         private void StopPlacement()
@@ -337,7 +300,10 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             if (DidHit)
             {
                 // take the current hit point and add an offset relative to the surface to avoid half of the object in the surface
-                GoalPosition = currentHit.point + (currentHit.normal * SurfaceNormalOffset);
+                GoalPosition = currentHit.point;  
+                AddOffset(currentHit.normal * SurfaceNormalOffset);
+                
+                // Draw the normal of the raycast hit for debugging 
                 Debug.DrawRay(currentHit.point, currentHit.normal * 0.5f, Color.yellow);
             }
             else
@@ -357,6 +323,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
                 surfaceNormal.y = 0;
             }
 
+            //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // if the object is on a surface then change the rotation according to the normal of the hit point
             if (DidHit && rotateAccordingToSurface)
             {
@@ -371,6 +338,46 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             }
         }
 
+        private void SpatialMeshVisibilityToggle(bool spatialMeshVisibility)
+        {
+            // If the spatial mesh is already visible on start, then we do not need to toggle the spatial mesh 
+            // if the object is in the placing state
+            if (!isSpatialMeshVisibleOnStart)
+            {
+                IMixedRealityDataProviderAccess spatialAwarenessSystem = CoreServices.SpatialAwarenessSystem as IMixedRealityDataProviderAccess;
+
+                IReadOnlyList<IMixedRealitySpatialAwarenessMeshObserver> observers = spatialAwarenessSystem.GetDataProviders<IMixedRealitySpatialAwarenessMeshObserver>();
+
+                foreach (IMixedRealitySpatialAwarenessMeshObserver observer in observers)
+                {
+                    // If the user wants the spatial mesh visible while in the placing state
+                    if (spatialMeshVisibility)
+                    {
+                        observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.Visible;
+                    }
+                    else
+                    {
+                        observer.DisplayOption = SpatialAwarenessMeshDisplayOptions.None;
+                    }
+                }
+            }
+        }
+
+        private bool SpatialMeshVisibilityState()
+        {
+            IMixedRealityDataProviderAccess spatialAwarenessSystem = CoreServices.SpatialAwarenessSystem as IMixedRealityDataProviderAccess;
+
+            IReadOnlyList<IMixedRealitySpatialAwarenessMeshObserver> observers = spatialAwarenessSystem.GetDataProviders<IMixedRealitySpatialAwarenessMeshObserver>();
+
+            foreach (IMixedRealitySpatialAwarenessMeshObserver observer in observers)
+            {
+                if (observer.DisplayOption == SpatialAwarenessMeshDisplayOptions.Visible)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
 
 
         #region IMixedRealityPointerHandler
@@ -384,8 +391,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
         /// <inheritdoc/>
         public void OnPointerUp(MixedRealityPointerEventData eventData) { }
 
-
-        
         /// <inheritdoc/>
         public void OnPointerClicked(MixedRealityPointerEventData eventData)
         {
@@ -394,7 +399,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
             Debug.Log("Time Difference: " + (Time.time - previousFrameNumber));
             if ((Time.time - previousFrameNumber) < 1.0f)
             {
-                Debug.Log("Double Click has occured, cannot trigger an action");
+                Debug.Log("Double Click has been caught, no actions triggered");
                 return;
 
             }
@@ -413,7 +418,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Utilities
 
             // Get the time of this click action
             previousFrameNumber = Time.time;
-      
+
         }
 
         #endregion

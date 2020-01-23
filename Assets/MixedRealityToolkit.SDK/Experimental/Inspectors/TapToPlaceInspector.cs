@@ -21,7 +21,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
         protected SerializedProperty defaultPlacementDistance;
         protected SerializedProperty maxRaycastDistance;
         protected SerializedProperty magneticSurfaces;
-        //protected SerializedProperty spatialMeshVisibility;
 
         protected virtual void OnEnable()
         {
@@ -33,7 +32,6 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
             maxRaycastDistance = serializedObject.FindProperty("maxRaycastDistance");
             keepOrientationVertical = serializedObject.FindProperty("keepOrientationVertical");
             spatialMeshVisible = serializedObject.FindProperty("spatialMeshVisible");
-            //spatialMeshVisibility = serializedObject.FindProperty("spatialMeshVisibility");
         }
 
         public override void OnInspectorGUI()
@@ -60,7 +58,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
 
             if (!instance.ColliderPresent)
             {
-                Debug.Log("A collider needs to be attached to your game object, please attach a collider to use tap to place");
+                Debug.LogError("A collider needs to be attached to your game object, please attach a collider to use tap to place");
             }
 
             UpdateProperties();
@@ -78,9 +76,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
             EditorGUILayout.PropertyField(spatialMeshVisible);
             EditorGUILayout.PropertyField(defaultPlacementDistance);
             EditorGUILayout.PropertyField(maxRaycastDistance);
-            //EditorGUILayout.PropertyField(spatialMeshVisibility);
-            EditorGUILayout.PropertyField(magneticSurfaces,true);
-            
+            EditorGUILayout.PropertyField(magneticSurfaces,true);  
         }
     }
 }
