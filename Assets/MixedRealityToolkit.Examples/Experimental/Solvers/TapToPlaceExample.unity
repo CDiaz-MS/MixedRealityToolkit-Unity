@@ -638,9 +638,13 @@ PrefabInstance:
     - target: {fileID: 8329787883158438443, guid: 247dc8aebe30ca2408e8293a883c75df,
         type: 3}
       propertyPath: toolTipText
-      value: 'TrackedTargetType: Head
+      value: 'HoloLens1 Behavior
 
-        Always Face Camera'
+        TrackedTargetType: Head
+
+        Always Face Camera
+
+        Keep Orientation Vertical'
       objectReference: {fileID: 0}
     - target: {fileID: 8329787883158438443, guid: 247dc8aebe30ca2408e8293a883c75df,
         type: 3}
@@ -655,7 +659,7 @@ PrefabInstance:
     - target: {fileID: 8222863950748663225, guid: 247dc8aebe30ca2408e8293a883c75df,
         type: 3}
       propertyPath: m_LocalScale.y
-      value: 0.036283784
+      value: 0.057567567
       objectReference: {fileID: 0}
     - target: {fileID: 8217189920156946147, guid: 247dc8aebe30ca2408e8293a883c75df,
         type: 3}
@@ -746,7 +750,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &547440359
 Transform:
   m_ObjectHideFlags: 0
@@ -1121,9 +1125,11 @@ MonoBehaviour:
   magneticSurfaces:
   - serializedVersion: 2
     m_Bits: 4294967291
+  autoStart: 0
   surfaceNormalOffset: 0.1
   keepOrientationVertical: 1
   spatialMeshVisible: 1
+  initialSpatialMeshDisplayOption: 0
   rotateAccordingToSurface: 1
 --- !u!114 &1360759782
 MonoBehaviour:
@@ -1349,9 +1355,11 @@ MonoBehaviour:
   magneticSurfaces:
   - serializedVersion: 2
     m_Bits: 4294967291
+  autoStart: 0
   surfaceNormalOffset: 0.1
   keepOrientationVertical: 0
   spatialMeshVisible: 1
+  initialSpatialMeshDisplayOption: 0
   rotateAccordingToSurface: 0
 --- !u!114 &1410453736
 MonoBehaviour:
@@ -1680,6 +1688,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 223739930357392652, guid: a900c08743a94c328074df8bbe3eb63c,
+        type: 3}
+      propertyPath: m_AdditionalShaderChannelsFlag
+      value: 25
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: a900c08743a94c328074df8bbe3eb63c, type: 3}
 --- !u!4 &1942003698 stripped
@@ -1886,9 +1899,11 @@ MonoBehaviour:
   magneticSurfaces:
   - serializedVersion: 2
     m_Bits: 4294967291
+  autoStart: 0
   surfaceNormalOffset: 0
   keepOrientationVertical: 0
   spatialMeshVisible: 1
+  initialSpatialMeshDisplayOption: 0
   rotateAccordingToSurface: 1
 --- !u!114 &2124885872
 MonoBehaviour:
@@ -2042,9 +2057,11 @@ MonoBehaviour:
   magneticSurfaces:
   - serializedVersion: 2
     m_Bits: 4294967291
+  autoStart: 0
   surfaceNormalOffset: 0.1
-  keepOrientationVertical: 0
+  keepOrientationVertical: 1
   spatialMeshVisible: 1
+  initialSpatialMeshDisplayOption: 0
   rotateAccordingToSurface: 0
 --- !u!114 &8524936517105359306
 MonoBehaviour:

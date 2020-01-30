@@ -15,6 +15,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
     {
         protected TapToPlace instance;
         protected SerializedProperty gameObjectToPlace;
+        protected SerializedProperty autoStart;
         protected SerializedProperty rotateAccordingToSurface;
         protected SerializedProperty keepOrientationVertical;
         protected SerializedProperty spatialMeshVisible;
@@ -32,6 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
             maxRaycastDistance = serializedObject.FindProperty("maxRaycastDistance");
             keepOrientationVertical = serializedObject.FindProperty("keepOrientationVertical");
             spatialMeshVisible = serializedObject.FindProperty("spatialMeshVisible");
+            autoStart = serializedObject.FindProperty("autoStart");
         }
 
         public override void OnInspectorGUI()
@@ -48,6 +50,7 @@ namespace Microsoft.MixedReality.Toolkit.Experimental.Inspectors
             using (new EditorGUI.DisabledScope(isPlayMode))
             {
                 EditorGUILayout.PropertyField(gameObjectToPlace);
+                EditorGUILayout.PropertyField(autoStart);
             }
 
             // If the GameObjectToPlace is null set it to the gameobject
