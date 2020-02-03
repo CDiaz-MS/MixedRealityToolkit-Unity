@@ -5,7 +5,7 @@ Mixed Reality Toolkit (MRTK) is now available as a NuGet package on NuGet.org. T
 > [!NOTE]
 > Migration of existing projects to consume MRTK as a NuGet package is not yet supported, use MRTK via NuGet only for new projects.
 
-## Installing the NuGet package
+## Installing the NuGet package via NuGetForUnity
 
 Follow these instructions to add the Mixed Reality Toolkit as a NuGet package to your project.
 
@@ -33,6 +33,51 @@ Steps 1-2 above will only need to be done once for the project, and the update i
 1. Switch to the **Updates** tab.
     - Check the **Show prerelease** box if you want to get latest prerelease version.
 1. Update the packages desired.
+
+
+## Installing the NuGet packages via MSBuildForUnity
+
+MRTK 2.3 now supports NuGet package installation via [MSBuildForUnity](https://github.com/microsoft/MSBuildForUnity).
+
+ ### Adding MSBuildForUnity to your Unity Project
+1. Navigate to the **Packages/** directory in your Unity Project and open the **manifest.json** file.
+1. Add the following to the top of the file:
+
+    ```
+    {
+    "scopedRegistries": [
+        {
+            "name": "Microsoft",
+            "url": "https://pkgs.dev.azure.com/UnityDeveloperTools/MSBuildForUnity/_packaging/UnityDeveloperTools/npm/registry/",
+            "scopes": [
+                "com.microsoft"
+            ]
+        }
+    ],
+    ```
+
+1. Add the following to the dependencies section of the file and save:
+    ```
+    "com.microsoft.msbuildforunity": "0.9.1"
+    ```
+
+1. Save the manifest file and in Unity will import MSBuild. Once it is finished importing, there will be a new MSBuild Window and a Dependencies folder in the root of Assets"
+    ![MSBuild Window](Images/NuGet/MSBuildForUnity_MSBuildWindow.png)
+
+
+ ### Adding the NuGet Packages
+1. Navigate to the Assets root directory and open the UnityProjectName.Dependencies.msb4u by double clicking the csproj.
+    ![Dependency Folder Structure](Images/NuGet/MSBuildForUnity_DependenciesFolder.png)
+
+1. In Visual Studio right click on the project and select "Mange NuGet Packages".
+    ![MSBuild Manage NuGet Packages](Images/NuGet/MSBuildForUnity_ManageNugetPackages.png)
+
+1. In the Browse tab search for "MixedReality.Toolkit" and install the MixedReality.Toolkit.Foundation package.
+
+1. Make sure to save solution and MSBuildForUnity will begin package installation. 
+
+1. The newly imported packages will be located in the Dependencies folder at the root of Assets.
+
 
 ## NuGet package considerations
 
