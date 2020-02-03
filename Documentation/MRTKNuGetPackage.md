@@ -62,14 +62,17 @@ MRTK 2.3 now supports NuGet package installation via [MSBuildForUnity](https://g
     ```
 
 1. Save the manifest file and in Unity will import MSBuild. Once it is finished importing, there will be a new MSBuild Window and a Dependencies folder in the root of Assets"
+
     ![MSBuild Window](Images/NuGet/MSBuildForUnity_MSBuildWindow.png)
 
 
  ### Adding the NuGet Packages
 1. Navigate to the Assets root directory and open the UnityProjectName.Dependencies.msb4u by double clicking the csproj.
+
     ![Dependency Folder Structure](Images/NuGet/MSBuildForUnity_DependenciesFolder.png)
 
 1. In Visual Studio right click on the project and select "Mange NuGet Packages".
+
     ![MSBuild Manage NuGet Packages](Images/NuGet/MSBuildForUnity_ManageNugetPackages.png)
 
 1. In the Browse tab search for "MixedReality.Toolkit" and install the MixedReality.Toolkit.Foundation package.
