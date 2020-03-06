@@ -162,7 +162,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
                 MixedRealityInteractionMapping currentMapping = interactions[i];
                 MixedRealityInteractionMapping currentDefaultMapping = newDefaultInteractions[i];
 
-                if (Equals(currentMapping, currentDefaultMapping))
+                if (!Equals(currentMapping, currentDefaultMapping))
                 {
                     interactions[i] = new MixedRealityInteractionMapping(currentDefaultMapping)
                     {
@@ -234,7 +234,7 @@ namespace Microsoft.MixedReality.Toolkit.Input
         }
 
         /// <summary>
-        /// Synchronizes the Input Actions of the same physical controller of a different concrete type.
+        /// Synchronizes the input actions of the same physical controller of a different concrete type.
         /// </summary>
         internal void SynchronizeInputActions(MixedRealityInteractionMapping[] otherControllerMapping)
         {

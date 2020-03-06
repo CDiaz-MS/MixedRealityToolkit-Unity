@@ -32,8 +32,8 @@ namespace Microsoft.MixedReality.Toolkit.Extensions.HandPhysics
             handPhysicsServiceProfile = (HandPhysicsServiceProfile)profile;
         }
 
-        private IMixedRealityHandJointService HandJointService => handJointService ??
-            (CoreServices.InputSystem as IMixedRealityDataProviderAccess)?.GetDataProvider<IMixedRealityHandJointService>();
+        private IMixedRealityHandJointService HandJointService 
+            => handJointService ?? CoreServices.GetInputSystemDataProvider<IMixedRealityHandJointService>();
 
         /// <inheritdoc />
         public GameObject HandPhysicsServiceRoot { get; private set; }
@@ -140,7 +140,7 @@ namespace Microsoft.MixedReality.Toolkit.Extensions.HandPhysics
             {
                 if (HandJointService.IsHandTracked(jointKinematicBody.HandednessType))
                 {
-                    jointKinematicBody.Joint = jointKinematicBody.Joint ?? HandJointService.RequestJointTransform(jointKinematicBody.JointType, jointKinematicBody.HandednessType);
+                    jointKinematicBody.Joint = jointKinematicBody.Joint != null ? jointKinematicBody.Joint : HandJointService.RequestJointTransform(jointKinematicBody.JointType, jointKinematicBody.HandednessType);
                     jointKinematicBody.UpdateState(jointKinematicBody.Joint != null);
                 }
                 else

@@ -25,8 +25,13 @@ namespace Microsoft.MixedReality.Toolkit.Tests
     /// </summary>
     public class SpatialObserverTests
     {
-        private const string TestSpatialAwarenessSystemProfilePath = "Assets/MixedRealityToolkit.Tests/PlayModeTests/TestProfiles/TestMixedRealitySpatialAwarenessSystemProfile.asset";
-        private const string TestSpatialAwarenessSystemProfilePath_ManualStart = "Assets/MixedRealityToolkit.Tests/PlayModeTests/TestProfiles/TestMixedRealitySpatialAwarenessSystemProfile_ManualStart.asset";
+        // Tests/PlayModeTests/TestProfiles/TestMixedRealitySpatialAwarenessSystemProfile.asset
+        private const string TestSpatialAwarenessSystemProfileGuid = "c992bdb3ac45cd44d856b0198a3ee85d";
+        private static readonly string TestSpatialAwarenessSystemProfilePath = AssetDatabase.GUIDToAssetPath(TestSpatialAwarenessSystemProfileGuid);
+
+        // Tests/PlayModeTests/TestProfiles/TestMixedRealitySpatialAwarenessSystemProfile_ManualStart.asset
+        private const string TestSpatialAwarenessSystemProfileGuid_ManualStart = "d38d502ad0bcb3447b106d550fd5a371";
+        private static readonly string TestSpatialAwarenessSystemProfilePath_ManualStart = AssetDatabase.GUIDToAssetPath(TestSpatialAwarenessSystemProfileGuid_ManualStart);
 
         /// <summary>
         /// Test default case of Auto-Start SpatialObjectMeshObserver observer type and SpatialAwarenessSystem in editor
@@ -39,18 +44,17 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             TestUtilities.InitializeMixedRealityToolkit(mrtkProfile);
             yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
 
-            var spatialAwarenesssDataProvider = CoreServices.SpatialAwarenessSystem as IMixedRealityDataProviderAccess;
-            var spatialObserver = spatialAwarenesssDataProvider.GetDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
+            var spatialObserver = CoreServices.GetSpatialAwarenessSystemDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
             Assert.IsNotNull(spatialObserver, "No SpatialObjectMeshObserver data provider created or found");
             Assert.IsTrue(spatialObserver.IsRunning);
             Assert.IsNotEmpty(spatialObserver.Meshes);
 
             CoreServices.SpatialAwarenessSystem.Disable();
-            spatialObserver = spatialAwarenesssDataProvider.GetDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
+            spatialObserver = CoreServices.GetSpatialAwarenessSystemDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
             Assert.IsNull(spatialObserver);
 
             CoreServices.SpatialAwarenessSystem.Enable();
-            spatialObserver = spatialAwarenesssDataProvider.GetDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
+            spatialObserver = CoreServices.GetSpatialAwarenessSystemDataProvider<SpatialObjectMeshObserver.SpatialObjectMeshObserver>();
             Assert.IsNotNull(spatialObserver, "No SpatialObjectMeshObserver data provider created or found");
             Assert.IsTrue(spatialObserver.IsRunning);
             yield return PlayModeTestUtilities.WaitForInputSystemUpdate();

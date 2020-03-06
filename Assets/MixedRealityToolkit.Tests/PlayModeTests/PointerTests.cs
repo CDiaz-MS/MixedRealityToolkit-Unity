@@ -27,10 +27,15 @@ namespace Microsoft.MixedReality.Toolkit.Tests
     /// <summary>
     /// Tests to verify pointer state and pointer direction
     /// </summary>
-    public class PointerTests 
+    public class PointerTests
     {
-        private const string LinePointerPrefab = "Assets/MixedRealityToolkit.SDK/Features/UX/Prefabs/Pointers/DefaultControllerPointer.prefab";
-        private const string CurvePointerPrefab = "Assets/MixedRealityToolkit.SDK/Features/UX/Prefabs/Pointers/ParabolicPointer.prefab";
+        // SDK/Features/UX/Prefabs/Pointers/DefaultControllerPointer.prefab
+        private const string LinePointerGuid = "d5b94136462644c9873bb3347169ae7e";
+        private static readonly string LinePointerPrefab = AssetDatabase.GUIDToAssetPath(LinePointerGuid);
+
+        // SDK/Features/UX/Prefabs/Pointers/ParabolicPointer.prefab
+        private const string CurvePointerGuid = "c4fd3c6fc7ff484eb434775066e7f327";
+        private static readonly string CurvePointerPrefab = AssetDatabase.GUIDToAssetPath(CurvePointerGuid);
 
         [SetUp]
         public void Setup()
@@ -56,7 +61,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         {
             BaseEventSystem.enableDanglingHandlerDiagnostics = false;
 
-            var linePointer = CreatePointerPrefab<LinePointer>(LinePointerPrefab, 
+            var linePointer = CreatePointerPrefab<LinePointer>(LinePointerPrefab,
                 out IMixedRealityInputSource lineInputSource, out IMixedRealityController lineController);
 
             var curvePointer = CreatePointerPrefab<TeleportPointer>(CurvePointerPrefab,
@@ -100,8 +105,61 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             BaseEventSystem.enableDanglingHandlerDiagnostics = true;
         }
 
+
         /// <summary>
-        /// Tests that sphere pointer grabs object when hand is insize a giant grabbable
+        /// Test pointers are correctly enabled when interacting with colliders that are visible, but whose
+        /// bounds are outside the camera FOV.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestPointerFOVLargeCollider()
+        {
+            var rightHand = new TestHand(Handedness.Right);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.AddComponent<NearInteractionGrabbable>();
+            cube.AddComponent<NearInteractionTouchableVolume>();
+            yield return rightHand.Show(Vector3.zero);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+
+            var spherePointer = PointerUtils.GetPointer<SpherePointer>(Handedness.Right);
+            var pokePointer = PointerUtils.GetPointer<PokePointer>(Handedness.Right);
+
+            yield return TestPointerFOVLargeColliderHelper(spherePointer, cube, rightHand);
+            yield return TestPointerFOVLargeColliderHelper(pokePointer, cube, rightHand);
+
+            rightHand.Hide();
+            GameObject.Destroy(cube);
+        }
+
+        /// <summary>
+        /// Tests that pointers behave correctly when interacting with objects inside and outside
+        /// its field of view
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestPointerFOV()
+        {
+            var rightHand = new TestHand(Handedness.Right);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.AddComponent<NearInteractionGrabbable>();
+            cube.AddComponent<NearInteractionTouchableVolume>();
+            yield return rightHand.Show(Vector3.zero);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+
+            var spherePointer = PointerUtils.GetPointer<SpherePointer>(Handedness.Right);
+            var pokePointer = PointerUtils.GetPointer<PokePointer>(Handedness.Right);
+
+            yield return TestPointerFOVHelper(spherePointer, cube, rightHand);
+            yield return TestPointerFOVHelper(pokePointer, cube, rightHand);
+
+            rightHand.Hide();
+            GameObject.Destroy(cube);
+        }
+
+        /// <summary>
+        /// Tests that sphere pointer grabs object when hand is inside a giant grabbable
         /// </summary>
         [UnityTest]
         public IEnumerator TestSpherePointerInsideGrabbable()
@@ -115,37 +173,6 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             var spherePointer = PointerUtils.GetPointer<SpherePointer>(Handedness.Right);
             Assert.IsNotNull(spherePointer, "Right hand does not have a sphere pointer");
             Assert.IsTrue(spherePointer.IsInteractionEnabled, "Sphere pointer should be enabled because it is near grabbable cube and visible, even if inside a giant cube.");
-            GameObject.Destroy(cube);
-        }
-
-        /// <summary>
-        /// Tests that sphere pointer behaves correctly when hand is near grabbable
-        /// </summary>
-        [UnityTest]
-        public IEnumerator TestSpherePointerNearGrabbable()
-        {
-            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.AddComponent<NearInteractionGrabbable>();
-            cube.transform.position = Vector3.forward;
-            cube.transform.localScale = Vector3.one * 0.1f;
-
-            var rightHand = new TestHand(Handedness.Right);
-            yield return rightHand.Show(Vector3.forward);
-            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
-
-            var spherePointer = PointerUtils.GetPointer<SpherePointer>(Handedness.Right);
-            Assert.IsNotNull(spherePointer, "Right hand does not have a sphere pointer");
-            Assert.IsTrue(spherePointer.IsInteractionEnabled, "Sphere pointer should be enabled because it is near grabbable cube and visible.");
-            
-            // Move forward so that cube is no longer visible
-            CameraCache.Main.transform.Translate(Vector3.up * 10);
-            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
-            Assert.IsFalse(spherePointer.IsInteractionEnabled, "Sphere pointer should NOT be enabled because hand is near grabbable but the grabbable is not visible.");
-
-            // Move camera back so that cube is visible again
-            CameraCache.Main.transform.Translate(Vector3.up * -10f);
-            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
-            Assert.IsTrue(spherePointer.IsInteractionEnabled, "Sphere pointer should be enabled because it is near grabbable cube and visible.");
             GameObject.Destroy(cube);
         }
 
@@ -170,7 +197,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             Assert.IsNotNull(handController);
 
             // Get the line pointer from the hand controller
-            var linePointer = handController.InputSource.Pointers.First(x => x is LinePointer);
+            var linePointer = handController.InputSource.Pointers.OfType<LinePointer>().First();
             Assert.IsNotNull(linePointer);
 
             Vector3 linePointerOrigin = linePointer.Position;
@@ -188,7 +215,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// <summary>
         /// Test that the same PokePointer
         /// 1) is not destroyed
-        /// 2) retreived and re-used from the pointer cache
+        /// 2) retrieved and re-used from the pointer cache
         /// 3) still click buttons and provides input after re-use
         /// </summary>
         [UnityTest]
@@ -307,7 +334,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
         private static T CreatePointerPrefab<T>(string prefabPath,
                                                 out IMixedRealityInputSource inputSource,
-                                                out IMixedRealityController controller) 
+                                                out IMixedRealityController controller)
             where T : IMixedRealityPointer
         {
             var pointerPrefab = AssetDatabase.LoadAssetAtPath<Object>(prefabPath);
@@ -335,6 +362,69 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             return pointer;
         }
 
+        private IEnumerator TestPointerFOVHelper(IMixedRealityPointer myPointer, GameObject cube, TestHand testHand)
+        {
+            // Cube in front of camera
+            cube.transform.SetPositionAndRotation(Vector3.forward * 1f, Quaternion.identity);
+            cube.transform.localScale = Vector3.one * 0.1f;
+            yield return testHand.MoveTo(cube.transform.position);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.IsTrue(myPointer.IsInteractionEnabled, $"Pointer {myPointer.PointerName} should be enabled, cube in front camera. Cube size {cube.transform.localScale} location {cube.transform.position}.");
+
+            // Cube above camera
+            cube.transform.Translate(Vector3.up * 10);
+            yield return testHand.MoveTo(cube.transform.position);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.IsFalse(myPointer.IsInteractionEnabled, $"Pointer {myPointer.PointerName} should NOT be enabled, cube behind camera. Cube size {cube.transform.localScale} location {cube.transform.position}.");
+
+            // For sphere and poke pointers, test that setting IgnoreCollidersNotInFOV works
+            if (myPointer is SpherePointer spherePointer)
+            {
+                spherePointer.IgnoreCollidersNotInFOV = false;
+                yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+                Assert.IsTrue(myPointer.IsInteractionEnabled, $"Pointer {myPointer.PointerName} should be enabled because IgnoreCollidersNotInFOV is false.");
+                spherePointer.IgnoreCollidersNotInFOV = true;
+            }
+            else if (myPointer is PokePointer pokePointer)
+            {
+                pokePointer.IgnoreCollidersNotInFOV = false;
+                yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+                Assert.IsTrue(myPointer.IsInteractionEnabled, $"Pointer {myPointer.PointerName} should be enabled because IgnoreCollidersNotInFOV is false.");
+                pokePointer.IgnoreCollidersNotInFOV = true;
+            }
+
+            // Move it back to be visible again
+            cube.transform.Translate(Vector3.up * -10f);
+            yield return testHand.MoveTo(cube.transform.position);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.IsTrue(myPointer.IsInteractionEnabled, $"Pointer {myPointer.PointerName} should be enabled because it is near object inside of FOV. Cube size {cube.transform.localScale} location {cube.transform.position}.");
+        }
+
+        private IEnumerator TestPointerFOVLargeColliderHelper(IMixedRealityPointer myPointer, GameObject cube, TestHand testHand)
+        {
+            cube.transform.localScale = new Vector3(3, 3, 0.05f);
+            float[] yOffsets = new float[] { -1f, 0f, 1f };
+            float[] xOffsets = new float[] { -1f, 0f, 1f };
+            float[] zOffsets = new float[] { 1f, -1f };
+            var collider = cube.GetComponent<BoxCollider>();
+            foreach (var zOffset in zOffsets)
+            {
+                foreach (var yOffset in yOffsets)
+                {
+                    foreach (var xOffset in xOffsets)
+                    {
+                        var cameraPos = CameraCache.Main.transform.position;
+                        var pos = new Vector3(cameraPos.x + xOffset, cameraPos.y + yOffset, cameraPos.z + zOffset);
+                        cube.transform.position = pos;
+                        yield return testHand.MoveTo(cube.transform.position);
+                        yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+                        bool isInFov = CameraCache.Main.IsInFOVCached(collider);
+                        Assert.IsTrue(zOffset == 1f ? myPointer.IsInteractionEnabled : !myPointer.IsInteractionEnabled,
+                            $"Pointer {myPointer.PointerName} in incorrect state. IsInFOV {isInFov} Cube size {cube.transform.localScale} location {cube.transform.position}.");
+                    }
+                }
+            }
+        }
         #endregion
     }
 }

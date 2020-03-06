@@ -18,6 +18,7 @@ using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Linq;
 using Microsoft.MixedReality.Toolkit.UI;
+using Microsoft.MixedReality.Toolkit.SpatialAwareness;
 
 namespace Microsoft.MixedReality.Toolkit.Tests
 {
@@ -36,6 +37,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         }
 
         /// <summary>
+        /// Test that the gaze cursor behaves properly with articulated hand pointers.
         /// </summary>
         [UnityTest]
         public IEnumerator TestGazeCursorArticulated()
@@ -51,7 +53,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             InputSimulationService inputSimulationService = PlayModeTestUtilities.GetInputSimulationService();
             inputSimulationService.UserInputEnabled = false;
 
-            ArticulatedHandPose gesturePose = ArticulatedHandPose.GetGesturePose(ArticulatedHandPose.GestureId.Open);
+            ArticulatedHandPose gesturePose = SimulatedArticulatedHandPoses.GetGesturePose(ArticulatedHandPose.GestureId.Open);
             var handOpenPose = PlayModeTestUtilities.GenerateHandPose(ArticulatedHandPose.GestureId.Open, Handedness.Right, Vector3.forward * 0.1f, Quaternion.identity);
             inputSimulationService.HandDataRight.Update(true, false, handOpenPose);
             yield return null;
@@ -71,7 +73,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
         /// <summary>
         /// Ensure that the gaze provider hit result is not null when looking at an object,
-        /// even when the hand is up
+        /// even when the hand is up.
         /// </summary>
         [UnityTest]
         public IEnumerator TestGazeProviderTargetNotNull()
@@ -331,6 +333,97 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             Assert.IsNull(handRayPointer.Result.CurrentPointerTarget);
             // Verify that CurrentPointer is not still referencing the destroyed GameObject
             Assert.IsTrue(ReferenceEquals(handRayPointer.Result.CurrentPointerTarget, null));
+        }
+
+        /// <summary>
+        /// Test focus provider returns results based on custom prioritized layer mask array
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestPrioritizedLayerMask()
+        {
+            TestUtilities.PlayspaceToOriginLookingForward();
+
+            TestHand hand = new TestHand(Handedness.Right);
+            yield return hand.Show(Vector3.forward, true);
+
+            var shellHandRayPointer = hand.GetPointer<ShellHandRayPointer>();
+
+            string spatialAwarenessLayerName = LayerMask.LayerToName(BaseSpatialObserver.DefaultSpatialAwarenessLayer);
+            shellHandRayPointer.PrioritizedLayerMasksOverride = new LayerMask[] { LayerMask.GetMask(spatialAwarenessLayerName), LayerMask.GetMask("Default") };
+
+            var pointerDirection = shellHandRayPointer.Rotation * Vector3.forward;
+
+            var noPriorityCube = CreateTestCube(shellHandRayPointer.Position + pointerDirection * 2.0f);
+            noPriorityCube.name = "NoPriorityCube";
+            noPriorityCube.layer = 18; // assign to random layer
+
+            var lowPriorityCube = CreateTestCube(shellHandRayPointer.Position + pointerDirection * 3.0f); // uses default layer
+            lowPriorityCube.name = "LowPriorityCube";
+
+            var highPriorityCube = CreateTestCube(shellHandRayPointer.Position + pointerDirection * 4.0f);
+            highPriorityCube.layer = BaseSpatialObserver.DefaultSpatialAwarenessLayer;
+            highPriorityCube.name = "HighPriorityCube";
+
+            //
+            // Test High Priority cube, although farthest, is selected as raycast target
+            //
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.AreEqual(highPriorityCube, shellHandRayPointer.Result?.CurrentPointerTarget, $"{highPriorityCube.name} should be raycast target by shell hand ray pointer");
+
+            //
+            // With HighPriorityCube disabled, test Low Priority cube, although farther, is selected as raycast target
+            //
+            highPriorityCube.SetActive(false);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.AreEqual(lowPriorityCube, shellHandRayPointer.Result?.CurrentPointerTarget, $"{lowPriorityCube.name} should be raycast target by shell hand ray pointer");
+
+            //
+            // Test noPriorityCube still not selected in raycast
+            //
+            lowPriorityCube.SetActive(false);
+            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
+            Assert.IsNull(shellHandRayPointer.Result?.CurrentPointerTarget, $"{noPriorityCube.name} should NOT be raycast target by shell hand ray pointer");
+        }
+
+        /// <summary>
+        /// Ensures the focus provider runs its update loop properly without a gaze provider.
+        /// Also tests that a gaze provider can successfully be cleaned up at runtime.
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestFocusProviderWithoutGaze()
+        {
+            IMixedRealityInputSystem inputSystem = PlayModeTestUtilities.GetInputSystem();
+            yield return null;
+
+            InputSimulationService inputSimulationService = PlayModeTestUtilities.GetInputSimulationService();
+            yield return null;
+
+            // Put up a hand to ensure there's a second pointer, which will keep the FocusProvider UpdatePointers loop spinning
+            yield return PlayModeTestUtilities.ShowHand(Handedness.Right, inputSimulationService);
+
+            // Verify that the GazeProvider exists at the start
+            Assert.IsTrue(inputSystem.GazeProvider as MonoBehaviour != null, "Gaze provider should exist at start");
+            yield return null;
+
+            // Destroy the GazeProvider
+            Object.Destroy(inputSystem.GazeProvider as MonoBehaviour);
+            yield return null;
+
+            // Verify that the GazeProvider no longer exists
+            Assert.IsTrue(inputSystem.GazeProvider as MonoBehaviour == null, "Gaze provider should no longer exist");
+            yield return null;
+
+            // Hide the hand for other tests
+            yield return PlayModeTestUtilities.HideHand(Handedness.Right, inputSimulationService);
+        }
+
+        private static GameObject CreateTestCube(Vector3 position, float scale = 0.2f)
+        {
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.AddComponent<ManipulationHandler>(); // Add focus handler so focus can lock
+            cube.transform.position = position;
+            cube.transform.localScale = Vector3.one * scale;
+            return cube;
         }
     }
 }

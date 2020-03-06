@@ -30,27 +30,27 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         };
 
         /// <summary>
-        /// Asset Path to default model push button prefab asset
+        /// Asset path to default model push button prefab asset
         /// </summary>
-        public const string DefaultInteractablePrefabAssetPath = "Assets/MixedRealityToolkit.Examples/Demos/UX/Interactables/Prefabs/Model_PushButton.prefab";
+        public static readonly string DefaultInteractablePrefabAssetPath = AssetDatabase.GUIDToAssetPath(DefaultInteractablePrefabAssetGuid);
 
         /// <summary>
-        /// Asset path to default Hololens 2 Pressable Button prefab asset
+        /// Asset path to default HoloLens 2 Pressable Button prefab asset
         /// </summary>
-        public const string PressableHoloLens2PrefabPath = "Assets/MixedRealityToolkit.SDK/Features/UX/Interactable/Prefabs/PressableButtonHoloLens2.prefab";
+        public static readonly string PressableHoloLens2PrefabPath = AssetDatabase.GUIDToAssetPath(PressableHoloLens2PrefabGuid);
 
         /// <summary>
-        /// Asset path to default Hololens 2 Toggle Pressable Button prefab asset
+        /// Asset path to default HoloLens 2 Toggle Pressable Button prefab asset
         /// </summary>
-        public const string PressableHoloLens2TogglePrefabPath = "Assets/MixedRealityToolkit.SDK/Features/UX/Interactable/Prefabs/PressableButtonHoloLens2Toggle.prefab";
+        public static readonly string PressableHoloLens2TogglePrefabPath = AssetDatabase.GUIDToAssetPath(PressableHoloLens2TogglePrefabGuid);
 
         /// <summary>
-        /// Rought amount of time for press action on button
+        /// Amount of time for press action on button
         /// </summary>
         public const float ButtonPressAnimationDelay = 0.25f;
 
         /// <summary>
-        /// Rought amount of time for release action on button
+        /// Amount of time for release action on button
         /// </summary>
         public const float ButtonReleaseAnimationDelay = 0.25f;
 
@@ -70,6 +70,15 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         private static readonly string[] AssetPaths = { DefaultInteractablePrefabAssetPath, PressableHoloLens2PrefabPath, PressableHoloLens2TogglePrefabPath };
         private static readonly string[] TranslateTargetPaths = { "Cylinder", "CompressableButtonVisuals/FrontPlate", "CompressableButtonVisuals/FrontPlate" };
         private static readonly Quaternion[] DefaultRotations = { DefaultRotation, Quaternion.LookRotation(Vector3.forward), Quaternion.LookRotation(Vector3.forward) };
+
+        // Examples/Demos/UX/Interactables/Prefabs/Model_PushButton.prefab
+        private const string DefaultInteractablePrefabAssetGuid = "29a6f5316e0868e47adff5eee8945193";
+
+        // SDK/Features/UX/Interactable/Prefabs/PressableButtonHoloLens2.prefab
+        private const string PressableHoloLens2PrefabGuid = "3f1f46cbecbe08e46a303ccfdb5b498a";
+
+        // SDK/Features/UX/Interactable/Prefabs/PressableButtonHoloLens2Toggle.prefab
+        private const string PressableHoloLens2TogglePrefabGuid = "64790b91b91094d49942373c4e83c237";
 
         /// <summary>
         /// Instantiate and configure one of the <see cref="DefaultButtonType"/> types.
@@ -105,8 +114,8 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         /// <summary>
         /// Instantiates Pressable Button based on list of arguments provided
         /// </summary>
-        public static void InstantiatePressableButtonPrefab(Vector3 position, Quaternion rotation, 
-            string prefabPath, string translateTargetPath, 
+        public static void InstantiatePressableButtonPrefab(Vector3 position, Quaternion rotation,
+            string prefabPath, string translateTargetPath,
             out Interactable interactable, out Transform translateTargetTransform)
         {
             // Load interactable prefab
@@ -162,10 +171,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             Vector3 p1 = button.transform.position - button.TransformDirection(ButtonTranslateOffset);
             Vector3 p2 = button.transform.position;
 
-            // Move the hand towards
-            var inputSimulationService = PlayModeTestUtilities.GetInputSimulationService();
-            yield return PlayModeTestUtilities.ShowHand(Handedness.Right, inputSimulationService);
-            yield return PlayModeTestUtilities.MoveHand(p1, p2, ArticulatedHandPose.GestureId.Poke, Handedness.Right, inputSimulationService);
+            yield return MoveHand(p1, p2);
         }
 
         /// <summary>
@@ -176,11 +182,21 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             Vector3 p2 = button.transform.position;
             Vector3 p3 = button.transform.position - button.TransformDirection(ButtonTranslateOffset);
 
-            // Move the hand back
-            var inputSimulationService = PlayModeTestUtilities.GetInputSimulationService();
-            yield return PlayModeTestUtilities.MoveHand(p2, p3, ArticulatedHandPose.GestureId.Poke, Handedness.Right, inputSimulationService);
-            yield return PlayModeTestUtilities.HideHand(Handedness.Right, inputSimulationService);
+            yield return MoveHand(p2, p3);
+            yield return PlayModeTestUtilities.HideHand(Handedness.Right, PlayModeTestUtilities.GetInputSimulationService());
         }
+
+        /// <summary>
+        /// Move the right hand from point 1 to point 2
+        /// </summary>
+        public static IEnumerator MoveHand(Vector3 p1, Vector3 p2)
+        {
+            // Move the hand towards
+            var inputSimulationService = PlayModeTestUtilities.GetInputSimulationService();
+            yield return PlayModeTestUtilities.ShowHand(Handedness.Right, inputSimulationService);
+            yield return PlayModeTestUtilities.MoveHand(p1, p2, ArticulatedHandPose.GestureId.Poke, Handedness.Right, inputSimulationService);
+        }
+
     }
 }
 

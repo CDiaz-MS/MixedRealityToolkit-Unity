@@ -79,9 +79,9 @@ if ( $Verbose ) { $VerbosePreference = 'Continue' }
 $packages = @{
     "Foundation" = @(
         "Assets\MixedRealityToolkit",
-        "Assets\MixedRealityToolkit.Providers",
-        "Assets\MixedRealityToolkit.SDK",
-        "Assets\MixedRealityToolkit.Services"
+        "Assets\MRTK\Providers",
+        "Assets\MRTK\SDK",
+        "Assets\MRTK\Services"
     );
     "Extensions" = @(
         "Assets\MixedRealityToolkit.Extensions"
@@ -103,6 +103,24 @@ function GetPackageVersion() {
         Foreach-Object { if ( $_ -match "^(\d+\.\d+\.\d+)$" ) { [version]$matches[1] } } | 
         Sort-Object -Descending |
         Select-Object -First 1
+}
+
+function CleanPackageManifest() {
+    <#
+    .SYNOPSIS
+        Ensures that the package manifest does not contain packages that trigger adding dependencies on
+        optional features by default.
+    #>
+
+    $fileName = $RepoDirectory + "\Packages\manifest.json"
+    (Get-Content $fileName) | ForEach-Object {
+        if ($_ -notmatch ("arfoundation|arsubsystems|xr.management|legacyinputhelpers")) {
+            $line = $_
+        }
+        else {
+            $line = ""
+        }
+    $line } | Set-Content $fileName  
 }
 
 # Beginning of the .unitypackage script main section
@@ -156,6 +174,9 @@ if (-not $LogDirectory) {
 $OutputDirectory = Resolve-Path $OutputDirectory
 $LogDirectory = Resolve-Path $LogDirectory
 $RepoDirectory = Resolve-Path $RepoDirectory
+
+Write-Verbose "Cleaning package manifest (removing AR and XR references)"
+CleanPackageManifest
 
 foreach ($entry in $packages.GetEnumerator()) {
     $packageName = $entry.Name;

@@ -17,13 +17,14 @@ using NUnit.Framework;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 namespace Microsoft.MixedReality.Toolkit.Tests
 {
     /// <summary>
-    /// Class that tests various types of Interactable buttons and UX components. 
+    /// Class that tests various types of Interactable buttons and UX components.
     /// Validates various forms of input (i.e speech etc) against various configurations of Interactable.
     /// </summary>
     public class InteractableTests : BasePlayModeTests
@@ -31,9 +32,21 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         private const float ButtonReleaseAnimationDelay = 0.25f;
         private const float EaseDelay = 0.25f;
 
-        private const string RadialSetPrefabAssetPath = "Assets/MixedRealityToolkit.SDK/Features/UX/Interactable/Prefabs/RadialSet.prefab";
-        private const string RadialPrefabAssetPath = "Assets/MixedRealityToolkit.SDK/Features/UX/Interactable/Prefabs/Radial.prefab";
-        private static string DisabledOnStartPrefabAssetPath = "Assets/MixedRealityToolkit.Tests/PlayModeTests/Prefabs/Model_PushButton_DisabledOnStart.prefab";
+        // SDK/Features/UX/Interactable/Prefabs/RadialSet.prefab
+        private const string RadialSetPrefabAssetGuid = "8b83134143223104c9bc3865a565cab3";
+        private static readonly string RadialSetPrefabAssetPath = AssetDatabase.GUIDToAssetPath(RadialSetPrefabAssetGuid);
+
+        // SDK/Features/UX/Interactable/Prefabs/Radial.prefab
+        private const string RadialPrefabAssetGuid = "0f83fa6afa56ead46bbd762156f1137e";
+        private static readonly string RadialPrefabAssetPath = AssetDatabase.GUIDToAssetPath(RadialPrefabAssetGuid);
+
+        // Tests/PlayModeTests/Prefabs/Model_PushButton_DisabledOnStart.prefab
+        private const string DisabledOnStartPrefabAssetGuid = "19bd42ed40b63a746af7320db5558f86";
+        private static readonly string DisabledOnStartPrefabAssetPath = AssetDatabase.GUIDToAssetPath(DisabledOnStartPrefabAssetGuid);
+
+        // Tests/PlayModeTests/Prefabs/TestInteractableInitialize.prefab
+        private const string DisabledInitializedPrefabAssetGuid = "0401ea9158809914798d0a74023e3779";
+        private static readonly string DisabledInitializedPrefabAssetPath = AssetDatabase.GUIDToAssetPath(DisabledInitializedPrefabAssetGuid);
 
         private readonly Color DefaultColor = Color.blue;
         private readonly Color FocusColor = Color.yellow;
@@ -123,7 +136,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         {
             TestButtonUtilities.InstantiateDefaultButton(
                 TestButtonUtilities.DefaultButtonType.DefaultPushButton,
-                out Interactable interactable, 
+                out Interactable interactable,
                 out Transform translateTargetObject);
 
             interactable.transform.position = new Vector3(10f, 0.0f, 0.5f);
@@ -441,6 +454,38 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         }
 
         /// <summary>
+        /// Instantiates a runtime assembled Interactable with ResetOnDestroy property true and destroy the Interactable component. 
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestResetOnDestroy()
+        {
+            AssembleInteractableButton(
+                out Interactable interactable,
+                out Transform translateTargetObject);
+
+            interactable.ResetOnDestroy = true;
+
+            var originalColor = translateTargetObject.gameObject.GetComponent<Renderer>().material.color;
+
+            // Put GGV focus on the Interactable button
+            CameraCache.Main.transform.LookAt(interactable.transform.position);
+
+            yield return new WaitForSeconds(EaseDelay);
+            var propBlock = InteractableThemeShaderUtils.GetPropertyBlock(translateTargetObject.gameObject);
+            Assert.AreEqual(propBlock.GetColor("_Color"), FocusColor);
+
+            // Destroy the interactable component
+            GameObject.Destroy(interactable);
+
+            // Remove focus
+            CameraCache.Main.transform.LookAt(Vector3.zero);
+
+            yield return null;
+            propBlock = InteractableThemeShaderUtils.GetPropertyBlock(translateTargetObject.gameObject);
+            Assert.AreEqual(propBlock.GetColor("_Color"), originalColor);
+        }
+
+        /// <summary>
         /// Tests button depth and focus state after enabling, disabling and re-enabling Interactable 
         /// internally via IsEnabled. The focus state after re-enabling should be false and button
         /// depth should be in its default position.  This test is specifically addressing behavior described 
@@ -641,9 +686,9 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
                 Assert.True(wasClicked, "Toggle button was not clicked");
                 Assert.AreEqual((i + 1) % 2, interactable.CurrentDimension, $"Toggle button is in incorrect toggle state on click {i}");
-                
+
                 // Make sure the button depth is back at the starting position
-                Assert.True(frontPlateTransform.localPosition == frontPlateStartPosition, "Toggle button front plate did not return to starting position.");                
+                Assert.True(frontPlateTransform.localPosition == frontPlateStartPosition, "Toggle button front plate did not return to starting position.");
             }
 
             GameObject.Destroy(interactable.gameObject);
@@ -702,7 +747,7 @@ namespace Microsoft.MixedReality.Toolkit.Tests
                 TestButtonUtilities.DefaultButtonType.DefaultHL2Button,
                 out Interactable interactable,
                 out Transform interactableTransform);
-            
+
             interactable.transform.position = new Vector3(0.0f, 0.1f, 0.4f);
             Assert.True(interactable.IsEnabled);
 
@@ -766,6 +811,52 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             Assert.True(interactable.StateManager.CurrentState().Index == (int)InteractableStates.InteractableStateEnum.Focus, "Interactable State is not Focus");
 
             GameObject.Destroy(interactable.gameObject);
+        }
+
+        /// <summary>
+        /// Ensure a disabled Interactable initializes when accessing one of it's properties even though it's Awake() has not been called
+        /// </summary>
+        [UnityTest]
+        public IEnumerator TestForceInitialize()
+        {
+            Object checkboxesPrefab = AssetDatabase.LoadAssetAtPath(DisabledInitializedPrefabAssetPath, typeof(Object));
+            var result = Object.Instantiate(checkboxesPrefab, Vector3.forward * 1.0f, Quaternion.identity) as GameObject;
+            var interactables = result.GetComponentsInChildren<Interactable>(true);
+
+            const int ExpectedCheckboxCount = 2;
+            Assert.AreEqual(ExpectedCheckboxCount, interactables.Length);
+
+            bool isFirstActive = interactables[0].gameObject.activeInHierarchy;
+            var enabledCheckbox = isFirstActive ? interactables[0] : interactables[1];
+            var disabledCheckbox = isFirstActive ? interactables[1] : interactables[0];
+
+            // No error messages should fire.
+            enabledCheckbox.IsToggled = true;
+            Assert.IsTrue(enabledCheckbox.IsToggled);
+
+            // Disabled checkbox should auto-initialize even though it's Awake() has not been called
+            disabledCheckbox.IsToggled = true;
+            Assert.IsTrue(disabledCheckbox.IsToggled);
+
+            // Checkbox should still behave as expected even though it was pre-initialized
+            {
+                disabledCheckbox.gameObject.SetActive(true);
+                disabledCheckbox.IsToggled = false;
+
+                // Subscribe to interactable's on click so we know the click went through
+                bool wasClicked = false;
+                disabledCheckbox.OnClick.AddListener(() => { wasClicked = true; });
+
+                Vector3 end = disabledCheckbox.transform.position - new Vector3(0f, 0.05f, 0f);
+                Vector3 start = end - new Vector3(0f, 0f, 0.5f);
+
+                yield return TestButtonUtilities.MoveHand(start, end);
+                yield return TestButtonUtilities.MoveHand(end, start);
+
+                Assert.True(wasClicked, "Interactable was not clicked.");
+            }
+
+            GameObject.Destroy(result);
         }
 
         #region Test Helpers
@@ -859,10 +950,10 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             interactableToggleCollection.ToggleList = toggleCollection.GetComponentsInChildren<Interactable>();
         }
 
-        private IEnumerator RunGlobalClick(IMixedRealityInputSource defaultInputSource, 
-            MixedRealityInputAction inputAction, 
-            Vector3 targetStartPosition, 
-            Transform translateTargetObject, 
+        private IEnumerator RunGlobalClick(IMixedRealityInputSource defaultInputSource,
+            MixedRealityInputAction inputAction,
+            Vector3 targetStartPosition,
+            Transform translateTargetObject,
             bool shouldTranslate = true)
         {
             yield return TestInputUtilities.ExecuteGlobalClick(defaultInputSource, inputAction, () =>
