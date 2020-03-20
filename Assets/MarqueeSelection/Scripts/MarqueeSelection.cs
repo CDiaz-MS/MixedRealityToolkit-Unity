@@ -4,182 +4,215 @@ using UnityEngine;
 using Microsoft.MixedReality.Toolkit;
 using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
+using UnityEditor;
+using UnityPhysics = UnityEngine.Physics;
+using UnityEngine.Events;
+using Microsoft.MixedReality.Toolkit.Utilities.Solvers;
 
-public class MarqueeSelection : MonoBehaviour, IMixedRealityPointerHandler
+public class MarqueeSelection : MonoBehaviour,  IMixedRealityHandJointHandler
 {
-    //private bool isThumbsUp = false;
-
-    //public bool IsThumbsUp
-    //{
-    //    get
-    //    {
-    //        var ThumbsUpGesturePose = ArticulatedHandPose.GetGesturePose(ArticulatedHandPose.GestureId.ThumbsUp);
-    //        if(ThumbsUpGesturePose = )
-    //        {
-    //            foreach (var inputSource in CoreServices.InputSystem.DetectedInputSources)
-    //            {
-                    
-    //            }
-
-    //        }
-    //        // get the tracking data for the hand to see if it is in the thumbs up gesture
-    //        //return true if in thumbs up state
-    //        // return false if not
-
-    //    }
-    //}
+    #region original
+    protected internal bool IsThumbsUp => ThumbsUp();
 
     protected bool isSelectionDrawing = false;
 
-    protected Vector3 ThumbPosition;
+    protected bool hasStarted = false;
 
-    private GameObject selectionIndicator;
+    protected bool isObjectSelected = false;
 
-    private Vector3 selectionIndicatorCurrentPosition = Vector3.zero;
+    [SerializeField]
+    [Tooltip("This event is triggered when the hand is notin the Thumbs Up Gesture.")]
+    private UnityEvent onObjectSelected = new UnityEvent();
 
+    /// <summary>
+    /// This event is triggered once when the game object to place is unselected, placed.
+    /// </summary>
+    public UnityEvent OnObjectSelected
+    {
+        get => onObjectSelected;
+        set => onObjectSelected = value;
+    }
 
-    float maxDistance;
+    //float maxDistance;
     float speed;
     bool hitDetect;
 
-    Collider selectionAreaCollider;
-    RaycastHit hit;
+    protected Collider marqueeAreaCollider;
+    protected RaycastHit hit;
 
-    public Vector3 SelectionIndicatorCurrentPosition
+    //private GameObject marquee = null;
+    private Vector3 marqueeStartPosition;
+
+    private Vector3 marqueeCenter;
+
+    private LineRenderer lineRenderer;
+
+    private Vector3 boxHalfVolume;
+
+    private Vector3 topRight;
+
+    private Vector3 bottomLeft;
+
+    public Vector3 CurrentThumbPosition
     {
         get
         {
-            HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out MixedRealityPose ThumbPose);
-            Vector3 pos = ThumbPose.Position + (ThumbPose.Forward * 0.01f);
-            return pos;
-        }
-        set
-        {
-
-            selectionIndicator.transform.position = value;
-            //selectionIndicatorPosition = value;
+            MixedRealityPose thumb;
+            HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out thumb);
+            return thumb.Position;
         }
     }
 
-    private Vector3 selectionIndicatorStartPosition = Vector3.zero;
+    private bool ThumbsUp()
+    {
+        MixedRealityPose indexTip;
+        MixedRealityPose middleTip;
+        MixedRealityPose ringTip;
+        MixedRealityPose pinkyTip;
+        MixedRealityPose palm;
+        MixedRealityPose thumbTip;
 
-    private GameObject selectionArea;
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.IndexTip, Handedness.Right, out indexTip);
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.MiddleTip, Handedness.Right, out middleTip);
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.RingTip, Handedness.Right, out ringTip);
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.PinkyTip, Handedness.Right, out pinkyTip);
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.Palm, Handedness.Right, out palm);
+        HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out thumbTip);
 
-    // Start is called before the first frame update
+        float indexPalmDistance = Vector3.Distance(palm.Position, indexTip.Position);
+        float middlePalmDistance = Vector3.Distance(palm.Position, middleTip.Position);
+        float ringPalmDistance = Vector3.Distance(palm.Position, ringTip.Position);
+        float pinkyPalmDistance = Vector3.Distance(palm.Position, pinkyTip.Position);
+        float thumbPalmDistance = Vector3.Distance(palm.Position, thumbTip.Position);
+
+
+        if (indexPalmDistance < 0.06f && middlePalmDistance < 0.06f && ringPalmDistance < 0.06f && pinkyPalmDistance < 0.06f && thumbPalmDistance > 0.1f)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public void OnHandJointsUpdated(InputEventData<IDictionary<TrackedHandJoint, MixedRealityPose>> eventData)
+    {
+        if (IsThumbsUp)
+        {
+            if (!isSelectionDrawing)
+            {
+                
+                StartSelectionDraw();                
+            }
+            else
+            {
+                UpdateSelectionDraw();
+            }
+        }
+        else
+        {
+            if (isSelectionDrawing)
+            {
+                StopSelectionDraw();
+            }                 
+        }
+    }
+
     void Start()
     {
-        CoreServices.InputSystem?.RegisterHandler<IMixedRealityPointerHandler>(this);
+        CoreServices.InputSystem?.RegisterHandler<IMixedRealityHandJointHandler>(this);
 
-        selectionIndicator = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        selectionIndicator.transform.localScale = Vector3.one * 0.01f;
-
-        maxDistance = 300.0f;
         speed = 20.0f;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        UpdateCubePosition();
-    }
-
-    private void UpdateCubePosition()
-    {
-        HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out MixedRealityPose ThumbPose);
-        SelectionIndicatorCurrentPosition = ThumbPose.Position + (ThumbPose.Forward * 0.01f);
-        
     }
 
     private void StartSelectionDraw()
     {
-        selectionArea.transform.position = SelectionIndicatorCurrentPosition;
+        lineRenderer = gameObject.GetComponent<LineRenderer>();
+        lineRenderer.enabled = true;
 
-        ChangeQuadScale();
+        lineRenderer.positionCount = 5;
 
+        marqueeStartPosition = CurrentThumbPosition;
+
+        lineRenderer.SetPosition(0, marqueeStartPosition);
+
+        isSelectionDrawing = true;
     }
 
-
-    private void ChangeQuadScale()
+    private void UpdateSelectionDraw()
     {
-        Vector3 distance = selectionIndicatorStartPosition - SelectionIndicatorCurrentPosition;
-        float magnitude = distance.sqrMagnitude;
+        topRight = CurrentThumbPosition + (Vector3.up * (marqueeStartPosition.y - CurrentThumbPosition.y));
 
-        selectionArea.transform.localScale = (Vector3.one * magnitude) * 2;
+        bottomLeft = marqueeStartPosition + (Vector3.down * (marqueeStartPosition.y - CurrentThumbPosition.y));
+
+        lineRenderer.SetPosition(1, topRight);
+
+        lineRenderer.SetPosition(2, CurrentThumbPosition);
+
+        lineRenderer.SetPosition(3, bottomLeft);
+
+        lineRenderer.SetPosition(4, marqueeStartPosition);
+
+        marqueeCenter = (marqueeStartPosition + CurrentThumbPosition) / 2;
+
+        float xExtents = Mathf.Abs(marqueeCenter.x - CurrentThumbPosition.x);
+        float yExtents = Mathf.Abs(marqueeCenter.y - marqueeStartPosition.y);
+        float zExtents = 0.5f;
+
+        boxHalfVolume = new Vector3(xExtents, yExtents, zExtents);
+
+        StartBoxCast(marqueeCenter, boxHalfVolume);
     }
 
-    private void StartBoxCast()
+    private void StopSelectionDraw()
+    {
+        lineRenderer.enabled = false;
+        isSelectionDrawing = false;
+        isObjectSelected = false;
+    }
+
+    private void StartBoxCast(Vector3 marqueeCenter, Vector3 halfScaleOfBox)
     {
         //Simple movement in x and z axes
         float xAxis = Input.GetAxis("Horizontal") * speed;
         float zAxis = Input.GetAxis("Vertical") * speed;
         transform.Translate(new Vector3(xAxis, 0, zAxis));
 
-        hitDetect = Physics.BoxCast(selectionAreaCollider.bounds.center, selectionArea.transform.localScale, selectionArea.transform.forward, out hit, selectionArea.transform.rotation, maxDistance);
+        hitDetect = Physics.BoxCast(marqueeCenter, halfScaleOfBox, CameraCache.Main.transform.forward, out hit);
 
         if (hitDetect)
         {
             //Output the name of the Collider your Box hit
+            SetSelectedState(hit.collider.gameObject);
             Debug.Log("Hit : " + hit.collider.name);
         }
-
     }
 
-
-    #region Pointer Handler
-
-    public void OnPointerClicked(MixedRealityPointerEventData eventData)
+    private void SetSelectedState(GameObject go)
     {
-        
-    }
+        Material mat = go.GetComponent<MeshRenderer>().material;
+        mat.color = Color.yellow;
+        var tapToPlace = go.AddComponent<TapToPlace>();
+        tapToPlace.AutoStart = true;
 
-    public void OnPointerDown(MixedRealityPointerEventData eventData)
-    {
-        // Get the start position for the quad
-        HandJointUtils.TryGetJointPose(TrackedHandJoint.ThumbTip, Handedness.Right, out MixedRealityPose ThumbPose);
-        selectionIndicatorStartPosition = ThumbPose.Position;
-
-        // Create a quad, once the quad is created, resize it
-        selectionArea = GameObject.CreatePrimitive(PrimitiveType.Quad);
-        selectionIndicator.transform.localScale = Vector3.zero;
-
-        selectionArea.transform.position = SelectionIndicatorCurrentPosition;
-        selectionAreaCollider = selectionArea.GetComponent<Collider>();
-
-        isSelectionDrawing = true;
-
-    }
-
-    public void OnPointerDragged(MixedRealityPointerEventData eventData)
-    {
-        ChangeQuadScale();
-        StartBoxCast();
+        if (!isObjectSelected)
+        {
+            OnObjectSelected.Invoke();
+            isObjectSelected = true;
+        }
     }
 
     void OnDrawGizmos()
     {
-        if(Application.isPlaying && isSelectionDrawing)
-        {
-            //Check if there has been a hit yet
-            if (hitDetect)
-            {
-                Gizmos.color = Color.red;
-                Gizmos.DrawRay(selectionArea.transform.position, selectionArea.transform.forward * hit.distance);
-                Gizmos.DrawWireCube(selectionArea.transform.position + (selectionArea.transform.forward * (hit.distance/2)), selectionArea.transform.localScale + new Vector3(0, 0, hit.distance));
-            }
-            else
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawRay(selectionArea.transform.position, selectionArea.transform.forward * maxDistance);
-                Gizmos.DrawWireCube(selectionArea.transform.position + selectionArea.transform.forward * maxDistance, selectionArea.transform.localScale);
-            }
+        int rayLength = 30;
+        if (Application.isPlaying && isSelectionDrawing)
+        { 
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(marqueeStartPosition, CameraCache.Main.transform.forward * rayLength);
+            Gizmos.DrawRay(topRight, CameraCache.Main.transform.forward * rayLength);
+            Gizmos.DrawRay(CurrentThumbPosition, CameraCache.Main.transform.forward * rayLength);
+            Gizmos.DrawRay(bottomLeft, CameraCache.Main.transform.forward * rayLength);
         }
     }
 
-    public void OnPointerUp(MixedRealityPointerEventData eventData)
-    {
-        // Do a box cast to return the objects it hit
-        isSelectionDrawing = false;
-    }
     #endregion
- 
+
 }
