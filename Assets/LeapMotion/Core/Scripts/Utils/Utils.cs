@@ -2301,7 +2301,7 @@ namespace Leap.Unity {
       TextureFormat.EAC_R_SIGNED,
       TextureFormat.EAC_RG,
       TextureFormat.EAC_RG_SIGNED
-      #if UNITY_2017_4
+      #if UNITY_2017
       ,
       TextureFormat.ETC_RGB4_3DS,
       TextureFormat.ETC_RGBA8_3DS

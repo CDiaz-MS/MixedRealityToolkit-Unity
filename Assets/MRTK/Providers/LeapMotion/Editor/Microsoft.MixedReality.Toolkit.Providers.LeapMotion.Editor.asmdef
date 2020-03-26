@@ -1,15 +1,14 @@
 {
-    "name": "Microsoft.MixedReality.Toolkit.Providers.LeapMotion",
+    "name": "Microsoft.MixedReality.Toolkit.Providers.LeapMotion.Editor",
     "references": [
         "Microsoft.MixedReality.Toolkit",
         "Microsoft.MixedReality.Toolkit.Editor.Inspectors",
         "Microsoft.MixedReality.Toolkit.Editor.Utilities",
-        "LeapMotion"
+        "Microsoft.MixedReality.Toolkit.Providers.LeapMotion"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
-        "Editor",
-        "WSA"
+        "Editor"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
