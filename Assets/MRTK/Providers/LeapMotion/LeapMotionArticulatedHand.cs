@@ -27,21 +27,25 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
             : base(trackingState, controllerHandedness, inputSource, interactions)
         {
             handDefinition = new ArticulatedHandDefinition(inputSource, controllerHandedness);
+#if LEAPMOTIONCORE_PRESENT
             SetAttachmentHands();
+#endif
 
         }
+        private readonly ArticulatedHandDefinition handDefinition;
+
+        // Default interactions not used
+        public override MixedRealityInteractionMapping[] DefaultInteractions => handDefinition?.DefaultInteractions;
+
 #if LEAPMOTIONCORE_PRESENT
 
-        private readonly ArticulatedHandDefinition handDefinition;
-        
         // Leap Hands
         private AttachmentHands attachmentHands = null;
 
         // Attachemnt hand needed for this hand, left or right hand
         private AttachmentHand attachmentHand = null;
 
-        // Default interactions not used
-        public override MixedRealityInteractionMapping[] DefaultInteractions => handDefinition?.DefaultInteractions;
+
 
         // Number of joints in an MRTK Tracked Hand
         protected static readonly int jointCount = Enum.GetNames(typeof(TrackedHandJoint)).Length;
@@ -109,8 +113,9 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
             }
 
             Debug.Log("Leap Motion Attachment Hand is null");
-            pose = MixedRealityPose.ZeroIdentity;
+            
 #endif
+            pose = MixedRealityPose.ZeroIdentity;
             return false;
         }
 #if LEAPMOTIONCORE_PRESENT
