@@ -190,7 +190,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
         }
 
         /// <summary>
-        /// Saves an assembly definition file.
+        /// Saves an assembly definition file. Also creates an assembly definition if the given file does not exist.
         /// </summary>
         /// <param name="fileName">The name by which to save the assembly definition file.</param>
         /// <remarks>
@@ -223,6 +223,45 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
                 file.IsReadOnly = true;
             }
         }
+
+        /// <summary>
+        /// Create a csc file given a path
+        /// </summary>
+        /// <param name="path">The path of the new csc file</param>
+        /// <param name="cscFileLines">Array of strings to add to the csc file</param>
+        public static void CreateCSCFile(string path, string[] cscFileLines)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                Debug.LogError("A path for the csc file must be specified.");
+                return;
+            }
+
+            FileInfo file = new FileInfo(path);
+
+            bool readOnly = (file.Exists) ? file.IsReadOnly : false;
+
+            if (readOnly)
+            {
+                file.IsReadOnly = false;
+            }
+
+            Debug.Log($"Saving csc file {path}");
+
+            using (StreamWriter writer = new StreamWriter(path, false))
+            {
+                foreach(string line in cscFileLines)
+                {
+                    writer.WriteLine(line);
+                } 
+            }
+
+            if (readOnly)
+            {
+                file.IsReadOnly = true;
+            }
+        }
+
     }
 
 #if UNITY_2019_3_OR_NEWER

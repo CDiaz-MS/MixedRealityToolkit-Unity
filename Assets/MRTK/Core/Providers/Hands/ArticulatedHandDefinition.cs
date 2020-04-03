@@ -72,6 +72,26 @@ namespace Microsoft.MixedReality.Toolkit.Input
         }
 
         /// <summary>
+        /// Calculates whether the current pose allows for selection.
+        /// </summary>
+        public bool IsPinching
+        {
+            get
+            {
+                Vector3 thumbTipPosition = unityJointPoses[TrackedHandJoint.ThumbTip].Position;
+                Vector3 indexTipPosition = unityJointPoses[TrackedHandJoint.IndexTip].Position;
+
+                // Found this distance with tests but there could be a better range
+                if (Vector3.Distance(thumbTipPosition, indexTipPosition) < 0.02)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Updates the current hand joints with new data.
         /// </summary>
         /// <param name="jointPoses">The new joint poses.</param>

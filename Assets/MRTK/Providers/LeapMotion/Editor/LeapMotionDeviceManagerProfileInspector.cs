@@ -1,51 +1,74 @@
-﻿
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.﻿
+
 using Microsoft.MixedReality.Toolkit.Editor;
+using Microsoft.MixedReality.Toolkit.LeapMotion;
 using Microsoft.MixedReality.Toolkit.LeapMotion.Input;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-
 namespace Microsoft.MixedReality.Toolkit.LeapMotion.Inspectors
 {
-#if LEAPMOTIONCORE_PRESENT
-
     [CustomEditor(typeof(LeapMotionDeviceManagerProfile))]
+    /// <summary>
+    /// Custom inspector for the Leap Motion input data provider
+    /// </summary>
     public class LeapMotionDeviceManagerProfileInspector : BaseMixedRealityToolkitConfigurationProfileInspector
     {
-        private const string ProfileTitle = "Leap Motion Settings";
-        private const string ProfileDescription = "";
-        private SerializedProperty leapControllerLocation;
+        protected const string ProfileTitle = "Leap Motion Controller Settings";
+        protected const string ProfileDescription = "";
+
+        protected LeapMotionDeviceManagerProfile instance;
+        protected SerializedProperty leapControllerOrientation;
+        protected SerializedProperty leapControllerOffset;
 
         protected override void OnEnable()
         {
             base.OnEnable();
 
-            leapControllerLocation = serializedObject.FindProperty("leapControllerLocation");
+            instance = (LeapMotionDeviceManagerProfile)target;
+            leapControllerOrientation = serializedObject.FindProperty("leapControllerOrientation");
+            leapControllerOffset = serializedObject.FindProperty("leapControllerOffset");
         }
 
+        /// <summary>
+        /// Display the MRTK header for the profile and render custom properties
+        /// </summary>
         public override void OnInspectorGUI()
         {
-            if (!RenderProfileHeader(ProfileTitle, ProfileDescription, target, true, BackProfileType.Input))
-            {
-                return;
-            }
+            RenderProfileHeader(ProfileTitle, ProfileDescription, target);
 
             RenderCustomInspector();
         }
 
+        /// <summary>
+        /// Render the custom properties for the Leap Motion profile
+        /// </summary>
         public virtual void RenderCustomInspector()
         {
-            serializedObject.Update();
-
-            // Disable ability to edit ToggleList through the inspector if in play mode 
-            bool isPlayMode = EditorApplication.isPlaying || EditorApplication.isPaused;
-            using (new EditorGUI.DisabledScope(isPlayMode))
+            using (new EditorGUI.DisabledGroupScope(IsProfileLock((BaseMixedRealityProfile)target)))
             {
-                EditorGUILayout.PropertyField(leapControllerLocation);
+                serializedObject.Update();
+
+                // Show warning if the leap core assets are not in the project
+                if (FileUtilities.FindFilesInAssets("LeapMotion.asmdef").Length == 0)
+                {
+                    EditorGUILayout.HelpBox("The Leap Motion Core Assets cannot be found in your project. Please follow the instructions Leap Motion MRTK instructions to use this data provider", MessageType.Error);
+                }
+                else
+                {
+                    EditorGUILayout.PropertyField(leapControllerOrientation);
+
+                    if (instance.LeapControllerOrientation == LeapControllerOrientation.Desk)
+                    {
+                        EditorGUILayout.PropertyField(leapControllerOffset);
+                    }
+                }
+
+                serializedObject.ApplyModifiedProperties();
             }
-            serializedObject.ApplyModifiedProperties();
         }
 
         protected override bool IsProfileInActiveInstance()
@@ -56,7 +79,5 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Inspectors
                 MixedRealityToolkit.Instance.ActiveProfile.InputSystemProfile.DataProviderConfigurations != null &&
                 MixedRealityToolkit.Instance.ActiveProfile.InputSystemProfile.DataProviderConfigurations.Any(s => profile == s.DeviceManagerProfile);
         }
-
     }
-#endif
 }

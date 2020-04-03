@@ -1,2 +1,3 @@
+-nowarn:618,649
 -warnaserror+
 -nowarn:1701,1702

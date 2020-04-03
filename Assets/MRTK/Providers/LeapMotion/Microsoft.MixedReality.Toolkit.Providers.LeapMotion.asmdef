@@ -2,14 +2,13 @@
     "name": "Microsoft.MixedReality.Toolkit.Providers.LeapMotion",
     "references": [
         "Microsoft.MixedReality.Toolkit",
-        "Microsoft.MixedReality.Toolkit.Editor.Inspectors",
-        "Microsoft.MixedReality.Toolkit.Editor.Utilities",
         "LeapMotion"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor",
-        "WSA"
+        "WindowsStandalone32",
+        "WindowsStandalone64"
     ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.﻿
 
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,19 +16,22 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
     [InitializeOnLoad]
     static class LeapMotionConfigurationChecker
     {
-        private const string FileName = "LeapXRServiceProviderEditor.cs";
+        private const string FileName = "LeapXRServiceProvider.cs";
         private static readonly string[] definitions = { "LEAPMOTIONCORE_PRESENT" };
+        private static bool isLeapInProject = false;
 
         static LeapMotionConfigurationChecker()
         {
             // Check if leap core is in the project
-            bool isLeapInProj = ReconcileLeapMotionDefine();
-            Debug.Log("Leap in Pro: " + isLeapInProj);
+            isLeapInProject = ReconcileLeapMotionDefine();
+            Debug.Log("Leap in Project: " + isLeapInProject);
 
-            if (isLeapInProj)
+            if (isLeapInProject)
             {
+                AddCSCFile();
                 RemoveTestingFolders();
                 AddAndUpdateAsmDefs();
+                AddLeapEditorAsmDefs();
             }
         }
 
@@ -38,19 +43,15 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
         {
             FileInfo[] files = FileUtilities.FindFilesInAssets(FileName);
 
-            // If the leap asmdef is not in the assets then the core is not in assets
             if (files.Length > 0)
             {
                 ScriptUtilities.AppendScriptingDefinitions(BuildTargetGroup.Standalone, definitions);
-                ScriptUtilities.AppendScriptingDefinitions(BuildTargetGroup.WSA, definitions);
                 return true;
             }
             else
             {
                 ScriptUtilities.RemoveScriptingDefinitions(BuildTargetGroup.Standalone, definitions);
-                ScriptUtilities.RemoveScriptingDefinitions(BuildTargetGroup.WSA, definitions);
                 return false;
-                // if leap is in there an then removed, we need to remove the references from the provider
             }
         }
 
@@ -116,23 +117,25 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
         /// </summary>
         private static void AddAndUpdateAsmDefs()
         {
-            string leapAsmDefPath = Path.Combine(Application.dataPath, "LeapMotion/LeapMotion.asmdef");
-            Debug.Log(leapAsmDefPath);
+            // Find where the leap motion core assets are relative to the assets directory
+            string pathDifference = GetPathDifference();
+
+            string leapCoreAsmDefPath = Path.Combine(Application.dataPath, pathDifference, "LeapMotion", "LeapMotion.asmdef");
 
             // If the asmdef has already been created then do not create another one
-            if (!File.Exists(leapAsmDefPath))
+            if (!File.Exists(leapCoreAsmDefPath))
             {
-                // File chosen in the leap sdk as an identifier that leap is in the project
-                const string leapFileIdentifier = "LeapXRServiceProviderEditor.cs";
-                FileInfo[] leapFiles = FileUtilities.FindFilesInAssets(leapFileIdentifier);
-
                 // Create the asmdef that will be placed in the Leap Core Assets when they are imported
                 // A new asmdef needs to be created in order to reference it in the MRTK/Providers/LeapMotion/Microsoft.MixedReality.Toolkit.Providers.LeapMotion.asmdef file
-                AssemblyDefinition leapAsmDef = new AssemblyDefinition();
-                leapAsmDef.Name = "LeapMotion";
-                leapAsmDef.References = new string[] { };
-                leapAsmDef.IncludePlatforms = new string[] { "Editor", "WSA" };
-                leapAsmDef.Save(leapAsmDefPath);
+                AssemblyDefinition leapAsmDef = new AssemblyDefinition
+                {
+                    Name = "LeapMotion",
+                    AllowUnsafeCode = true,
+                    References = new string[] { },
+                    IncludePlatforms = new string[] { "Editor", "WindowsStandalone32", "WindowsStandalone64"}
+                };
+
+                leapAsmDef.Save(leapCoreAsmDefPath);
 
                 // Get the MRTK/Providers/LeapMotion/Microsoft.MixedReality.Toolkit.Providers.LeapMotion.asmdef
                 FileInfo[] leapDataProviderAsmDefFile = FileUtilities.FindFilesInAssets("Microsoft.MixedReality.Toolkit.Providers.LeapMotion.asmdef");
@@ -140,10 +143,8 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
                 // Add the newly created LeapMotion.asmdef to the refrences of the leap data provider asmdef
                 AssemblyDefinition leapDataProviderAsmDef = AssemblyDefinition.Load(leapDataProviderAsmDefFile[0].FullName);
 
-                leapDataProviderAsmDef.References = new string[] 
+                leapDataProviderAsmDef.References = new string[]
                 { "Microsoft.MixedReality.Toolkit",
-                  "Microsoft.MixedReality.Toolkit.Editor.Inspectors",
-                  "Microsoft.MixedReality.Toolkit.Editor.Utilities",
                   "LeapMotion"
                 };
 
@@ -151,6 +152,99 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
 
                 // A new asset (LeapMotion.asmdef) was created, refresh the asset database
                 AssetDatabase.Refresh();
+            }
+        }
+
+        /// <summary>
+        /// Get the difference between the root of assets and the location of the leap core assets.  If the leap core assets 
+        /// are at the root of assets, there is no path difference.
+        /// </summary>
+        /// <returns>Returns an empty string if the leap core assets are at the root of assets, otherwise return the path difference</returns>
+        private static string GetPathDifference()
+        {
+            // The file LeapXRServiceProvider.cs is used as a location anchor instead of the LeapMotion directory
+            // to avoid a potential incorrect location return if there is a folder named LeapMotion prior to the leap 
+            // core assets import 
+            FileInfo[] leapPathLocationAnchor = FileUtilities.FindFilesInAssets(FileName);
+            string leapFilePath = leapPathLocationAnchor[0].FullName;
+
+            List<string> leapPath = leapFilePath.Split(Path.DirectorySeparatorChar).ToList();
+
+            // Remove the last 3 elements of leap path (/Core/Scripts/LeapXRService.cs) from the list to get the root of the leap core assets
+            leapPath.RemoveRange(leapPath.Count - 3, 3);
+
+            List<string> unityDataPath = Application.dataPath.Split('/').ToList();
+            unityDataPath.Add("LeapMotion");
+
+            // Get the difference between the root of assets and the root of leap core assets
+            IEnumerable<string> difference = leapPath.Except(unityDataPath);
+
+            return string.Join("/", difference);
+        }
+
+        /// <summary>
+        /// Add asmdefs to the editor directories in the leap core assets.
+        /// </summary>
+        private static void AddLeapEditorAsmDefs()
+        {
+            if (FileUtilities.FindFilesInAssets("LeapMotion.Core.Editor.asmdef").Length == 0)
+            {
+                // Names of all Leap Motion editor directories that need assembly definitions
+                // Key: Asmdef name
+                // Value: References for the asmdef
+                Dictionary<string, string[]> leapEditorDirectories = new Dictionary<string, string[]>
+                {
+                    { "LeapMotion.Core.Editor", new string[] { "LeapMotion" } },
+                    { "LeapMotion.Core.Scripts.Animation.Editor", new string[] { "LeapMotion", "LeapMotion.Core.Editor", "LeapMotion.Core.Scripts.Utils.Editor" } },
+                    { "LeapMotion.Core.Scripts.Attachments.Editor", new string[] { "LeapMotion", "LeapMotion.Core.Editor" } },
+                    { "LeapMotion.Core.Scripts.Attributes.Editor", new string[] { "LeapMotion" } },
+                    { "LeapMotion.Core.Scripts.DataStructures.Editor", new string[] { "LeapMotion" } },
+                    { "LeapMotion.Core.Scripts.EditorTools.Editor", new string[] { "LeapMotion", "LeapMotion.Core.Scripts.Utils.Editor" } },
+                    { "LeapMotion.Core.Scripts.Utils.Editor", new string[] { "LeapMotion", "LeapMotion.Core.Editor" } },
+                    { "LeapMotion.Core.Scripts.XR.Editor", new string[] { "LeapMotion", "LeapMotion.Core.Editor" } }
+                };
+
+                string pathDifference = GetPathDifference();
+
+                foreach (KeyValuePair<string, string[]> leapAsmDef in leapEditorDirectories)
+                {
+                    // Convert asmdef name to a path
+                    string leapAsmDefPath = leapAsmDef.Key.Replace('.', '/');
+
+                    string leapAsmDefFilename = string.Concat(leapAsmDef.Key, ".asmdef");
+
+                    string fullLeapAsmDefPath = Path.Combine(Application.dataPath, pathDifference, leapAsmDefPath, leapAsmDefFilename);
+
+                    if (!File.Exists(fullLeapAsmDefPath))
+                    {
+                        // Create and save the new asmdef
+                        AssemblyDefinition leapEditorAsmDef = new AssemblyDefinition
+                        {
+                            Name = leapAsmDef.Key,
+                            References = leapAsmDef.Value,
+                            IncludePlatforms = new string[] { "Editor" }
+                        };
+
+                        leapEditorAsmDef.Save(fullLeapAsmDefPath);
+                    }
+                }
+
+                AssetDatabase.Refresh();
+            }
+        }
+
+        /// <summary>
+        /// Create a csc file to filter out warnings produced by the leap core assets
+        /// </summary>
+        private static void AddCSCFile()
+        {
+            string pathDifference = GetPathDifference();
+
+            string leapCorePath = Path.Combine(Application.dataPath, pathDifference, "LeapMotion");
+
+            if (!File.Exists(Path.Combine(leapCorePath, "csc.rsp")))
+            {
+                AssemblyDefinition.CreateCSCFile(Path.Combine(leapCorePath, "csc.rsp"), new string[] { "-nowarn:618,649" });
             }
         }
     }

@@ -13,4 +13,5 @@ MonoBehaviour:
   m_Name: LeapMotionDeviceManagerProfile
   m_EditorClassIdentifier: 
   isCustomProfile: 1
-  leapControllerLocation: 0
+  leapControllerOrientation: 0
+  leapControllerOffset: {x: 0, y: -0.2, z: 0.2}
