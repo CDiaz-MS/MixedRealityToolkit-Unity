@@ -16,7 +16,7 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
     [InitializeOnLoad]
     static class LeapMotionConfigurationChecker
     {
-        private const string FileName = "LeapXRServiceProvider.cs";
+        private const string FileName = "README_BEFORE_UPDATING.txt";
         private static readonly string[] definitions = { "LEAPMOTIONCORE_PRESENT" };
         private static bool isLeapInProject = false;
 
@@ -28,7 +28,6 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
 
             if (isLeapInProject)
             {
-                //AddCSCFile();
                 RemoveTestingFolders();
                 AddAndUpdateAsmDefs();
                 AddLeapEditorAsmDefs();
@@ -82,10 +81,13 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
             // If one of the leap test directories exists then the rest have not been deleted
             if (Directory.Exists(Path.Combine(Application.dataPath, pathsToDelete[0])))
             {
+                // Find where the leap motion core assets are relative to the assets directory
+                string pathDifference = GetPathDifference();
+
                 foreach (string path in pathsToDelete)
                 {
                     // What if leap is not imported to the root of assets?
-                    string fullPath = Path.Combine(Application.dataPath, path);
+                    string fullPath = Path.Combine(Application.dataPath, pathDifference, path);
 
                     // If we are deleting a specific file, then we also need to remove the meta associated with the file
                     if (File.Exists(fullPath) && fullPath.Contains(".cs"))
@@ -233,27 +235,10 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
             }
         }
 
-        /// <summary>
-        /// Create a csc file to filter out warnings produced by the leap core assets
-        /// </summary>
-        //private static void AddCSCFile()
-        //{
-        //    string pathDifference = GetPathDifference();
-
-        //    string leapCorePath = Path.Combine(Application.dataPath, pathDifference, "LeapMotion");
-
-        //    if (!File.Exists(Path.Combine(leapCorePath, "csc.rsp")))
-        //    {
-        //        AssemblyDefinition.CreateCSCFile(Path.Combine(leapCorePath, "csc.rsp"), new string[] { "-nowarn:618,649" });
-        //    }
-        //}
-
-
         [MenuItem("Mixed Reality Toolkit/Utilities/Update/Configure CSC File for Leap Motion", false, 0)]
         static void UpdateCSC()
         {
             string fileName = Path.Combine(Application.dataPath, "csc.rsp");
-
 
             FileInfo file = new FileInfo(fileName);
 
@@ -266,14 +251,13 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
             Debug.Log($"Saving {fileName}");
             using (StreamWriter writer = new StreamWriter(fileName, false))
             {
-                writer.WriteLine("-nowarn:618,649\n-warnaserror+\n-nowarn:1701,1702");
+                writer.WriteLine("-warnaserror+\n-nowarn:1701,1702,618,649");
             }
 
             if (readOnly)
             {
                 file.IsReadOnly = true;
             }
-
         }
     }
 }

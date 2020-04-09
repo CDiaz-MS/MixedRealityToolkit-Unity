@@ -40,6 +40,19 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Inspectors
         {
             RenderProfileHeader(ProfileTitle, ProfileDescription, target);
 
+            // Add the documentation help button
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                
+                // Draw an empty title to align the documentation button to the right
+                InspectorUIUtility.DrawLabel("", InspectorUIUtility.DefaultFontSize, InspectorUIUtility.ColorTint10);
+
+                var helpURL = "https://microsoft.github.io/MixedRealityToolkit-Unity/Documentation/CrossPlatform/LeapMotionMRTK.html";
+                if (helpURL != null)
+                {
+                    InspectorUIUtility.RenderDocumentationButton(helpURL);
+                }            
+            }
             RenderCustomInspector();
         }
 
@@ -55,7 +68,7 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Inspectors
                 // Show warning if the leap core assets are not in the project
                 if (FileUtilities.FindFilesInAssets("LeapXRServiceProvider.cs").Length == 0)
                 {
-                    EditorGUILayout.HelpBox("The Leap Motion Core Assets cannot be found in your project. Please follow the instructions Leap Motion MRTK instructions to use this data provider", MessageType.Error);
+                    EditorGUILayout.HelpBox("The Leap Motion Core Assets could not be found in your project. For more information, visit the Leap Motion MRTK documentation to use this data provider", MessageType.Error);
                 }
                 else
                 {

@@ -72,22 +72,23 @@ namespace Microsoft.MixedReality.Toolkit.Input
         }
 
         /// <summary>
-        /// Calculates whether the current pose allows for selection.
+        /// Calculates whether the current the current joint pose is selecting (air tap gesture).
         /// </summary>
         public bool IsPinching
         {
             get
             {
-                Vector3 thumbTipPosition = unityJointPoses[TrackedHandJoint.ThumbTip].Position;
-                Vector3 indexTipPosition = unityJointPoses[TrackedHandJoint.IndexTip].Position;
-
-                // Found this distance with tests but there could be a better range
-                if (Vector3.Distance(thumbTipPosition, indexTipPosition) < 0.02)
+                MixedRealityPose thumbTip;
+                MixedRealityPose indexTip;
+                if (unityJointPoses.TryGetValue(TrackedHandJoint.ThumbTip, out thumbTip) && unityJointPoses.TryGetValue(TrackedHandJoint.IndexTip, out indexTip))
                 {
-                    return true;
+                    if (Vector3.Distance(thumbTip.Position, indexTip.Position) < 0.02f)
+                    {
+                        return true;
+                    }
                 }
-
-                return false;
+                
+                return false;             
             }
         }
 

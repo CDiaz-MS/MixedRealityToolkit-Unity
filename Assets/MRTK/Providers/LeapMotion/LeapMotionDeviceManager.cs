@@ -66,13 +66,13 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
         /// <summary>
         /// Adds an offset to the game object with LeapServiceProvider attached.  This offset is only applied if the leapControllerOrientation
         /// is LeapControllerOrientation.Desk and is nessesary for the hand to appear in front of the main camera. If the leap controller is on the 
-        /// desk, the LeapServiceProvider is added to the scene instead of the LeapXRServiceProvider. The anchor point for the hands is the position of the 
-        /// game object with the LeapServiceProvider attached.
+        /// desk, the LeapServiceProvider is added to the scene instead of the LeapXRServiceProvider. The anchor point for the position of the leap hands is 
+        /// the position of the game object with the LeapServiceProvider attached.
         /// </summary>
         private Vector3 leapHandsOffset => SettingsProfile.LeapControllerOffset;
 
         /// <summary>
-        /// If true, the leap motion controller connected to the computer.
+        /// If true, the leap motion controller connected and detected.
         /// </summary>
         public bool IsLeapConnected => leapServiceProvider.IsConnected();
 
@@ -81,16 +81,17 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
         /// </summary>
         private readonly Dictionary<Handedness, LeapMotionArticulatedHand> trackedHands = new Dictionary<Handedness, LeapMotionArticulatedHand>();
 
-        // The Leap components added to the scene at runtime in OnEnable
-        private LeapServiceProvider leapServiceProvider = null;
+        // The LeapServiceProvider is added to the scene at runtime in OnEnable 
+        public LeapServiceProvider leapServiceProvider { get; protected set;}
 
         // The Leap attachment hands, used to determine which hand is currently tracked by leap
-        private AttachmentHands attachmentHands = null;
+        public AttachmentHands attachmentHands { get; protected set; }
+
         private AttachmentHand leftAttachmentHand = null;
         private AttachmentHand rightAttachmentHand = null;
 
         // List of hands that are currently in frame and detected by the leap motion controller. If there are no hands in the current frame, this list will be empty.
-        private List<Hand> currentHandsDetectedByLeap;
+        public List<Hand> CurrentHandsDetectedByLeap => leapServiceProvider.CurrentFrame.Hands;
 
         public override void Enable()
         {
@@ -221,11 +222,8 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
 
             if (IsLeapConnected)
             {
-                // Update this list with the current hands in the frame
-                currentHandsDetectedByLeap = leapServiceProvider.CurrentFrame.Hands;
-
                 // if the number of tracked hands in frame has changed
-                if (currentHandsDetectedByLeap.Count != trackedHands.Count)
+                if (CurrentHandsDetectedByLeap.Count != trackedHands.Count)
                 {
                     UpdateLeapTrackedHands(leftAttachmentHand.isTracked, rightAttachmentHand.isTracked);
                 }

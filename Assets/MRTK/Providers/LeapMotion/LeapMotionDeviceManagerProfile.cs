@@ -13,6 +13,7 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion.Input
     [MixedRealityServiceProfile(typeof(LeapMotionDeviceManager))]
     public class LeapMotionDeviceManagerProfile : BaseMixedRealityProfile
     {
+        [Space(10)]
         [SerializeField]
         [Tooltip("The location of the leap motion controller. LeapControllerOrientation.Headset indicates the controller is mounted on a headset. " +
             "LeapControllerOrientation.Desk indicates the controller is placed flat on desk. The default value is set to LeapControllerOrientation.Headset")]
