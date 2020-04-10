@@ -24,7 +24,6 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
         {
             // Check if leap core is in the project
             isLeapInProject = ReconcileLeapMotionDefine();
-            Debug.Log("Leap in Project: " + isLeapInProject);
 
             if (isLeapInProject)
             {
@@ -142,7 +141,7 @@ namespace Microsoft.MixedReality.Toolkit.LeapMotion
                 // Get the MRTK/Providers/LeapMotion/Microsoft.MixedReality.Toolkit.Providers.LeapMotion.asmdef
                 FileInfo[] leapDataProviderAsmDefFile = FileUtilities.FindFilesInAssets("Microsoft.MixedReality.Toolkit.Providers.LeapMotion.asmdef");
 
-                // Add the newly created LeapMotion.asmdef to the refrences of the leap data provider asmdef
+                // Add the newly created LeapMotion.asmdef to the references of the leap data provider asmdef
                 AssemblyDefinition leapDataProviderAsmDef = AssemblyDefinition.Load(leapDataProviderAsmDefFile[0].FullName);
 
                 leapDataProviderAsmDef.References = new string[]

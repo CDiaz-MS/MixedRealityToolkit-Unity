@@ -5,19 +5,26 @@ A [Leap Motion Controller](https://www.ultraleap.com/product/leap-motion-control
 The Leap Motion Data Provider enables articulated hand tracking for VR and could be useful for rapid prototyping in the editor.  The data provider can be configured to use the leap motion controller mounted on a headset or placed on a desk face up.
 
 ## Using Leap Motion tracking in MRTK
-1. Prepare MRTK project for Leap Motion (REQUIRED)
-    - Navigate to Mixed Reality Toolkit > Utilities > Update > Configure CSC File for Leap Motion. Updating the csc file filters out the obsolete warnings produced by the Leap Motion Core Assets.
+1. Prepare MRTK project for Leap Motion
+
+    - This step only applies if the source of MRTK is cloned from the git repo and NOT the unity packages.
+
+        - Navigate to **Mixed Reality Toolkit > Utilities > Update > Configure CSC File for Leap Motion**. Updating the csc file filters out the obsolete warnings produced by the Leap Motion Core Assets.
+
     ![LeapMotionUpdateCSCFile](../Images/CrossPlatform/LeapMotion/LeapMotionConfigureCSCFile.png)
 
 1. Importing the Leap Motion Core Assets
     - Install the [Leap Motion SDK](https://developer.leapmotion.com/releases/?category=orion)
-    - Download the [Leap Motion Core Assets](https://developer.leapmotion.com/unity#5436356)
+    - Download and import the [Leap Motion Core Assets](https://developer.leapmotion.com/unity#5436356)
     > [!NOTE]
     > On import of the Leap Core Assets, test directories are removed and 10 assembly definitions are added to the project.
+    - If using Unity 2018.4.x
+        - Navigate to **Mixed Reality Toolkit** > **Utilities** > **Leap Motion** > **Reconcile Leap Motion Define**
+    - If using Unity 2019.3.x, no further import steps are required.
 
 1. Adding the Leap Motion Data Provider
     - Create a new unity scene
-    - Add MRTK to the scene by navigating to the **Mixed Reality Toolkit** > **Add to Scene and Configure**
+    - Add MRTK to the scene by navigating to **Mixed Reality Toolkit** > **Add to Scene and Configure**
     - Select the MixedRealityToolkit game object in the hierarchy and select **Copy and Customize** to clone the default mixed reality profile.
     
     ![LeapMotionProfileClone](../Images/CrossPlatform/LeapMotion/LeapProfileClone.png)
