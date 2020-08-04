@@ -13,4 +13,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
     [System.Serializable]
     public class FocusUnityEvent : UnityEvent<FocusEventData> { }
+
+    public class FocusEvents
+    {
+        public FocusUnityEvent OnFocusOn = new FocusUnityEvent();
+
+        public FocusUnityEvent OnFocusOff = new FocusUnityEvent();
+    }
 }

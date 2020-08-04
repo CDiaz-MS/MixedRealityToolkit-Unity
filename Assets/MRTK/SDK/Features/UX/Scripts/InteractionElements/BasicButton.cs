@@ -19,23 +19,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             StateManager.ActiveStates.Add(new State() { Index = 1, Name = "Press", ActiveIndex = -1, Bit = 0, Value = 0 });
         }
 
-
-        public override void onFocusEnter(FocusEventData eventData)
-        {
-            base.onFocusEnter(eventData);
-
-            Debug.Log("basic button");
-
-            if (StateManager.GetState("Focus").Value == 1)
-            {
-                StateManager.SetState("Press", 1);
-            }
-        }
-
-
-
-
-
     }
 
 }

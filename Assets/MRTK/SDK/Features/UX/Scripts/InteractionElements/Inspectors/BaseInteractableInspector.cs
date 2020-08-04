@@ -23,7 +23,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             instance = (BaseInteractable)target;
             activeStates = serializedObject.FindProperty("states");
             events = serializedObject.FindProperty("events");
-            focusevent = serializedObject.FindProperty("focusEvent");
+            focusevent = serializedObject.FindProperty("OnFocusOn");
         }
 
         public override void OnInspectorGUI()
@@ -33,7 +33,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<ActiveStates>(activeStates, "Active States", true);
 
-            EditorGUILayout.PropertyField(focusevent);
 
 
             if (InspectorUIUtility.DrawSectionFoldoutWithKey("Receivers", "Receivers", MixedRealityStylesUtility.TitleFoldoutStyle, false))

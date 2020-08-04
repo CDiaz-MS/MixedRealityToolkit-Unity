@@ -27,5 +27,15 @@ namespace Microsoft.MixedReality.Toolkit.UI
             StateList.Add(new State() { Index = 1, Name = "Focus", ActiveIndex = -1, Bit = 0, Value = 0 });
         }
 
+
+
+        public void AddStateEvents(string StateName)
+        {
+            if (StateName == "Focus")
+            {
+                FocusEvents focusEvents = new FocusEvents();
+                // BaseInteractable
+            }
+        }
     }
 }

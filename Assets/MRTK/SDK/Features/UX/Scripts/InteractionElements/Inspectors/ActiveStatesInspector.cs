@@ -33,7 +33,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Editor
             serializedObject.Update();
 
             InspectorUIUtility.DrawTitle("Tracked States");
-            //EditorGUILayout.HelpBox("Manage state configurations to drive Interactables or Transitions", MessageType.None);
 
             for (int i = 0; i < stateList.arraySize; i++)
             {
@@ -52,11 +51,24 @@ namespace Microsoft.MixedReality.Toolkit.UI.Editor
                         {
                             EditorGUILayout.LabelField(value.intValue.ToString());
                         }
-                        
+
                         if (InspectorUIUtility.SmallButton(RemoveStateLabel))
                         {
                             stateList.DeleteArrayElementAtIndex(i);
                             break;
+                        }
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button("Add State Events"))
+                        {
+
+                        }
+
+                        if (GUILayout.Button("Remove State Events"))
+                        {
+
                         }
                     }
                 }

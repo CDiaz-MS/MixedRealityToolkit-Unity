@@ -38,83 +38,59 @@ namespace Microsoft.MixedReality.Toolkit.UI
         }
 
         // The StateManager stores all the values for the states
-        public StateManager StateManager = new StateManager();
+        public StateManager StateManager { get; protected set; }
 
         // The StateManager stores all the values for the states
-        public EventReceiverManager EventReceiverManager = new EventReceiverManager();
+        public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
-        [SerializeField]
-        private List<BaseInteractableEvent> events = new List<BaseInteractableEvent>();
-
-        /// <summary>
-        /// ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be "DefaultInteractableStates" object
-        /// </summary>
-        public List<BaseInteractableEvent> Events
-        {
-            get => events;
-            set
-            {
-                events = value;
-            }
-        }
-
-        
-        public FocusUnityEvent focusEvent = new FocusUnityEvent();
+        public List<UnityEvent<FocusEventData>> Events { get; protected set; }
 
 
         public virtual void Start()
         {
-            //StateManager = new StateManager(activeStates);
             InitializeStateManager();
-            
 
+            InitializeEventReceiverManager();
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        private void InitializeStateManager()
+        {
+            StateManager = new StateManager
+            {
+                // Add the states defined in the scriptable object
+                ActiveStates = States.StateList
+            };
 
             // Set the defalut state on start
             StateManager.SetState("Default", 1);
         }
 
-
         /// <summary>
-        /// Take the states defined in the scriptable object and add them to the active states
-        /// list.
+        /// 
         /// </summary>
-        private void InitializeStateManager()
+        private void InitializeEventReceiverManager()
         {
-            StateManager.ActiveStates = States.StateList;
+            EventReceiverManager = new EventReceiverManager();
 
-            EventReceiverManager.EventReceiverList.Add(new FocusReceiver());
+            // Create the 
+            Events.Add(new FocusUnityEvent());
 
 
         }
 
 
-        private void OnValidate()
-        {
-            if (Events.Count != 0)
-            {
 
 
-                foreach (BaseEventReceiver receiver in EventReceiverManager.EventReceiverList)
-                {
-                    //receiver.GetType
-                    //EventReceiverManager.Events.Add(receiver.Event);
-                }
-
-                Events = EventReceiverManager.Events;
-            }
-        }
 
 
         private void Update()
         {
             // Update the active states in the StateManager if Active States length has changed
-
-            foreach (BaseEventReceiver receiver in EventReceiverManager.EventReceiverList)
-            {
-                // Add the events in each receiver to the event list 
-            }
-
 
             // If no other states are active, then we are in the Default state
         }
@@ -156,32 +132,19 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public void OnFocusEnter(FocusEventData eventData)
         {
-            // Change focus state
-            // Add event receiver 
-            onFocusEnter(eventData);
-            focusEvent.Invoke(eventData);
-        }
-
-
-        public virtual void onFocusEnter(FocusEventData eventData)
-        {
             StateManager.SetState("Focus", 1);
 
-            Debug.Log(gameObject.name + " Focus Enter" + StateManager.GetState("Focus").Value);
-
-            EventReceiverManager.Invoke("Focus", 1, eventData, StateManager, this);
-            
-
+            //Focus Receiver = EventReceiverManager.GetReceiver(FocusReceiver)
+            //focusReceiver.Events.where(onfocuson).Invoke(eventData)
 
             StateManager.SetState("Default", 0);
         }
 
+
         public void OnFocusExit(FocusEventData eventData)
         {
-            // Change focus state
-            // Add event receiver 
             StateManager.SetState("Focus", 0);
-            Debug.Log(gameObject.name + " Focus Exit" + StateManager.GetState("Focus").Value);
+
         }
 
         public void OnFocusChanged(FocusEventData eventData){ }

@@ -48,5 +48,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
             Debug.Log(EventReceiverList[0].Name + "!!!!!!!!!!!!!!!!!!!!");
 
         }
+
+
+        // An event receiver can only be added if the state is also in there
     }
 }
