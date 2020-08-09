@@ -13,6 +13,10 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public MaterialStateStylePropertyConfiguration MaterialStateStylePropertyConfiguration;
 
+
+        //public GameObject target => Target;
+
+
         //private Material Material => MaterialStateStylePropertyConfiguration.Material;
 
         private Color Color => MaterialStateStylePropertyConfiguration.Color;

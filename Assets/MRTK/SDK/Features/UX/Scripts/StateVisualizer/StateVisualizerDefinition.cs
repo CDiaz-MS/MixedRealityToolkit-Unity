@@ -11,8 +11,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public GameObject Target;
 
-        //public Dictionary<string, List<StateStyleProperty>> StateStyleProperties = new Dictionary<string, List<StateStyleProperty>>();
-
         [SerializeField]
         private List<StateStyleProperties> stateStyleProperties = new List<StateStyleProperties>();
 
@@ -33,8 +31,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
                 StateStyleProperties.Add(new StateStyleProperties(
                     state.Name,
                     target,
-                    new List<StateStylePropertyConfiguration>() { new MaterialStateStylePropertyConfiguration()}
-                    ));
+                    new List<StateStylePropertyConfiguration>() { ScriptableObject.CreateInstance<MaterialStateStylePropertyConfiguration>() }
+                    )); 
             }
         }
     }

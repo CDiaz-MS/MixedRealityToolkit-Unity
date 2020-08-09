@@ -58,9 +58,12 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 MaterialStateStylePropertyConfiguration config = stylePropertyConfig as MaterialStateStylePropertyConfiguration;
 
+                config.CreateRuntimeInstance();
+
+                config.Target = gameObject;
+
                 config.MaterialStateStyleProperty.SetStyleProperty();
             }
-
         }
     }
 }

@@ -44,7 +44,21 @@ namespace Microsoft.MixedReality.Toolkit.UI
         public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
-        public List<UnityEvent<FocusEventData>> Events { get; protected set; }
+        [SerializeField]
+        [Tooltip("ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be \"DefaultInteractableStates\" object")]
+        private List<FocusReceiverEvents> events = new List<FocusReceiverEvents>();
+        
+        /// <summary>
+        /// ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be "DefaultInteractableStates" object
+        /// </summary>
+        public List<FocusReceiverEvents> Events
+        {
+            get => events;
+            set
+            {
+                events = value;
+            }
+        }
 
 
         public virtual void Start()
@@ -77,9 +91,36 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             EventReceiverManager = new EventReceiverManager();
 
-            // Create the 
-            Events.Add(new FocusUnityEvent());
 
+
+
+        }
+
+
+
+        private void AddStateEvents<T>(string stateName) where T : IInteractableUnityEvent
+        {
+            if (stateName == "Focus")
+            {
+                FocusReceiverEvents eventt = new FocusReceiverEvents();
+            }
+
+        }
+
+        private void OnValidate()
+        {
+            //Events = new List<IInteractableUnityEvent>();
+            if (Events.Count == 0)
+            {
+                FocusReceiverEvents eventt = new FocusReceiverEvents();
+
+
+                // Create the 
+                Events.Add(eventt);
+
+
+
+            }
 
         }
 

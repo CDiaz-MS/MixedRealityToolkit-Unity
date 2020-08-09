@@ -31,11 +31,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public void AddStateEvents(string StateName)
         {
-            if (StateName == "Focus")
-            {
-                FocusEvents focusEvents = new FocusEvents();
-                // BaseInteractable
-            }
+            //if (StateName == "Focus")
+            //{
+            //    FocusEvents focusEvents = new FocusEvents();
+            //    // BaseInteractable
+            //}
         }
     }
 }

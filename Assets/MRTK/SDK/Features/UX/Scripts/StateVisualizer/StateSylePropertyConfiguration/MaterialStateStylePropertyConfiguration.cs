@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI
 {
-    [System.Serializable]   
+    [CreateAssetMenu]
     public class MaterialStateStylePropertyConfiguration : StateStylePropertyConfiguration
     {
         public string StateStylePropertyName = "Material";
@@ -16,19 +16,17 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public Color Color;
 
-        public MaterialStateStyleProperty MaterialStateStyleProperty => CreateRuntimeInstance();
+        public MaterialStateStyleProperty MaterialStateStyleProperty;
 
         public MaterialStateStyleProperty CreateRuntimeInstance()
         {
             //if (MaterialStateStyleProperty == null)
             MaterialStateStyleProperty stateStyleProperty = new MaterialStateStyleProperty(this);
 
-            stateStyleProperty.SetStyleProperty();
+            MaterialStateStyleProperty = stateStyleProperty;
 
             return stateStyleProperty;
         }
-
-        
 
     }
 }

@@ -11,5 +11,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 {
 
     [System.Serializable]
-    public class BaseInteractableEvent : UnityEvent<BaseEventData> { }
+    public class BaseInteractableEvent : UnityEvent<BaseEventData>
+    {
+    }
 }

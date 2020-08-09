@@ -12,9 +12,9 @@ namespace Microsoft.MixedReality.Toolkit.UI
     {
         public StateStyleProperty(StateStylePropertyConfiguration stateStylePropertyConfiguration)
         {
-            StateStylePropertyConfiguration = stateStylePropertyConfiguration;
-            //State = stateStylePropertyConfiguration.State;
-            //Target = stateStylePropertyConfiguration.Target;
+            //StateStylePropertyConfiguration = stateStylePropertyConfiguration;
+            State = stateStylePropertyConfiguration.State;
+            Target = stateStylePropertyConfiguration.Target;
             // enforce type for the creation of a state style property
         }
 

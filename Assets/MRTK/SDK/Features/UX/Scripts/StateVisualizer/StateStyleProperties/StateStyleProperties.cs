@@ -9,8 +9,13 @@ namespace Microsoft.MixedReality.Toolkit.UI
     [System.Serializable]
     public class StateStyleProperties
     {
+        [SerializeField]
         public string StateName;
+
+        [SerializeField]
         public GameObject Target;
+
+        [SerializeField]
         public List<StateStylePropertyConfiguration> StateStylePropList;
 
 

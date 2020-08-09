@@ -4,15 +4,34 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI
 {
-    [System.Serializable]
-    public class StateStylePropertyConfiguration
+
+    public abstract class StateStylePropertyConfiguration: ScriptableObject
     {
-        
 
         public State State;
 
-        //public GameObject Target;
+        //public MaterialStateStylePropertyConfiguration materialConfig;
 
-        public MaterialStateStylePropertyConfiguration materialConfig;
+        [SerializeField]
+        private GameObject target;
+
+        public GameObject Target
+        {
+            get 
+            {
+                return target; 
+            }
+            set
+            {
+                if (target != value)
+                {
+                    target = value;
+                }
+            }
+        }
+
+
+
+
     }
 }

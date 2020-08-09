@@ -16,14 +16,12 @@ namespace Microsoft.MixedReality.Toolkit.UI
         private BaseInteractable instance;
         private SerializedProperty activeStates;
         private SerializedProperty events;
-        private SerializedProperty focusevent;
 
         protected virtual void OnEnable()
         {
             instance = (BaseInteractable)target;
             activeStates = serializedObject.FindProperty("states");
             events = serializedObject.FindProperty("events");
-            focusevent = serializedObject.FindProperty("OnFocusOn");
         }
 
         public override void OnInspectorGUI()
@@ -34,13 +32,18 @@ namespace Microsoft.MixedReality.Toolkit.UI
             InspectorUIUtility.DrawScriptableFoldout<ActiveStates>(activeStates, "Active States", true);
 
 
-
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Receivers", "Receivers", MixedRealityStylesUtility.TitleFoldoutStyle, false))
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Receivers", "Receivers", MixedRealityStylesUtility.TitleFoldoutStyle, true))
             {
                 //SerializedProperty events = serializedObject.FindProperty("Events");
                 for (int i = 0; i < events.arraySize; i++)
                 {
                     SerializedProperty eventItem = events.GetArrayElementAtIndex(i);
+
+                    SerializedProperty eventUnity = eventItem.FindPropertyRelative("name");
+
+
+                    EditorGUILayout.LabelField(eventUnity.stringValue);
+
                     //if (InteractableEventInspector.RenderEvent(eventItem))
                     //{
                     //    events.DeleteArrayElementAtIndex(i);
@@ -48,7 +51,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     //    break;
                     //}
 
-                    EditorGUILayout.PropertyField(eventItem);
+                    //EditorGUILayout.PropertyField(eventItem);
 
                 }
             }
