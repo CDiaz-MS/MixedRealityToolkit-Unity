@@ -46,47 +46,65 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     SerializedProperty name = stateItem.FindPropertyRelative("stateName");
                     SerializedProperty value = stateItem.FindPropertyRelative("stateValue");
 
-                    using (new EditorGUILayout.HorizontalScope())
+                    using (new EditorGUILayout.VerticalScope())
                     {
-                        EditorGUILayout.LabelField(name.stringValue);
+                        EditorGUILayout.Space();
 
-                        if (Application.isPlaying)
+                        using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(value.intValue.ToString());
+                            //EditorGUILayout.LabelField(name.stringValue);
+
+                            InspectorUIUtility.DrawLabel(name.stringValue, 14, InspectorUIUtility.ColorTint10);
+
+                            if (Application.isPlaying)
+                            {
+                                EditorGUILayout.LabelField(value.intValue.ToString());
+                            }
+
+                            if (InspectorUIUtility.SmallButton(RemoveStateLabel))
+                            {
+                                stateList.DeleteArrayElementAtIndex(i);
+                                break;
+                            }
                         }
 
-                        if (InspectorUIUtility.SmallButton(RemoveStateLabel))
-                        {
-                            stateList.DeleteArrayElementAtIndex(i);
-                            break;
-                        }
-                    }
+                        EditorGUILayout.Space();
 
-                    using (new EditorGUILayout.HorizontalScope())
-                    {
-                        if (GUILayout.Button("Add State Events"))
+                        using (new EditorGUILayout.HorizontalScope())
                         {
 
+                            if (GUILayout.Button("Add State Events"))
+                            {
+
+                            }
+
+                            //if (GUILayout.Button("Remove State Events"))
+                            //{
+
+                            //}
                         }
 
-                        if (GUILayout.Button("Remove State Events"))
-                        {
-
-                        }
+                        EditorGUILayout.Space();
                     }
                 }
             }
 
-            using (new EditorGUILayout.HorizontalScope())
+            using (new EditorGUILayout.VerticalScope())
             {
-                if (GUILayout.Button("Add Existing State"))
-                {
-                    stateList.InsertArrayElementAtIndex(stateList.arraySize);
-                }
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
 
-                if (GUILayout.Button("Create New State"))
+                using (new EditorGUILayout.HorizontalScope())
                 {
+                    if (GUILayout.Button("Add Existing State"))
+                    {
+                        stateList.InsertArrayElementAtIndex(stateList.arraySize);
+                    }
 
+                    if (GUILayout.Button("Create New State"))
+                    {
+
+                    }
                 }
             }
 

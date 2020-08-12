@@ -32,7 +32,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
 
 
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Receivers", "Receivers", MixedRealityStylesUtility.TitleFoldoutStyle, true))
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("State Events", "State Events", MixedRealityStylesUtility.TitleFoldoutStyle, true))
             {
                 //SerializedProperty events = serializedObject.FindProperty("Events");
                 for (int i = 0; i < events.arraySize; i++)

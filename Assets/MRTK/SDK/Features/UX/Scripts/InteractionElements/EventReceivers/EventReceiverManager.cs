@@ -45,8 +45,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Only call the onupdates if it has been called from interactable
 
-            Debug.Log(EventReceiverList[0].Name + "!!!!!!!!!!!!!!!!!!!!");
-
         }
 
 

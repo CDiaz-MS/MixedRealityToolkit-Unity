@@ -82,6 +82,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Set the defalut state on start
             StateManager.SetState("Default", 1);
+            StateManager.SetState("Focus", 0);
         }
 
         /// <summary>
@@ -90,10 +91,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private void InitializeEventReceiverManager()
         {
             EventReceiverManager = new EventReceiverManager();
-
-
-
-
         }
 
 

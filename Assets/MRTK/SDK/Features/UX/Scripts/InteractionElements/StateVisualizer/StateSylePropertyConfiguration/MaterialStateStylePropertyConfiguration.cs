@@ -12,16 +12,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     {
         public Material Material;
 
-        public Color Color;
-
-        public MaterialStateStyleProperty MaterialStateStyleProperty;
-
         public override StateStyleProperty CreateRuntimeInstance()
         {
-            //if (MaterialStateStyleProperty == null)
             MaterialStateStyleProperty stateStyleProperty = new MaterialStateStyleProperty(this);
 
-            MaterialStateStyleProperty = stateStyleProperty;
+            StateStyleProperty = stateStyleProperty;
 
             return stateStyleProperty;
         }

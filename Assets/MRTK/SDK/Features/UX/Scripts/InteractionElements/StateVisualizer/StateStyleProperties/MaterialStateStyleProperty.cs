@@ -22,12 +22,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private Material Material => MaterialStateStylePropertyConfiguration.Material;
 
-        private Color Color => MaterialStateStylePropertyConfiguration.Color;
-
         private MeshRenderer meshRenderer;
-
-        
-
 
         public override void SetStyleProperty()
         {
@@ -37,8 +32,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 {
                     meshRenderer.material = Material;
                 }
-
-                meshRenderer.material.color = Color;
             } 
         }
 

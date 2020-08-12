@@ -7,8 +7,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CreateAssetMenu]
     public abstract class StateStylePropertyConfiguration: ScriptableObject
     {
+        [HideInInspector]
         public string StateStylePropertyName;
 
+        [HideInInspector]
         public InteractionState State;
 
         //public MaterialStateStylePropertyConfiguration materialConfig;
@@ -31,6 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
+        public StateStyleProperty StateStyleProperty;
 
         public abstract StateStyleProperty CreateRuntimeInstance();
     }

@@ -19,13 +19,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public List<InteractionState> TrackedStates;
 
-        public InteractionState CurrentState = new InteractionState("None");
+        public InteractionStateActiveEvent OnStateActivated = new InteractionStateActiveEvent();
 
-        private bool stateChanged = false;
+        //public InteractionStateInactiveEvent OnStateDeactivated = new InteractionStateInactiveEvent();
 
-        private List<int> currentStateValues = new List<int>();
-
-        private List<int> pastStateValues = new List<int>();
+        //private InteractionState previousState = new InteractionState("None");
 
         public InteractionState GetState(string stateName)
         {
@@ -34,48 +32,29 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public InteractionState SetState(string stateName, int value)
         {
-            InteractionState currentState = TrackedStates.Find((x) => x.Name == stateName);
+            // Add guards for if the user enters an invalid value or name
+
+            InteractionState currentState = GetState(stateName);
             
-
-
             currentState.Value = value;
 
             if (value > 0)
             {
                 currentState.Active = 1;
 
-                CurrentState = currentState;
-
-                stateChanged = true;
+                OnStateActivated.Invoke(currentState);
 
             }
             else
             {
                 currentState.Active = 0;
+
+                //OnStateDeactivated.Invoke(previousState, currentState);
             }
 
+            //previousState = currentState;
 
             return currentState;
-        }
-
-
-        public InteractionState CheckStateChange()
-        {
-            if (stateChanged)
-            {
-                stateChanged = false;
-
-
-                return CurrentState;
-                
-
-                
-
-            }
-            CurrentState = null;
-            return null;
-            
-            
         }
 
     }

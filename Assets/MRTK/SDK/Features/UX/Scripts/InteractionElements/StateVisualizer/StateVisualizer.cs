@@ -1,4 +1,6 @@
 ﻿using Microsoft.MixedReality.Toolkit.UI;
+using System;
+using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -39,22 +41,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-
-        private void Update()
-        {
-
-            //Debug.Log(StateManager.CheckStateChange());
-            InteractionState state = StateManager.CheckStateChange();
-
-            if (state != null)
-            {
-                Debug.Log(state.Name);
-
-                ActivateStateStyleProperty(state.Name);
-                
-            }
-        }
-
         public void ActivateStateStyleProperty(string StateName)
         {
             // Change all properties with the StateName
@@ -65,14 +51,37 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 if (stylePropertyConfig.GetType() == typeof(MaterialStateStylePropertyConfiguration))
                 {
-                    MaterialStateStylePropertyConfiguration config = stylePropertyConfig as MaterialStateStylePropertyConfiguration;
-
-                    config.CreateRuntimeInstance();
-
-                    config.MaterialStateStyleProperty.SetStyleProperty();
-
+                    SetStyleProperty<MaterialStateStylePropertyConfiguration>(stylePropertyConfig);
                 }
             }
         }
+
+        public void SetStyleProperty<T>(StateStylePropertyConfiguration stylePropertyConfig) where T: StateStylePropertyConfiguration
+        {
+            T configuration = stylePropertyConfig as T;
+
+            configuration.CreateRuntimeInstance();
+            configuration.StateStyleProperty.SetStyleProperty();
+        }
+
+        private void Start()
+        {
+            // Add listeners to the OnStateActivated(InteractionState)
+            // enable all the style properties 
+            StateManager.OnStateActivated.AddListener(
+                (state) =>
+                {
+                    //Debug.Log(state.Name + " Event");
+                    ActivateStateStyleProperty(state.Name);
+                });
+
+            //StateManager.OnStateDeactivated.AddListener(
+            //    (previousState, currentState) =>
+            //    {
+            //        Debug.Log("PreviousState: " + previousState.Name );
+            //        Debug.Log("CurrentState: " + currentState.Name );
+            //    });
+        }
+
     }
 }
