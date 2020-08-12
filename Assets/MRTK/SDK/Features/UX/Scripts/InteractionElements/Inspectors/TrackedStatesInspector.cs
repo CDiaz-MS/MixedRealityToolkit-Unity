@@ -8,29 +8,32 @@ using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
-namespace Microsoft.MixedReality.Toolkit.UI.Editor
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CustomEditor(typeof(ActiveStates))]
-    public class ActiveStatesInspector : UnityEditor.Editor
+    [CustomEditor(typeof(TrackedStates))]
+    public class TrackedStatesInspector : UnityEditor.Editor
     {
-        protected ActiveStates instance;
-        protected SerializedProperty stateList;
+        private SerializedProperty stateList;
 
         private static GUIContent RemoveStateLabel;
-        //private static readonly GUIContent AddStateLabel = new GUIContent("+", "Add State");
 
         protected virtual void OnEnable()
         {
-            instance = (ActiveStates)target;
 
             RemoveStateLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
-            stateList = serializedObject.FindProperty("stateList");
-
+            
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
+
+            if (stateList == null)
+            {
+                stateList = serializedObject.FindProperty("stateList");
+            }
+
+
 
             InspectorUIUtility.DrawTitle("Tracked States");
 
@@ -40,8 +43,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Editor
                 {
                     SerializedProperty stateItem = stateList.GetArrayElementAtIndex(i);
 
-                    SerializedProperty name = stateItem.FindPropertyRelative("Name");
-                    SerializedProperty value = stateItem.FindPropertyRelative("Value");
+                    SerializedProperty name = stateItem.FindPropertyRelative("stateName");
+                    SerializedProperty value = stateItem.FindPropertyRelative("stateValue");
 
                     using (new EditorGUILayout.HorizontalScope())
                     {

@@ -7,20 +7,20 @@ using UnityEditor;
 using UnityEditor.Experimental.TerrainAPI;
 using UnityEngine;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(BaseInteractable))]
     public class BaseInteractableInspector : UnityEditor.Editor
     {
         private BaseInteractable instance;
-        private SerializedProperty activeStates;
+        private SerializedProperty trackedStates;
         private SerializedProperty events;
 
         protected virtual void OnEnable()
         {
             instance = (BaseInteractable)target;
-            activeStates = serializedObject.FindProperty("states");
+            trackedStates = serializedObject.FindProperty("trackedStates");
             events = serializedObject.FindProperty("events");
         }
 
@@ -29,7 +29,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             serializedObject.Update();
 
             // Draw the States scriptable object
-            InspectorUIUtility.DrawScriptableFoldout<ActiveStates>(activeStates, "Active States", true);
+            InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
 
 
             if (InspectorUIUtility.DrawSectionFoldoutWithKey("Receivers", "Receivers", MixedRealityStylesUtility.TitleFoldoutStyle, true))
@@ -40,7 +40,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
                     SerializedProperty eventItem = events.GetArrayElementAtIndex(i);
 
                     SerializedProperty eventUnity = eventItem.FindPropertyRelative("name");
-
 
                     EditorGUILayout.LabelField(eventUnity.stringValue);
 

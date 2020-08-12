@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-
+    [CreateAssetMenu]
     public abstract class StateStylePropertyConfiguration: ScriptableObject
     {
+        public string StateStylePropertyName;
 
-        public State State;
+        public InteractionState State;
 
         //public MaterialStateStylePropertyConfiguration materialConfig;
 
@@ -31,7 +32,6 @@ namespace Microsoft.MixedReality.Toolkit.UI
         }
 
 
-
-
+        public abstract StateStyleProperty CreateRuntimeInstance();
     }
 }

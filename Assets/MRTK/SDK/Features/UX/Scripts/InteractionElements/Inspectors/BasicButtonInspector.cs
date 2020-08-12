@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.TerrainAPI;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     [CustomEditor(typeof(BasicButton))]
     public class BasicButtonInspector : BaseInteractableInspector

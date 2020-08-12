@@ -7,9 +7,9 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    public class BaseInteractable :
+    public abstract class BaseInteractable :
         MonoBehaviour,
         IMixedRealityFocusChangedHandler,
         IMixedRealityFocusHandler
@@ -23,17 +23,17 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         [SerializeField]
         [Tooltip("ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be \"DefaultInteractableStates\" object")]
-        private ActiveStates states;
+        private TrackedStates trackedStates;
 
         /// <summary>
         /// ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be "DefaultInteractableStates" object
         /// </summary>
-        public ActiveStates States
+        public TrackedStates TrackedStates
         {
-            get => states;
+            get => trackedStates;
             set
             {
-                states = value;
+                trackedStates = value;
             }
         }
 
@@ -77,7 +77,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
             StateManager = new StateManager
             {
                 // Add the states defined in the scriptable object
-                ActiveStates = States.StateList
+                TrackedStates = TrackedStates.StateList
             };
 
             // Set the defalut state on start
@@ -114,35 +114,11 @@ namespace Microsoft.MixedReality.Toolkit.UI
             {
                 FocusReceiverEvents eventt = new FocusReceiverEvents();
 
-
                 // Create the 
                 Events.Add(eventt);
-
-
-
             }
 
         }
-
-
-
-
-
-
-        private void Update()
-        {
-            // Update the active states in the StateManager if Active States length has changed
-
-            // If no other states are active, then we are in the Default state
-        }
-
-
-        private void UpdateStates()
-        {
-            
-        }
-
-
 
         #region Focus
 
@@ -185,6 +161,8 @@ namespace Microsoft.MixedReality.Toolkit.UI
         public void OnFocusExit(FocusEventData eventData)
         {
             StateManager.SetState("Focus", 0);
+
+            StateManager.SetState("Default", 1);
 
         }
 

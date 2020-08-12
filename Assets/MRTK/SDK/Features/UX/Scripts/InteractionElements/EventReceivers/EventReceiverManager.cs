@@ -7,7 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.PlayerLoop;
 
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class EventReceiverManager
     {
@@ -39,7 +39,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public void Invoke(string name, int value, BaseEventData eventData, StateManager stateManager, BaseInteractable baseInteractable)
         {
-            State state = stateManager.GetState(name);
+            InteractionState state = stateManager.GetState(name);
 
             EventReceiverList[0].OnUpdate(stateManager, baseInteractable, eventData);
 

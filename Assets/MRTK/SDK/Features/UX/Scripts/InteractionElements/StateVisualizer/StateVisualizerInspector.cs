@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(StateVisualizer))]

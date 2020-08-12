@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
     /// Runtime class for state style properties 
@@ -22,7 +22,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         protected GameObject Target;
 
-        protected State State;
+        protected InteractionState State;
 
         public string StateName => StateStylePropertyConfiguration.State.Name;
 

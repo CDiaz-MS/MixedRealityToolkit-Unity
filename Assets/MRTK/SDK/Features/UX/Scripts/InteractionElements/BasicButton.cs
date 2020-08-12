@@ -7,16 +7,16 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class BasicButton : BaseInteractable
     {
-
         public override void Start()
         {
             base.Start();
 
-            StateManager.ActiveStates.Add(new State() { Index = 1, Name = "Press", ActiveIndex = -1, Bit = 0, Value = 0 });
+            // Handle cases for changing list sizes
+            //StateManager.TrackedStates.Add(new InteractionState("Press"));
         }
 
     }

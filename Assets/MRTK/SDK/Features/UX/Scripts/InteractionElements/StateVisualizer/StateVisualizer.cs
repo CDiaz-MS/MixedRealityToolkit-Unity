@@ -4,12 +4,11 @@ using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
 
-namespace Microsoft.MixedReality.Toolkit.UI
+namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class StateVisualizer : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("")]
         private StateVisualizerDefinition stateVisualizerDefinition;
 
         /// <summary>
@@ -26,7 +25,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         public BaseInteractable BaseInteractable => GetComponent<BaseInteractable>();
 
-        public List<State> ActiveStates => BaseInteractable.States.StateList;
+        public List<InteractionState> TrackedStates => BaseInteractable.TrackedStates.StateList;
 
         private StateManager StateManager => BaseInteractable.StateManager;
 
@@ -35,6 +34,7 @@ namespace Microsoft.MixedReality.Toolkit.UI
         {
             if (StateVisualizerDefinition.StateStyleProperties.Count == 0)
             {
+                StateVisualizerDefinition.StateStyleProperties = new List<StateStylePropertiesConfigurationContainer>();
                 StateVisualizerDefinition.SetUp(BaseInteractable, this.gameObject);
             }
         }
@@ -42,27 +42,36 @@ namespace Microsoft.MixedReality.Toolkit.UI
 
         private void Update()
         {
-            if(StateManager.GetState("Focus").Value == 1)
+
+            //Debug.Log(StateManager.CheckStateChange());
+            InteractionState state = StateManager.CheckStateChange();
+
+            if (state != null)
             {
-                OnStateChange("Focus");
+                Debug.Log(state.Name);
+
+                ActivateStateStyleProperty(state.Name);
+                
             }
         }
 
-        public void OnStateChange(string StateName)
+        public void ActivateStateStyleProperty(string StateName)
         {
             // Change all properties with the StateName
 
-            StateStyleProperties stateStyleProperties = StateVisualizerDefinition.StateStyleProperties.Find((x) => x.StateName == StateName);
+            StateStylePropertiesConfigurationContainer stateStyleProperties = StateVisualizerDefinition.StateStyleProperties.Find((x) => x.StateName == StateName);
 
             foreach (StateStylePropertyConfiguration stylePropertyConfig in stateStyleProperties.StateStylePropList)
             {
-                MaterialStateStylePropertyConfiguration config = stylePropertyConfig as MaterialStateStylePropertyConfiguration;
+                if (stylePropertyConfig.GetType() == typeof(MaterialStateStylePropertyConfiguration))
+                {
+                    MaterialStateStylePropertyConfiguration config = stylePropertyConfig as MaterialStateStylePropertyConfiguration;
 
-                config.CreateRuntimeInstance();
+                    config.CreateRuntimeInstance();
 
-                config.Target = gameObject;
+                    config.MaterialStateStyleProperty.SetStyleProperty();
 
-                config.MaterialStateStyleProperty.SetStyleProperty();
+                }
             }
         }
     }
