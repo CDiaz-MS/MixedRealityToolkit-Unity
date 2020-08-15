@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Boo.Lang;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System;
@@ -21,30 +22,31 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
 
             RemoveStateLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
+
             
+
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
-            if (stateList == null)
-            {
-                stateList = serializedObject.FindProperty("stateList");
-            }
-
-
-
             InspectorUIUtility.DrawTitle("Tracked States");
+
+
+            stateList = serializedObject.FindProperty("stateList");
 
             for (int i = 0; i < stateList.arraySize; i++)
             {
+               
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
                     SerializedProperty stateItem = stateList.GetArrayElementAtIndex(i);
 
                     SerializedProperty name = stateItem.FindPropertyRelative("stateName");
                     SerializedProperty value = stateItem.FindPropertyRelative("stateValue");
+
+                    SerializedProperty eventConfiguration = stateItem.FindPropertyRelative("eventConfiguration");
 
                     using (new EditorGUILayout.VerticalScope())
                     {
@@ -67,22 +69,42 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                 break;
                             }
                         }
-
+                    
+                        EditorGUILayout.Space();
                         EditorGUILayout.Space();
 
-                        using (new EditorGUILayout.HorizontalScope())
+
+                        using (new EditorGUILayout.VerticalScope())
                         {
-
-                            if (GUILayout.Button("Add State Events"))
+                            using (new EditorGUI.IndentLevelScope())
                             {
+                                // If this state has state events then draw them
+                                if (HasStateEvents(name.stringValue))
+                                {
+                                    if (InspectorUIUtility.DrawSectionFoldoutWithKey(name.stringValue + " State Events", name.stringValue + "Events", MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
+                                    {
+                                        // Get the state name
+                                        // find the associated event config
+                                        // create an instance of the event config, if they want an event present
 
+                                        using (new EditorGUILayout.VerticalScope())
+                                        {
+                                            if (eventConfiguration.objectReferenceValue == null)
+                                            {
+                                                CreateEventScriptable(eventConfiguration, name.stringValue);
+                                            }
+
+                                            DrawScriptableSubEditor(eventConfiguration);
+                                        }
+
+
+
+                                    }
+                                }
                             }
-
-                            //if (GUILayout.Button("Remove State Events"))
-                            //{
-
-                            //}
                         }
+                        
+
 
                         EditorGUILayout.Space();
                     }
@@ -110,5 +132,50 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             serializedObject.ApplyModifiedProperties();
         }
+
+
+        private void DrawScriptableSubEditor(SerializedProperty scriptable)
+        {
+            if (scriptable.objectReferenceValue != null)
+            {
+                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(scriptable.objectReferenceValue);
+                EditorGUILayout.BeginVertical();
+                EditorGUILayout.Space();
+                configEditor.OnInspectorGUI();
+                EditorGUILayout.Space();
+                EditorGUILayout.EndVertical();
+            }
+        }
+
+
+
+        private void CreateEventScriptable(SerializedProperty eventConfiguration, string stateName)
+        {
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(stateName));
+
+            string className = eventConfigType.Name;
+
+            eventConfiguration.objectReferenceValue = ScriptableObject.CreateInstance(className);
+    
+            
+        }
+
+
+        private bool HasStateEvents(string stateName)
+        {
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(stateName));
+
+            if (eventConfigType == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
     }
 }

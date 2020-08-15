@@ -40,5 +40,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             get => active;
             set => active = value; 
         }
+
+
+        [SerializeField]
+        private BaseInteractionEventConfiguration eventConfiguration = null;
+
+        public BaseInteractionEventConfiguration EventConfiguration
+        {
+            get => eventConfiguration;
+            set => eventConfiguration = value;
+        }
+
+
+
+
+
     }
 }

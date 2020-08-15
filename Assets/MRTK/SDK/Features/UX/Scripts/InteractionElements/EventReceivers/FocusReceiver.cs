@@ -1,4 +1,5 @@
-﻿using Microsoft.MixedReality.Toolkit.UI;
+﻿using Microsoft.MixedReality.Toolkit.Input;
+using Microsoft.MixedReality.Toolkit.UI;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Collections;
 using System.Collections.Generic;
@@ -10,26 +11,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class FocusReceiver : BaseEventReceiver
     {
-        /// <summary>
-        /// Creates receiver that raises focus enter and exit unity events
-        /// </summary>
-        public FocusReceiver() : this(new BaseInteractableEvent()) { }
+        public FocusReceiver() : this(ScriptableObject.CreateInstance<FocusInteractionEventConfiguration>()) { }
 
-        /// <summary>
-        /// Creates receiver that raises focus enter and exit unity events
-        /// </summary>
-        public FocusReceiver(BaseInteractableEvent ev) : base(ev, "FocusReceiver") { }
+        public FocusReceiver(FocusInteractionEventConfiguration interactionEventConfiguration) : base(interactionEventConfiguration, "FocusReceiver") 
+        {
+            focusEventConfiguration = interactionEventConfiguration;
 
-        /// <summary>
-        /// Raised when focus has left the object
-        /// </summary>
-        [InspectorField(Type = InspectorField.FieldTypes.Event, Label = "On Focus Off", Tooltip = "Focus has left the object")]
-        public BaseInteractableEvent OnFocusOff = new BaseInteractableEvent();
+            baseEventConfiguration = focusEventConfiguration;
+        }
 
-        /// <summary>
-        /// Raised when focus has entered the object
-        /// </summary>
-        public BaseInteractableEvent OnFocusOn => unityEvent;
+        public FocusInteractionEventConfiguration focusEventConfiguration;
+
+        private FocusUnityEvent onFocusOn => focusEventConfiguration.OnFocusOn;
+
+        private FocusUnityEvent onFocusOff => focusEventConfiguration.OnFocusOff;
 
         private bool hadFocus;
 
@@ -42,12 +37,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 if (hasFocus)
                 {
-                    unityEvent.Invoke(eventData);
+                    onFocusOn.Invoke(eventData as FocusEventData);
                     Debug.Log("Focus On Event Receiver");
                 }
                 else
                 {
-                    OnFocusOff.Invoke(eventData);
+                    onFocusOff.Invoke(eventData as FocusEventData);
                     Debug.Log("Focus Off Event Receiver");
                 }
             }

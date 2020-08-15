@@ -40,25 +40,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         // The StateManager stores all the values for the states
         public StateManager StateManager { get; protected set; }
 
-        // The StateManager stores all the values for the states
         public EventReceiverManager EventReceiverManager { get; protected set; }
-
-
-        [SerializeField]
-        [Tooltip("ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be \"DefaultInteractableStates\" object")]
-        private List<FocusReceiverEvents> events = new List<FocusReceiverEvents>();
-        
-        /// <summary>
-        /// ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be "DefaultInteractableStates" object
-        /// </summary>
-        public List<FocusReceiverEvents> Events
-        {
-            get => events;
-            set
-            {
-                events = value;
-            }
-        }
 
 
         public virtual void Start()
@@ -90,31 +72,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         private void InitializeEventReceiverManager()
         {
-            EventReceiverManager = new EventReceiverManager();
-        }
+            EventReceiverManager = new EventReceiverManager(StateManager);
 
-
-
-        private void AddStateEvents<T>(string stateName) where T : IInteractableUnityEvent
-        {
-            if (stateName == "Focus")
+            foreach (InteractionState state in TrackedStates.StateList)
             {
-                FocusReceiverEvents eventt = new FocusReceiverEvents();
-            }
+                // Make sure the default state does not get event receivers
+                if (state.EventConfiguration != null)
+                {
+                    BaseEventReceiver receiver = EventReceiverManager.InitializeEventReceiver(state.Name);
 
-        }
+                    EventReceiverManager.EventReceiverList.Add(receiver);
+                }
 
-        private void OnValidate()
-        {
-            //Events = new List<IInteractableUnityEvent>();
-            if (Events.Count == 0)
-            {
-                FocusReceiverEvents eventt = new FocusReceiverEvents();
-
-                // Create the 
-                Events.Add(eventt);
-            }
-
+            } 
         }
 
         #region Focus
@@ -148,8 +118,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             StateManager.SetState("Focus", 1);
 
-            //Focus Receiver = EventReceiverManager.GetReceiver(FocusReceiver)
-            //focusReceiver.Events.where(onfocuson).Invoke(eventData)
+            // This is for updating manually
+            EventReceiverManager.InvokeStateEvent(this, eventData);
 
             StateManager.SetState("Default", 0);
         }
@@ -158,6 +128,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public void OnFocusExit(FocusEventData eventData)
         {
             StateManager.SetState("Focus", 0);
+
+            EventReceiverManager.InvokeStateEvent(this, eventData);
 
             StateManager.SetState("Default", 1);
 

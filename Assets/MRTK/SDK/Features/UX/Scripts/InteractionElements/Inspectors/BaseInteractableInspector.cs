@@ -31,38 +31,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
 
-
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey("State Events", "State Events", MixedRealityStylesUtility.TitleFoldoutStyle, true))
-            {
-                //SerializedProperty events = serializedObject.FindProperty("Events");
-                for (int i = 0; i < events.arraySize; i++)
-                {
-                    SerializedProperty eventItem = events.GetArrayElementAtIndex(i);
-
-                    SerializedProperty eventUnity = eventItem.FindPropertyRelative("name");
-
-                    EditorGUILayout.LabelField(eventUnity.stringValue);
-
-                    //if (InteractableEventInspector.RenderEvent(eventItem))
-                    //{
-                    //    events.DeleteArrayElementAtIndex(i);
-                    //    // If removed, skip rendering rest of list till next redraw
-                    //    break;
-                    //}
-
-                    //EditorGUILayout.PropertyField(eventItem);
-
-                }
-            }
-
-                //if (GUILayout.Button(AddEventReceiverLabel))
-                //{
-                //    AddEvent(events.arraySize);
-                //}
-
-
-
-                serializedObject.ApplyModifiedProperties();
+            serializedObject.ApplyModifiedProperties();
         }
 
     }

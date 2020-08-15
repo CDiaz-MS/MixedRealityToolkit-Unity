@@ -1,6 +1,9 @@
-﻿using Microsoft.MixedReality.Toolkit.Utilities.Editor;
+﻿using Microsoft.MixedReality.Toolkit.Utilities;
+using Microsoft.MixedReality.Toolkit.Utilities.Editor;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
@@ -12,9 +15,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     {
         private SerializedProperty stateStyleProperties;
 
+    
+
         private void OnEnable()
         {
-            
+
 
         }
 
@@ -31,11 +36,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 SerializedProperty stateConfig = stateStyleProperties.GetArrayElementAtIndex(i);
 
-                //SerializedProperty targetGameObject = stateConfig.FindPropertyRelative("Target");
-
-                //EditorGUILayout.LabelField(targetGameObject.stringValue);
-
-
                 DrawScriptableSubEditor(stateConfig);
             }
 
@@ -49,6 +49,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 }
 
             }
+
+            
 
             serializedObject.ApplyModifiedProperties();
 
@@ -66,6 +68,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 EditorGUILayout.EndVertical();
             }
         }
+
+
+
+
 
     }
 }

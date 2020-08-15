@@ -19,16 +19,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         public string Name { get; protected set; }
 
-        /// <summary>
-        /// Defines whether Unity Events should be hidden in inspector for this type of EventReceiver
-        /// </summary>
-        public virtual bool HideUnityEvents => false;
-
-        protected BaseInteractableEvent unityEvent;
-        /// <summary>
-        /// Each Receiver has a base Event it raises, (in addition to others).
-        /// </summary>
-        public BaseInteractableEvent Event { get => unityEvent; set => unityEvent = value; }
+        public BaseInteractionEventConfiguration baseEventConfiguration;
 
         /// <summary>
         /// Targeted component for Event Receiver at runtime
@@ -40,9 +31,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         /// <param name="ev">Unity event to invoke. Add more events in deriving class.</param>
         /// <param name="name">Name of the unity event that will get invoked (visible in editor).</param>
-        protected BaseEventReceiver(BaseInteractableEvent ev, string name)
+        protected BaseEventReceiver(BaseInteractionEventConfiguration interactionEventConfiguration, string name)
         {
-            unityEvent = ev;
+            baseEventConfiguration = interactionEventConfiguration;
             Name = name;
         }
 

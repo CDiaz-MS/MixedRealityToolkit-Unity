@@ -23,8 +23,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         //public InteractionStateInactiveEvent OnStateDeactivated = new InteractionStateInactiveEvent();
 
-        //private InteractionState previousState = new InteractionState("None");
-
         public InteractionState GetState(string stateName)
         {
             return TrackedStates.Find((x) => x.Name == stateName);

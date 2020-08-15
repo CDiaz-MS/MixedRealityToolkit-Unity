@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
+using Microsoft.MixedReality.Toolkit.Utilities;
+using System;
+using System.Linq;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
@@ -58,11 +61,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                         {
                             SerializedProperty stateStyleProperty = stateStylePropList.GetArrayElementAtIndex(i);
 
-                            
+                            InspectorUIUtility.DrawLabel("Add State Property", 12, InspectorUIUtility.ColorTint10);
 
-                            //stateStyleConfig = stateStyleProperty;
+                            EditorGUILayout.Space();
 
-                            //SerializedProperty name = stateStyleProperty.objectReferenceValue.name;
+                            AddMenu(stateStyleProperty);
 
                             EditorGUILayout.Space();
 
@@ -80,9 +83,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
 
             serializedObject.ApplyModifiedProperties();
-
-
-
         }
 
         private void DrawScriptableSubEditor(SerializedProperty scriptable)
@@ -96,6 +96,33 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 EditorGUILayout.Space();
                 EditorGUILayout.EndVertical();
             }
+        }
+
+
+        private void AddMenu(SerializedProperty listItem)
+        {
+
+            SerializedProperty className = listItem.FindPropertyRelative("StateStylePropertyName");
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                Rect position = EditorGUILayout.GetControlRect();
+
+                //using (new EditorGUI.PropertyScope(position, new GUIContent("ListProps"), className))
+                //{
+                    var stateStyleTypes = TypeCacheUtility.GetSubClasses<StateStylePropertyConfiguration>();
+      
+                        
+                    var stateStyleClassNames = stateStyleTypes.Select(t => t?.Name).ToArray();
+
+
+                    //int id = Array.IndexOf(stateStyleClassNames, className.stringValue);
+
+
+                    int newId = EditorGUI.Popup(position, 0,  stateStyleClassNames);
+                //}
+            }
+            
         }
 
     }

@@ -10,8 +10,13 @@ using UnityEngine.EventSystems;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
 
-    [System.Serializable]
-    public class BaseInteractableEvent : UnityEvent<BaseEventData>
+    [CreateAssetMenu]
+    public abstract class BaseInteractionEventConfiguration : ScriptableObject
     {
+        public string Name;
+
+        public BaseEventReceiver EventReceiver;
+
+        public abstract BaseEventReceiver CreateRuntimeInstance();
     }
 }
