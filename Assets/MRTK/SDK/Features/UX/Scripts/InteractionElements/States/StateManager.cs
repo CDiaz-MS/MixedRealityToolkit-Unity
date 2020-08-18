@@ -33,26 +33,36 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             // Add guards for if the user enters an invalid value or name
 
             InteractionState currentState = GetState(stateName);
-            
-            currentState.Value = value;
 
-            if (value > 0)
+            if (currentState != null)
             {
-                currentState.Active = 1;
+                currentState.Value = value;
 
-                OnStateActivated.Invoke(currentState);
+                if (value > 0)
+                {
+                    currentState.Active = 1;
 
+                    OnStateActivated.Invoke(currentState);
+
+                }
+                else
+                {
+                    currentState.Active = 0;
+
+                    //OnStateDeactivated.Invoke(previousState, currentState);
+                }
+
+                //previousState = currentState;
+
+                return currentState;
             }
             else
             {
-                currentState.Active = 0;
-
-                //OnStateDeactivated.Invoke(previousState, currentState);
+                Debug.LogError("The state name " + stateName +  " does not exist within TrackedStates, check the spelling.");
+                return null;
             }
+            
 
-            //previousState = currentState;
-
-            return currentState;
         }
 
     }

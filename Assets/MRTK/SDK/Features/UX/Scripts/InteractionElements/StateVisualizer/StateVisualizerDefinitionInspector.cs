@@ -15,8 +15,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     {
         private SerializedProperty stateStyleProperties;
 
-    
-
         private void OnEnable()
         {
 
@@ -29,7 +27,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             if (stateStyleProperties == null)
             {
-                stateStyleProperties = serializedObject.FindProperty("StateStyleProperties");
+                stateStyleProperties = serializedObject.FindProperty("stateStyleProperties");
             }
 
             for (int i = 0; i < stateStyleProperties.arraySize; i++)

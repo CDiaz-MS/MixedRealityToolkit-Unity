@@ -12,7 +12,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private List<InteractionState> stateList = new List<InteractionState>(); 
 
         /// <summary>
-        /// List of available states defined by asset
+        /// 
         /// </summary>
         public List<InteractionState> StateList
         {
@@ -20,11 +20,27 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             set { stateList = value; }
         }
 
+
+        [SerializeField]
+        private List<string> availableStates = new List<string>();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public List<string> AvailableStates
+        {
+            get { return availableStates; }
+            set { availableStates = value;  }
+        }
+
         public TrackedStates()
         {
             // Add default states to StateList
             StateList.Add(new InteractionState("Default"));
             StateList.Add(new InteractionState("Focus"));
+
+            AvailableStates.Add("Default");
+            AvailableStates.Add("Focus");
         }
 
     }

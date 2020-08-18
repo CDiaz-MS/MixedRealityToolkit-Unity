@@ -9,14 +9,39 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CreateAssetMenu]
     public class StateStylePropertiesConfigurationContainer : ScriptableObject
     {
-        
-        public string StateName;
+        [SerializeField]
+        private string stateName = "";
 
-  
-        public GameObject Target;
+        /// <summary>
+        /// 
+        /// </summary>
+        public string StateName
+        {
+            get => stateName;
+            set => stateName = value;
+        }
 
-      
-        public List<StateStylePropertyConfiguration> StateStylePropList;
+        [SerializeField]
+        private GameObject target = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public GameObject Target
+        {
+            get => target;
+            set => target = value;
+        }
+
+        [SerializeField]
+        private List<StateStylePropertyConfiguration> stateStylePropList = new List<StateStylePropertyConfiguration>();
+
+
+        public List<StateStylePropertyConfiguration> StateStylePropList
+        {
+            get => stateStylePropList;
+            set => stateStylePropList = value;
+        }
 
     }
 }

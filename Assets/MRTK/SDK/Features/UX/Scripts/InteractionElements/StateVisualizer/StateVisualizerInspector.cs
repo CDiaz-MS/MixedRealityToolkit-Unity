@@ -26,6 +26,5 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             serializedObject.ApplyModifiedProperties();
         }
-
     }
 }

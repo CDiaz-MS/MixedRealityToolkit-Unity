@@ -11,12 +11,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public string StateStylePropertyName;
 
         [HideInInspector]
-        public InteractionState State;
+        [SerializeField]
+        private InteractionState state = null;
 
-        //public MaterialStateStylePropertyConfiguration materialConfig;
+        public InteractionState State
+        {
+            get => state;
+            set => state = value;
+        }
 
         [SerializeField]
-        private GameObject target;
+        private GameObject target = null;
 
         public GameObject Target
         {

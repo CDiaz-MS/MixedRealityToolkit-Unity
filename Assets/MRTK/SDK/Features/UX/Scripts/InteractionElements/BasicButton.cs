@@ -17,6 +17,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Handle cases for changing list sizes
             //StateManager.TrackedStates.Add(new InteractionState("Press"));
+
+
+            AddNewState("Focus");
+
         }
 
     }

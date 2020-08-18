@@ -16,6 +16,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private SerializedProperty Target;
         private SerializedProperty stateStylePropList;
         private StateStylePropertyConfiguration stateStyleConfig;
+        private static GUIContent AddStateButtonLabel;
 
 
         private void OnEnable()
@@ -25,6 +26,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             //Target = serializedObject.FindProperty("Target");
 
             //stateStylePropList = serializedObject.FindProperty("StateStylePropList");
+
+            AddStateButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State");
         }
 
 
@@ -35,39 +38,32 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             if (stateName == null)
             {
-                stateName = serializedObject.FindProperty("StateName");
+                stateName = serializedObject.FindProperty("stateName");
             }
 
             if (Target == null)
             {
-                Target = serializedObject.FindProperty("Target");
+                Target = serializedObject.FindProperty("target");
             }
 
             if (stateStylePropList == null)
             {
-                stateStylePropList = serializedObject.FindProperty("StateStylePropList");
+                stateStylePropList = serializedObject.FindProperty("stateStylePropList");
             }
 
 
 
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue, stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle))
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue, stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
-                        
                         for (int i = 0; i < stateStylePropList.arraySize; i++)
                         {
                             SerializedProperty stateStyleProperty = stateStylePropList.GetArrayElementAtIndex(i);
 
-                            InspectorUIUtility.DrawLabel("Add State Property", 12, InspectorUIUtility.ColorTint10);
 
-                            EditorGUILayout.Space();
-
-                            AddMenu(stateStyleProperty);
-
-                            EditorGUILayout.Space();
 
                             if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateStyleProperty.objectReferenceValue.name, "Material_"+ stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle))
                             {
@@ -76,11 +72,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                     DrawScriptableSubEditor(stateStyleProperty);
                                 }
                             }
+
+                            EditorGUILayout.Space();
+
+                            AddMenu();
+
+                            EditorGUILayout.Space();
+
                         }
                     }
                 }
             }
-
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -99,30 +101,38 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
 
-        private void AddMenu(SerializedProperty listItem)
+        private void AddMenu()
         {
-
-            SerializedProperty className = listItem.FindPropertyRelative("StateStylePropertyName");
-
             using (new EditorGUILayout.HorizontalScope())
             {
-                Rect position = EditorGUILayout.GetControlRect();
-
-                //using (new EditorGUI.PropertyScope(position, new GUIContent("ListProps"), className))
-                //{
+                if (InspectorUIUtility.FlexButton(AddStateButtonLabel))
+                {
                     var stateStyleTypes = TypeCacheUtility.GetSubClasses<StateStylePropertyConfiguration>();
-      
-                        
+
                     var stateStyleClassNames = stateStyleTypes.Select(t => t?.Name).ToArray();
 
+                        // Create a menu with the list of available state names 
+                        GenericMenu menu = new GenericMenu();
 
-                    //int id = Array.IndexOf(stateStyleClassNames, className.stringValue);
+                        for (int i = 0; i < stateStyleClassNames.Length; i++)
+                        {
+                            // Disable the menu item if the state is already in the list 
 
+                            menu.AddItem(new GUIContent(stateStyleClassNames[i]), false, OnStylePropertyAdded);
 
-                    int newId = EditorGUI.Popup(position, 0,  stateStyleClassNames);
-                //}
+                        }
+
+                        menu.ShowAsContext();
+
+                }
             }
-            
+        }
+
+
+
+        private void OnStylePropertyAdded()
+        {
+            stateStylePropList.InsertArrayElementAtIndex(stateStylePropList.arraySize);
         }
 
     }

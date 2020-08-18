@@ -15,13 +15,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     {
         private BaseInteractable instance;
         private SerializedProperty trackedStates;
-        private SerializedProperty events;
 
         protected virtual void OnEnable()
         {
             instance = (BaseInteractable)target;
             trackedStates = serializedObject.FindProperty("trackedStates");
-            events = serializedObject.FindProperty("events");
         }
 
         public override void OnInspectorGUI()
@@ -30,6 +28,21 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
+
+            EditorGUILayout.Space();
+
+            if (InspectorUIUtility.FlexButton(new GUIContent("Add State Visualizer")))
+            {
+                if (instance.gameObject.GetComponent<StateVisualizer>() == null)
+                {
+                    instance.gameObject.AddComponent<StateVisualizer>();
+                }
+                else
+                {
+                    Debug.LogError("A State Visualizer component is already attached to this gameobject.");                }
+                
+            }
+
 
             serializedObject.ApplyModifiedProperties();
         }

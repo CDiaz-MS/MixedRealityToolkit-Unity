@@ -20,5 +20,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             return stateStyleProperty;
         }
 
+        public MaterialStateStylePropertyConfiguration()
+        {
+            StateStylePropertyName = "Material"; 
+        }
     }
 }

@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    [RequireComponent(typeof(BaseInteractable))]
     public class StateVisualizer : MonoBehaviour
     {
         [SerializeField]
@@ -27,25 +28,47 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public BaseInteractable BaseInteractable => GetComponent<BaseInteractable>();
 
-        public List<InteractionState> TrackedStates => BaseInteractable.TrackedStates.StateList;
+        public TrackedStates TrackedStates => BaseInteractable.TrackedStates;
 
         private StateManager StateManager => BaseInteractable.StateManager;
 
 
         public void OnValidate()
         {
-            if (StateVisualizerDefinition.StateStyleProperties.Count == 0)
+            //StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
+
+
+            Debug.Log("State Visualizer Definition");
+
+            if (StateVisualizerDefinition != null)
             {
-                StateVisualizerDefinition.StateStyleProperties = new List<StateStylePropertiesConfigurationContainer>();
-                StateVisualizerDefinition.SetUp(BaseInteractable, this.gameObject);
+                if (StateVisualizerDefinition.StateStyleProperties.Count == 0)
+                {
+                    StateVisualizerDefinition.SetUp(TrackedStates, gameObject);
+
+                    AddStateStylePropertyToAState<MaterialStateStylePropertyConfiguration>("Focus");
+                }
             }
         }
 
-        public void ActivateStateStyleProperty(string StateName)
+
+        public void AddStateStylePropertyToAState<T>(string stateName) where T : StateStylePropertyConfiguration
+        {
+            // Find the container with the state
+            StateStylePropertiesConfigurationContainer stateStyleContainer = StateVisualizerDefinition.StateStyleProperties.Find((container) => (container.StateName == stateName));
+
+            InteractionState interactionState = TrackedStates.StateList.Find((state) => (state.Name == stateName));
+
+            StateVisualizerDefinition.AddStateStyleProperty<T>(stateStyleContainer, interactionState);
+        }
+
+
+
+        public void ActivateStateStyleProperty(string stateName)
         {
             // Change all properties with the StateName
 
-            StateStylePropertiesConfigurationContainer stateStyleProperties = StateVisualizerDefinition.StateStyleProperties.Find((x) => x.StateName == StateName);
+            StateStylePropertiesConfigurationContainer stateStyleProperties = StateVisualizerDefinition.StateStyleProperties.Find((x) => x.StateName == stateName);
 
             foreach (StateStylePropertyConfiguration stylePropertyConfig in stateStyleProperties.StateStylePropList)
             {

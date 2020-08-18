@@ -1,11 +1,8 @@
 ﻿using Microsoft.MixedReality.Toolkit.Input;
 using Microsoft.MixedReality.Toolkit.Utilities;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.Serialization;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
@@ -14,7 +11,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         IMixedRealityFocusChangedHandler,
         IMixedRealityFocusHandler
     {
-
         /// <summary>
         /// Pointers that are focusing the interactable
         /// </summary>
@@ -37,22 +33,39 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        // The StateManager stores all the values for the states
+        /// <summary>
+        /// Entry point for state management 
+        /// </summary>
         public StateManager StateManager { get; protected set; }
 
+
+        public readonly string[] availableStates = new string[] { "Default", "Focus" };
+
+
+        /// <summary>
+        /// Entry point for event management 
+        /// </summary>
         public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
-        public virtual void Start()
+        // Initialize in Awake because the States Visualizer depends on the initialization of these elements
+        private void Awake()
         {
             InitializeStateManager();
 
             InitializeEventReceiverManager();
+
+            SetStateOn("Default");
         }
 
 
+        public virtual void Start()
+        {
+
+        }
+
         /// <summary>
-        /// 
+        /// Initializes the StateList in the StateManager with the states defined in the TrackedStates scriptable object.
         /// </summary>
         private void InitializeStateManager()
         {
@@ -61,10 +74,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // Add the states defined in the scriptable object
                 TrackedStates = TrackedStates.StateList
             };
-
-            // Set the defalut state on start
-            StateManager.SetState("Default", 1);
-            StateManager.SetState("Focus", 0);
         }
 
         /// <summary>
@@ -83,8 +92,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                     EventReceiverManager.EventReceiverList.Add(receiver);
                 }
-
-            } 
+            }
         }
 
         #region Focus
@@ -94,7 +102,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             // If we went from focus on an object to not focusing on an object, remove it from the list
             if (eventData.NewFocusedObject == null)
             {
-                focusingPointers.Remove(eventData.Pointer); 
+                focusingPointers.Remove(eventData.Pointer);
             }
             // If the old focused object is a child of this gameobject
             else if (eventData.OldFocusedObject != null
@@ -116,28 +124,141 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void OnFocusEnter(FocusEventData eventData)
         {
-            StateManager.SetState("Focus", 1);
+            if (CheckStateTrackingStatus("Focus"))
+            {
+                SetStateOn("Focus");
 
-            // This is for updating manually
-            EventReceiverManager.InvokeStateEvent(this, eventData);
+                // This is for updating manually
+                EventReceiverManager.InvokeStateEvent(this, eventData);
 
-            StateManager.SetState("Default", 0);
+                StateManager.SetState("Default", 0);
+
+            }
         }
 
 
         public void OnFocusExit(FocusEventData eventData)
         {
-            StateManager.SetState("Focus", 0);
+            if (CheckStateTrackingStatus("Focus"))
+            {
+                SetStateOff("Focus");
 
-            EventReceiverManager.InvokeStateEvent(this, eventData);
+                EventReceiverManager.InvokeStateEvent(this, eventData);
 
-            StateManager.SetState("Default", 1);
+                StateManager.SetState("Default", 1);
+            }
+        }
+
+        public void OnFocusChanged(FocusEventData eventData) { }
+
+        #endregion
+
+
+
+        #region State Setting Utilities
+
+        public void SetStateOn(string stateName)
+        {
+            StateManager.SetState(stateName, 1);
+        }
+
+        public void SetStateOff(string stateName)
+        {
+            StateManager.SetState(stateName, 0);
+        }
+
+        public void ResetAllStates()
+        {
+            foreach (InteractionState state in StateManager.TrackedStates)
+            {
+                StateManager.SetState(state.Name, 0);
+            }
+        }
+
+        public bool CheckStateTrackingStatus(string stateName)
+        {
+           if (StateManager.GetState(stateName) == null)
+           {
+                return false;
+           }
+           
+           return true;
+        }
+
+        public void AddNewState(string stateName)
+        {
+            if (availableStates.Contains(stateName))
+            {
+                InteractionState newState = new InteractionState(stateName);
+
+                var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+                var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(stateName));
+
+                // Check if the state has a custom event configuration
+                if (eventConfigType != null)
+                {
+                    string className = eventConfigType.Name;
+
+                    newState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
+                    newState.EventConfiguration.Name = stateName + "EventConfiguration";   
+                }
+
+                StateManager.TrackedStates.Add(newState);
+            }
+        }
+
+        public void CreateNewState(string stateName)
+        {
+            if (!availableStates.Contains(stateName))
+            {
+                InteractionState newState = new InteractionState(stateName);
+                StateManager.TrackedStates.Add(newState);
+            }
+            else
+            {
+                Debug.Log("The state name " + stateName + " is a defined core state, please use AddNewState(" + stateName + ") to add to Tracked States.");
+            }
+        }
+
+        public void CreateNewState(string stateName, BaseInteractionEventConfiguration eventConfiguration)
+        {
+            if (!availableStates.Contains(stateName))
+            {
+                InteractionState newState = new InteractionState(stateName);
+                newState.EventConfiguration = eventConfiguration;
+                StateManager.TrackedStates.Add(newState);
+            }
+            else
+            {
+                Debug.Log("The state name " + stateName + " is a defined core state, please use AddNewState(" + stateName + ") to add to Tracked States.");
+            }
+        }
+
+        public bool IsInDefaultState()
+        {
+            foreach (InteractionState state in StateManager.TrackedStates)
+            {
+                int value = StateManager.GetState(state.Name).Value;
+
+                if ((value > 0) && (state.Name != "Default"))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        #endregion
+
+
+        private void Update()
+        {
+            // If any of the other states are active, set the default state
 
         }
 
-        public void OnFocusChanged(FocusEventData eventData){ }
 
-        #endregion
 
     }
 }
