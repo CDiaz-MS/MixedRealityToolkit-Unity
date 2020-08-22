@@ -9,38 +9,22 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     public class TrackedStates : ScriptableObject
     {
         [SerializeField]
-        private List<InteractionState> stateList = new List<InteractionState>(); 
+        private List<InteractionState> states = new List<InteractionState>(); 
 
         /// <summary>
         /// 
         /// </summary>
-        public List<InteractionState> StateList
+        public List<InteractionState> States
         {
-            get { return stateList; }
-            set { stateList = value; }
-        }
-
-
-        [SerializeField]
-        private List<string> availableStates = new List<string>();
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public List<string> AvailableStates
-        {
-            get { return availableStates; }
-            set { availableStates = value;  }
+            get { return states; }
+            set { states = value; }
         }
 
         public TrackedStates()
         {
             // Add default states to StateList
-            StateList.Add(new InteractionState("Default"));
-            StateList.Add(new InteractionState("Focus"));
-
-            AvailableStates.Add("Default");
-            AvailableStates.Add("Focus");
+            States.Add(new InteractionState("Default"));
+            States.Add(new InteractionState("Focus"));
         }
 
     }

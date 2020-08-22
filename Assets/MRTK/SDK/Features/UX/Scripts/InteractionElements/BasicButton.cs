@@ -19,7 +19,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             //StateManager.TrackedStates.Add(new InteractionState("Press"));
 
 
-            AddNewState("Focus");
+            //AddNewState("Focus");
 
         }
 

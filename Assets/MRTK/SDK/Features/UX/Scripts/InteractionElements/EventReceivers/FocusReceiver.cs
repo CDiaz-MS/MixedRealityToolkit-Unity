@@ -11,27 +11,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class FocusReceiver : BaseEventReceiver
     {
-        public FocusReceiver() : this(ScriptableObject.CreateInstance<FocusInteractionEventConfiguration>()) { }
-
-        public FocusReceiver(FocusInteractionEventConfiguration interactionEventConfiguration) : base(interactionEventConfiguration, "FocusReceiver") 
+        public FocusReceiver(FocusInteractionEventConfiguration focusEventConfiguration) : base(focusEventConfiguration, "FocusReceiver") 
         {
-            focusEventConfiguration = interactionEventConfiguration;
+            EventConfiguration = focusEventConfiguration;
 
-            baseEventConfiguration = focusEventConfiguration;
+            focusEventConfig = focusEventConfiguration;
         }
 
-        public FocusInteractionEventConfiguration focusEventConfiguration;
+        private readonly FocusInteractionEventConfiguration focusEventConfig;
 
-        private FocusUnityEvent onFocusOn => focusEventConfiguration.OnFocusOn;
+        private FocusUnityEvent onFocusOn => focusEventConfig.OnFocusOn;
 
-        private FocusUnityEvent onFocusOff => focusEventConfiguration.OnFocusOff;
+        private FocusUnityEvent onFocusOff => focusEventConfig.OnFocusOff;
 
         private bool hadFocus;
 
         /// <inheritdoc />
-        public override void OnUpdate(StateManager stateManager, BaseInteractable source, BaseEventData eventData)
+        public override void OnUpdate(StateManager stateManager, BaseEventData eventData)
         {
-            bool hasFocus = stateManager.GetState("Focus").Value > 0;
+            bool hasFocus = stateManager.GetState(CoreInteractionState.Focus).Value > 0;
 
             if (hadFocus != hasFocus)
             {

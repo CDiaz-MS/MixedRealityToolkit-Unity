@@ -7,17 +7,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CreateAssetMenu]
     public abstract class StateStylePropertyConfiguration: ScriptableObject
     {
-        [HideInInspector]
-        public string StateStylePropertyName;
+        public string StylePropertyName { get; protected set; }
 
-        [HideInInspector]
         [SerializeField]
-        private InteractionState state = null;
+        private string stateName = null;
 
-        public InteractionState State
+        public string StateName
         {
-            get => state;
-            set => state = value;
+            get => stateName;
+            set => stateName = value;
         }
 
         [SerializeField]

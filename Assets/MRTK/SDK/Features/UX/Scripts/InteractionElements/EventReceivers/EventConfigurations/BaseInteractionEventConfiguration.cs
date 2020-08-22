@@ -13,6 +13,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CreateAssetMenu]
     public abstract class BaseInteractionEventConfiguration : ScriptableObject
     {
+        [NonSerialized]
         public string Name;
 
         public BaseEventReceiver EventReceiver;

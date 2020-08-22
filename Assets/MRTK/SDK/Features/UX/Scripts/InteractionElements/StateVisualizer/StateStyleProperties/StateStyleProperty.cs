@@ -10,21 +10,24 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     /// </summary>
     public abstract class StateStyleProperty
     {
-        public StateStyleProperty(StateStylePropertyConfiguration stateStylePropertyConfiguration)
+        public StateStyleProperty(StateStylePropertyConfiguration stateStylePropertyConfiguration, string stylePropertyName)
         {
-            //StateStylePropertyConfiguration = stateStylePropertyConfiguration;
-            State = stateStylePropertyConfiguration.State;
+            StateStylePropertyConfiguration = stateStylePropertyConfiguration;
+
             Target = stateStylePropertyConfiguration.Target;
+            StateName = stateStylePropertyConfiguration.StateName;
+            StylePropertyName = stylePropertyName;
+
             // enforce type for the creation of a state style property
         }
 
-        protected StateStylePropertyConfiguration StateStylePropertyConfiguration;
+        public StateStylePropertyConfiguration StateStylePropertyConfiguration { get; protected set; }
 
         protected GameObject Target;
 
-        protected InteractionState State;
+        protected string StateName;
 
-        public string StateName => StateStylePropertyConfiguration.State.Name;
+        protected string StylePropertyName;
 
         public abstract void SetStyleProperty();
 

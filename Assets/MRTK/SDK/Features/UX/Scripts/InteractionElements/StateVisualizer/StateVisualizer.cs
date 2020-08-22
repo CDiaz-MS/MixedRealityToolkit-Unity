@@ -33,20 +33,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private StateManager StateManager => BaseInteractable.StateManager;
 
 
+
         public void OnValidate()
         {
-            //StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
-
-
             Debug.Log("State Visualizer Definition");
 
             if (StateVisualizerDefinition != null)
             {
-                if (StateVisualizerDefinition.StateStyleProperties.Count == 0)
+                if (StateVisualizerDefinition.StateStyleConfigurationContainers.Count == 0)
                 {
                     StateVisualizerDefinition.SetUp(TrackedStates, gameObject);
 
                     AddStateStylePropertyToAState<MaterialStateStylePropertyConfiguration>("Focus");
+                    //AddStateStylePropertyToAState<TransformOffsetStateStylePropertyConfiguration>("Focus");
+                    
                 }
             }
         }
@@ -55,11 +55,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public void AddStateStylePropertyToAState<T>(string stateName) where T : StateStylePropertyConfiguration
         {
             // Find the container with the state
-            StateStylePropertiesConfigurationContainer stateStyleContainer = StateVisualizerDefinition.StateStyleProperties.Find((container) => (container.StateName == stateName));
+            StateStyleConfigurationContainer stateStyleContainer = StateVisualizerDefinition.StateStyleConfigurationContainers.Find((container) => (container.StateName == stateName));
 
-            InteractionState interactionState = TrackedStates.StateList.Find((state) => (state.Name == stateName));
-
-            StateVisualizerDefinition.AddStateStyleProperty<T>(stateStyleContainer, interactionState);
+            StateVisualizerDefinition.AddStateStyleProperty<T>(stateStyleContainer, stateName);
         }
 
 
@@ -68,13 +66,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             // Change all properties with the StateName
 
-            StateStylePropertiesConfigurationContainer stateStyleProperties = StateVisualizerDefinition.StateStyleProperties.Find((x) => x.StateName == stateName);
+            StateStyleConfigurationContainer stateStyleProperties = StateVisualizerDefinition.StateStyleConfigurationContainers.Find((x) => x.StateName == stateName);
 
-            foreach (StateStylePropertyConfiguration stylePropertyConfig in stateStyleProperties.StateStylePropList)
+            foreach (StateStylePropertyConfiguration stylePropertyConfig in stateStyleProperties.StateStyleProperties)
             {
                 if (stylePropertyConfig.GetType() == typeof(MaterialStateStylePropertyConfiguration))
                 {
                     SetStyleProperty<MaterialStateStylePropertyConfiguration>(stylePropertyConfig);
+                }
+
+                if (stylePropertyConfig.GetType() == typeof(TransformOffsetStateStylePropertyConfiguration))
+                {
+                    SetStyleProperty<TransformOffsetStateStylePropertyConfiguration>(stylePropertyConfig);
                 }
             }
         }
@@ -89,6 +92,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void Start()
         {
+            if (StateVisualizerDefinition == null)
+            {
+                StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
+            }
+
+
+
             // Add listeners to the OnStateActivated(InteractionState)
             // enable all the style properties 
             StateManager.OnStateActivated.AddListener(
@@ -98,12 +108,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     ActivateStateStyleProperty(state.Name);
                 });
 
-            //StateManager.OnStateDeactivated.AddListener(
-            //    (previousState, currentState) =>
-            //    {
-            //        Debug.Log("PreviousState: " + previousState.Name );
-            //        Debug.Log("CurrentState: " + currentState.Name );
-            //    });
+            StateManager.OnStateDeactivated.AddListener(
+                (stateTurnedOff, currentStateOn) =>
+                {
+                    Debug.Log("====================");
+                    Debug.Log("OnStateDeactivated");
+                    Debug.Log("StateTurnedOff: " + stateTurnedOff.Name);
+                    Debug.Log("CurrentStateOn: " + currentStateOn.Name);
+                    Debug.Log("====================");
+                });
         }
 
     }

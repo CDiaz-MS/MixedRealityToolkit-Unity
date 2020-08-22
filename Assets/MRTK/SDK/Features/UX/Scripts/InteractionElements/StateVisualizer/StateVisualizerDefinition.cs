@@ -26,38 +26,44 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
         [SerializeField]
-        private List<StateStylePropertiesConfigurationContainer> stateStyleProperties = new List<StateStylePropertiesConfigurationContainer>();
+        private List<StateStyleConfigurationContainer> stateStyleConfigurationContainers = new List<StateStyleConfigurationContainer>();
 
         /// <summary>
         /// 
         /// </summary>
-        public List<StateStylePropertiesConfigurationContainer> StateStyleProperties
+        public List<StateStyleConfigurationContainer> StateStyleConfigurationContainers
         {
-            get => stateStyleProperties;
-            set => stateStyleProperties = value;
+            get => stateStyleConfigurationContainers;
+            set => stateStyleConfigurationContainers = value;
         }
 
         public void SetUp(TrackedStates trackedStates, GameObject target)
         {
-            foreach(InteractionState state in trackedStates.StateList)
+            foreach(InteractionState state in trackedStates.States)
             {
-                StateStylePropertiesConfigurationContainer stateStyleProps = CreateInstance<StateStylePropertiesConfigurationContainer>();
-                stateStyleProps.name = state.Name;
-                stateStyleProps.StateName = state.Name;
-                stateStyleProps.Target = target;
+                StateStyleConfigurationContainer stateStyleContainer = CreateInstance<StateStyleConfigurationContainer>();
+                //stateStyleContainer.name = state.Name;
+                stateStyleContainer.StateName = state.Name;
+                stateStyleContainer.Target = target;
 
-                StateStyleProperties.Add(stateStyleProps);
+                StateStyleConfigurationContainers.Add(stateStyleContainer);
             }
         }
 
-        public void AddStateStyleProperty<T>(StateStylePropertiesConfigurationContainer stateStyleContainer, InteractionState state) where T : StateStylePropertyConfiguration
+        public void AddStateStyleProperty<T>(StateStyleConfigurationContainer stateStyleContainer, string stateName) where T : StateStylePropertyConfiguration
         {
-            T stateStylePropertyInstance = CreateInstance<T>();
-            stateStylePropertyInstance.name = stateStylePropertyInstance.StateStylePropertyName;
-            stateStylePropertyInstance.Target = stateStyleContainer.Target;
-            stateStylePropertyInstance.State = state;
+            if (stateName != null && stateStyleContainer != null)
+            {
+                T stateStylePropertyInstance = CreateInstance<T>();
+                stateStylePropertyInstance.Target = stateStyleContainer.Target;
+                stateStylePropertyInstance.StateName = stateName;
 
-            stateStyleContainer.StateStylePropList.Add(stateStylePropertyInstance);
+                stateStyleContainer.StateStyleProperties.Add(stateStylePropertyInstance);
+            }
+            else
+            {
+                Debug.LogError("The state entered or the stateStyleContatiner does not exist and the state style property was not added");
+            }
         }
 
 

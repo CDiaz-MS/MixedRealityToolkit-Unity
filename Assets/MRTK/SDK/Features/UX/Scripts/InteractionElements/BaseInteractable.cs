@@ -38,10 +38,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         public StateManager StateManager { get; protected set; }
 
-
-        public readonly string[] availableStates = new string[] { "Default", "Focus" };
-
-
         /// <summary>
         /// Entry point for event management 
         /// </summary>
@@ -55,7 +51,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             InitializeEventReceiverManager();
 
-            SetStateOn("Default");
+            SetStateOn(CoreInteractionState.Default);
         }
 
 
@@ -69,11 +65,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         private void InitializeStateManager()
         {
-            StateManager = new StateManager
+            // Create an instance of the Tracked States scriptable object if this class is initialized via code
+            // instead of the inspector 
+            if (TrackedStates == null)
             {
-                // Add the states defined in the scriptable object
-                TrackedStates = TrackedStates.StateList
-            };
+                TrackedStates = ScriptableObject.CreateInstance<TrackedStates>();
+            }
+
+            StateManager = new StateManager(TrackedStates);
         }
 
         /// <summary>
@@ -83,14 +82,22 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             EventReceiverManager = new EventReceiverManager(StateManager);
 
-            foreach (InteractionState state in TrackedStates.StateList)
+            foreach (InteractionState state in TrackedStates.States)
             {
-                // Make sure the default state does not get event receivers
-                if (state.EventConfiguration != null)
+                // The Defalut state does not have an event configuration 
+                if (state.Name != "Default")
                 {
-                    BaseEventReceiver receiver = EventReceiverManager.InitializeEventReceiver(state.Name);
+                    // Initialize Event Configurations for each state if the configuration exists
+                    // This case if for if a component is created via script instead of initialized in the inspector
+                    if (state.EventConfiguration == null )
+                    {
+                        state.EventConfiguration = EventReceiverManager.SetEventConfiguration(state.Name);
+                    }
 
-                    EventReceiverManager.EventReceiverList.Add(receiver);
+                    // Initialize runtime event receiver classes for states that have an event configuration 
+                    BaseEventReceiver eventReceiver = EventReceiverManager.InitializeEventReceiver(state.Name);
+
+                    EventReceiverManager.EventReceiverList.Add(eventReceiver);
                 }
             }
         }
@@ -124,28 +131,30 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void OnFocusEnter(FocusEventData eventData)
         {
-            if (CheckStateTrackingStatus("Focus"))
+            if (IsStateTracking("Focus"))
             {
-                SetStateOn("Focus");
+                SetStateOn(CoreInteractionState.Focus);
 
                 // This is for updating manually
-                EventReceiverManager.InvokeStateEvent(this, eventData);
+                EventReceiverManager.InvokeStateEvent(eventData);
 
-                StateManager.SetState("Default", 0);
-
+                SetStateOff(CoreInteractionState.Default);
             }
         }
 
 
         public void OnFocusExit(FocusEventData eventData)
         {
-            if (CheckStateTrackingStatus("Focus"))
+            if (IsStateTracking("Focus"))
             {
-                SetStateOff("Focus");
+                // ORDER MATTERS, make it not matter
+                SetStateOn(CoreInteractionState.Default);
 
-                EventReceiverManager.InvokeStateEvent(this, eventData);
+                SetStateOff(CoreInteractionState.Focus);
 
-                StateManager.SetState("Default", 1);
+                EventReceiverManager.InvokeStateEvent(eventData);
+
+                
             }
         }
 
@@ -162,9 +171,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             StateManager.SetState(stateName, 1);
         }
 
+        public void SetStateOn(CoreInteractionState coreState)
+        {
+            StateManager.SetStateOn(coreState);
+        }
+
         public void SetStateOff(string stateName)
         {
             StateManager.SetState(stateName, 0);
+        }        
+        
+        public void SetStateOff(CoreInteractionState coreState)
+        {
+            StateManager.SetStateOff(coreState);
         }
 
         public void ResetAllStates()
@@ -175,7 +194,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        public bool CheckStateTrackingStatus(string stateName)
+        public bool IsStateTracking(string stateName)
         {
            if (StateManager.GetState(stateName) == null)
            {
@@ -185,53 +204,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
            return true;
         }
 
-        public void AddNewState(string stateName)
+        public InteractionState AddCoreState(CoreInteractionState state)
         {
-            if (availableStates.Contains(stateName))
-            {
-                InteractionState newState = new InteractionState(stateName);
-
-                var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-                var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(stateName));
-
-                // Check if the state has a custom event configuration
-                if (eventConfigType != null)
-                {
-                    string className = eventConfigType.Name;
-
-                    newState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
-                    newState.EventConfiguration.Name = stateName + "EventConfiguration";   
-                }
-
-                StateManager.TrackedStates.Add(newState);
-            }
+            return StateManager.AddCoreState(state);
         }
 
-        public void CreateNewState(string stateName)
+        public void CreateAndAddNewState(string stateName)
         {
-            if (!availableStates.Contains(stateName))
-            {
-                InteractionState newState = new InteractionState(stateName);
-                StateManager.TrackedStates.Add(newState);
-            }
-            else
-            {
-                Debug.Log("The state name " + stateName + " is a defined core state, please use AddNewState(" + stateName + ") to add to Tracked States.");
-            }
+            StateManager.CreateAndAddNewState(stateName);
         }
 
-        public void CreateNewState(string stateName, BaseInteractionEventConfiguration eventConfiguration)
+        public void CreateNewStateWithEventConfiguration(string stateName, BaseInteractionEventConfiguration eventConfiguration)
         {
-            if (!availableStates.Contains(stateName))
-            {
-                InteractionState newState = new InteractionState(stateName);
-                newState.EventConfiguration = eventConfiguration;
-                StateManager.TrackedStates.Add(newState);
-            }
-            else
-            {
-                Debug.Log("The state name " + stateName + " is a defined core state, please use AddNewState(" + stateName + ") to add to Tracked States.");
-            }
+            StateManager.CreateNewStateWithEventConfiguration(stateName, eventConfiguration);
         }
 
         public bool IsInDefaultState()
@@ -255,6 +240,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private void Update()
         {
             // If any of the other states are active, set the default state
+            // Handle how the defalut state is set 
 
         }
 

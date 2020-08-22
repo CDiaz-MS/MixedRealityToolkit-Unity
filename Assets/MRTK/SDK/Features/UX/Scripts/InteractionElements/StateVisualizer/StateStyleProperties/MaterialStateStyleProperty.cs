@@ -6,7 +6,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public class MaterialStateStyleProperty : StateStyleProperty
     {
-        public MaterialStateStyleProperty(MaterialStateStylePropertyConfiguration stateStylePropertyConfiguration) : base(stateStylePropertyConfiguration)
+        public MaterialStateStyleProperty(MaterialStateStylePropertyConfiguration stateStylePropertyConfiguration) : base(stateStylePropertyConfiguration, "Material")
         {
             MaterialStateStylePropertyConfiguration = stateStylePropertyConfiguration;
 

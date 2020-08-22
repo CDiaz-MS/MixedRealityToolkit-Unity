@@ -38,57 +38,34 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             availableStates = serializedObject.FindProperty("availableStates");
 
-            stateList = serializedObject.FindProperty("stateList");
+            stateList = serializedObject.FindProperty("states");
 
             RenderStates();
 
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
 
             using (new EditorGUILayout.VerticalScope())
             {
-
-                using (new EditorGUILayout.HorizontalScope())
+                if (InspectorUIUtility.FlexButton(AddStateButtonLabel))
                 {
-                    //if (InspectorUIUtility.FlexButton(AddStateButtonLabel))
-                    //{
+                    stateList.InsertArrayElementAtIndex(stateList.arraySize);
 
+                    SerializedProperty newState = stateList.GetArrayElementAtIndex(stateList.arraySize - 1);
 
+                    SerializedProperty name = newState.FindPropertyRelative("stateName");
 
-
-                    if (EditorGUILayout.DropdownButton(new GUIContent("Add State"), FocusType.Keyboard))
-                    {
-                            // Create a menu with the list of available state names 
-                            GenericMenu menu = new GenericMenu();
-
-                        for (int i = 0; i < availableStates.arraySize; i++)
-                        {
-                            SerializedProperty stateName = availableStates.GetArrayElementAtIndex(i);
-
-                            // Disable the menu item if the state is already in the list 
-
-                            menu.AddItem(new GUIContent(stateName.stringValue), false, OnStateAdded);
-
-                        }
-
-                        menu.ShowAsContext();
-                    }
+                    name.stringValue = "New State";
                 }
+
             }
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-
             if (GUILayout.Button("Create New State"))
             {
-                stateList.InsertArrayElementAtIndex(stateList.arraySize);
 
-                SerializedProperty newState = stateList.GetArrayElementAtIndex(stateList.arraySize - 1);
-
-                SerializedProperty name = newState.FindPropertyRelative("stateName");
-
-                Debug.Log(name.stringValue);
-
-                name.stringValue = "NewState";
             }
 
             serializedObject.ApplyModifiedProperties();
@@ -134,8 +111,47 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                         // Render state event configuration if an event configuration exists
                         using (new EditorGUILayout.VerticalScope())
                         {
+
+
+
                             using (new EditorGUI.IndentLevelScope())
                             {
+                                if (name.stringValue == "New State")
+                                {
+                                    Rect position = EditorGUILayout.GetControlRect();
+                                    using (new EditorGUI.PropertyScope(position, new GUIContent("State"), stateItem))
+                                    {
+                                        string[] availableStateArr = new string[availableStates.arraySize];
+
+                                        for (int j = 0; j < availableStates.arraySize; j++)
+                                        {
+                                            SerializedProperty availableState = availableStates.GetArrayElementAtIndex(j);
+
+                                            availableStateArr[j] = availableState.stringValue;
+                                        }
+
+                                        int id = Array.IndexOf(availableStateArr, name.stringValue);
+
+                                        int newId = EditorGUI.Popup(position, id, availableStateArr);
+
+                                        if (newId != -1)
+                                        {
+                                            // If this state is not already in the stateList
+                                            //if ()
+                                            //{
+                                                name.stringValue = availableStateArr[newId];
+                                            //}
+                                            //else
+                                            //{
+                                                //Debug.LogError("This state is already being tracked.  Please select another state.")
+                                            //}
+                                            
+                                        } 
+                                    }
+                                }
+
+
+
                                 // Check if this state has state events before they are drawn
                                 // For example, the Default state does not have an event configuration but the Focus state does
                                 if (CreateEventScriptable(eventConfiguration,name.stringValue))
@@ -212,7 +228,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             SerializedProperty newState = stateList.GetArrayElementAtIndex(stateList.arraySize - 1);
 
-            SerializedProperty name = newState.FindPropertyRelative("stateName");
+            SerializedProperty name = newState.FindPropertyRelative("stylePropertyName");
 
             Debug.Log(name.stringValue);
 

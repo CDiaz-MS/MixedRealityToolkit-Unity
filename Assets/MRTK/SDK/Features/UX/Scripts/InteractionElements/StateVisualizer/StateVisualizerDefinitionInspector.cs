@@ -13,11 +13,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CustomEditor(typeof(StateVisualizerDefinition))]
     public class StateVisualizerDefinitionInspector : UnityEditor.Editor
     {
-        private SerializedProperty stateStyleProperties;
+
+        private SerializedProperty stateStyleConfigurationContainers;
 
         private void OnEnable()
         {
-
+            //stateStyleConfigurationContainers = serializedObject.FindProperty("stateStyleConfigurationContainers");
 
         }
 
@@ -25,16 +26,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             serializedObject.Update();
 
-            if (stateStyleProperties == null)
+            if (stateStyleConfigurationContainers == null)
             {
-                stateStyleProperties = serializedObject.FindProperty("stateStyleProperties");
+                stateStyleConfigurationContainers = serializedObject.FindProperty("stateStyleConfigurationContainers");
             }
 
-            for (int i = 0; i < stateStyleProperties.arraySize; i++)
+            for (int i = 0; i < stateStyleConfigurationContainers.arraySize; i++)
             {
-                SerializedProperty stateConfig = stateStyleProperties.GetArrayElementAtIndex(i);
-
-                DrawScriptableSubEditor(stateConfig);
+                SerializedProperty stateStyleContainer = stateStyleConfigurationContainers.GetArrayElementAtIndex(i);
+                
+                DrawScriptableSubEditor(stateStyleContainer);
             }
 
             EditorGUILayout.Space();
