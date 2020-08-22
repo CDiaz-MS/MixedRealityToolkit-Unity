@@ -138,8 +138,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // ORDER MATTERS, make it not matter
                 currentStateSetActive = state;
 
-                Debug.Log($"Current state Active {currentStateSetActive.Name}");
-
                 return state;
             }
             else

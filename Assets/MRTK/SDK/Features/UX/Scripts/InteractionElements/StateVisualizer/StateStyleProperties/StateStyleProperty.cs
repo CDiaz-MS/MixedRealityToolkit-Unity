@@ -14,11 +14,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             StateStylePropertyConfiguration = stateStylePropertyConfiguration;
 
-            Target = stateStylePropertyConfiguration.Target;
             StateName = stateStylePropertyConfiguration.StateName;
             StylePropertyName = stylePropertyName;
 
-            // enforce type for the creation of a state style property
+            Target = stateStylePropertyConfiguration.Target;
+
+            if (Target.IsNull())
+            {
+                Debug.LogError($"The target object for the {StylePropertyName} style property within the {StateName} state in the StateVisualizer has not been set.");
+            }
         }
 
         public StateStylePropertyConfiguration StateStylePropertyConfiguration { get; protected set; }

@@ -42,6 +42,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             using (new EditorGUILayout.HorizontalScope())
             {
+
                 if (GUILayout.Button("Save Current Theme"))
                 {
                     //stateList.InsertArrayElementAtIndex(stateList.arraySize);

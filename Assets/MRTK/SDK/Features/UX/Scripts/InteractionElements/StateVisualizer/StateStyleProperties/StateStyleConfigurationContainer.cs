@@ -1,8 +1,10 @@
 ﻿using Microsoft.MixedReality.Toolkit.UI;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.CodeDom;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Graphs;
 using UnityEngine;
 
@@ -65,13 +67,27 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
 
         // For the inspector 
-        public StateStylePropertyConfiguration AddStateStyleProperty(Type propertyType)
+        public StateStylePropertyConfiguration AddStateStyleProperty(string stylePropertyClassName)
         {
-            StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)CreateInstance(propertyType.Name.ToString());
+            // Get all the classes of type StateStylePropertyConfiguration and store the class names
+            var stateStyleConfigTypes = TypeCacheUtility.GetSubClasses<StateStylePropertyConfiguration>();
+            var stateStyleConfigTypesClassNames = stateStyleConfigTypes.Select(t => t?.Name).ToArray();
 
-            StateStyleProperties.Add(stateStylePropertyInstance);
 
-            return stateStylePropertyInstance;
+            if (stateStyleConfigTypesClassNames.Contains(stylePropertyClassName))
+            {
+                StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)CreateInstance(stylePropertyClassName);
+
+                StateStyleProperties.Add(stateStylePropertyInstance);
+
+                return stateStylePropertyInstance;
+            }
+            else
+            {
+                Debug.LogError($"The stylePropertyClass name {stylePropertyClassName} is not a valid class name, property was not added");
+
+                return null;
+            } 
         }
 
 

@@ -14,10 +14,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     public class StateStyleConfigurationContainerInspector : UnityEditor.Editor
     {
         private SerializedProperty stateName;
-        private SerializedProperty state;
         private SerializedProperty Target;
         private SerializedProperty stateStyleProperties;
-        private StateStylePropertyConfiguration stateStyleConfig;
         private static GUIContent AddStyleButtonLabel;
         private static GUIContent RemoveStyleButtonLabel;
 
@@ -26,7 +24,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private void OnEnable()
         {
             instance = target as StateStyleConfigurationContainer;
-
 
             //stateName = serializedObject.FindProperty("stateName");
 
@@ -61,112 +58,113 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue, stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
             {
-                for (int i = 0; i < stateStyleProperties.arraySize; i++)
+                if (stateName.stringValue == "Default")
                 {
-                    using (new EditorGUI.IndentLevelScope())
+                    EditorGUILayout.HelpBox("The Default state does not contain properties to edit, the appearance" +
+                        " of the object in edit mode is the object's default appearance", MessageType.Info);
+                }
+                else
+                {
+                    for (int i = 0; i < stateStyleProperties.arraySize; i++)
                     {
-                        using (new EditorGUI.IndentLevelScope())
+                        using (new EditorGUILayout.VerticalScope(InspectorUIUtility.Box(35)))
                         {
-                            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                            SerializedProperty stateStyleProperty = stateStyleProperties.GetArrayElementAtIndex(i);
+
+                            StateStylePropertyConfiguration configuration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
+
+                            EditorGUILayout.Space();
+
+                            // If a new property has been added, render a selection for the type of property 
+                            if (configuration.name == "New Style Property")
                             {
-                                SerializedProperty stateStyleProperty = stateStyleProperties.GetArrayElementAtIndex(i);
-
-                                StateStylePropertyConfiguration configuration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
-
-                                EditorGUILayout.Space();
-
-                                if (InspectorUIUtility.FlexButton(RemoveStyleButtonLabel))
+                                using (new EditorGUILayout.VerticalScope())
                                 {
-                                    instance.StateStyleProperties.Remove(configuration);
-
-                                    break;
-                                }
-
-                                if (configuration.name == "NewStyleProperty")
-                                {
-                                    using (new EditorGUILayout.VerticalScope())
+                                    Rect position = EditorGUILayout.GetControlRect();
+                                    using (new EditorGUI.PropertyScope(position, new GUIContent("State Style Property"), stateStyleProperty))
                                     {
-                                        Rect position = EditorGUILayout.GetControlRect();
-                                        using (new EditorGUI.PropertyScope(position, new GUIContent("State Style Property"), stateStyleProperty))
+                                        string[] stateStyleNames = Enum.GetNames(typeof(CoreStyleProperty)).ToArray();
+                                        int id = Array.IndexOf(stateStyleNames, -1);
+                                        int newId = EditorGUI.Popup(position, id, stateStyleNames);
+
+                                        if (newId != -1)
                                         {
-                                            var stateStyleTypes = TypeCacheUtility.GetSubClasses<StateStylePropertyConfiguration>();
+                                            string selectedProperty = stateStyleNames[newId];
 
-                                            string[] stateStyleClassNames = Enum.GetNames(typeof(CoreStyleProperty)).ToArray();
+                                            stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty + "StateStylePropertyConfiguration");
 
-                                            int id = Array.IndexOf(stateStyleClassNames, -1);
-
-                                            int newId = EditorGUI.Popup(position, id, stateStyleClassNames);
-
-                                            Type propertyType;
-
-                                            if (newId != -1)
+                                            if (!stateStyleProperty.objectReferenceValue.IsNull())
                                             {
-                                                propertyType = stateStyleTypes[newId];
-
-                                                stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(propertyType);
-
+                                                // Set the values of the local configuration on creation
                                                 var localConfiguration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
                                                 localConfiguration.StateName = stateName.stringValue;
                                                 localConfiguration.name = configuration.StylePropertyName;
                                             }
+                                            else
+                                            {
+                                                Debug.LogError("The state style property added has a null type");
+                                            }
                                         }
                                     }
-
                                 }
-                                else
+                            }
+                            else
+                            {
+                                using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    if (InspectorUIUtility.DrawSectionFoldoutWithKey(configuration.StylePropertyName, configuration.StylePropertyName + "_" + stateName.stringValue + i.ToString(), MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
+                                    using (new EditorGUILayout.VerticalScope())
                                     {
-                                        EditorGUILayout.Space();
-                                        using (new EditorGUI.IndentLevelScope())
+                                        if (InspectorUIUtility.DrawSectionFoldoutWithKey(configuration.StylePropertyName, configuration.StylePropertyName + "_" + stateName.stringValue + i.ToString(), MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
                                         {
-                                            DrawScriptableSubEditor(stateStyleProperty);
+                                            DrawStateStylePropertyScriptableEditor(stateStyleProperty);
                                         }
                                     }
+
+                                    if (InspectorUIUtility.SmallButton(RemoveStyleButtonLabel))
+                                    {
+                                        instance.StateStyleProperties.Remove(configuration);
+
+                                        break;
+                                    }
+
                                 }
 
-                                EditorGUILayout.Space();
                             }
 
+                            EditorGUILayout.Space();
+                        }
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
+                        {
+                            // When a new property is added via inspector, initially initialize the state style property with the 
+                            // MaterialStateStylePropertyConfiguration type and add it to the stateStyleProperties list
+                            // This stateStyleProperty Configuration type will be changed after the user selects a the type from an enum
+                            StateStylePropertyConfiguration configuration = ScriptableObject.CreateInstance<MaterialStateStylePropertyConfiguration>();
+
+                            // Change the configuration name as a flag to display the CoreStylesProperty enum values for the user to select from 
+                            configuration.name = "New Style Property";
+
+                            instance.StateStyleProperties.Add(configuration);
                         }
                     }
 
                 }
 
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
-                    {
-                        StateStylePropertyConfiguration configuration = ScriptableObject.CreateInstance<MaterialStateStylePropertyConfiguration>();
-
-                        configuration.name = "NewStyleProperty";
-
-                        //configuration.StylePropertyName = "StateStyleProperty";
-
-                        instance.StateStyleProperties.Add(configuration);
-                    }
-                }
-                
-
                 serializedObject.ApplyModifiedProperties();
             }
         }
 
-        private void DrawScriptableSubEditor(SerializedProperty scriptable)
+        private void DrawStateStylePropertyScriptableEditor(SerializedProperty stateStyleProperty)
         {
-            if (scriptable.objectReferenceValue != null)
+            if (stateStyleProperty.objectReferenceValue != null)
             {
-                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(scriptable.objectReferenceValue);
+                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(stateStyleProperty.objectReferenceValue);
                 EditorGUILayout.BeginVertical();
                 EditorGUILayout.Space();
                 configEditor.OnInspectorGUI();
-
-                StateStylePropertyConfiguration configurationTarget = configEditor.target as StateStylePropertyConfiguration;
-
-                
-                //Debug.Log(configurationTarget.Target.name);
-                
-
                 EditorGUILayout.Space();
                 EditorGUILayout.EndVertical();
             }
@@ -181,27 +179,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void AddMenu()
         {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                //if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
-                //{
-                //    stateStyleProperties.InsertArrayElementAtIndex(stateStyleProperties.arraySize);
 
-                //    SerializedProperty stateStyleProperty = stateStyleProperties.GetArrayElementAtIndex(stateStyleProperties.arraySize - 1);
-
-                //    //SerializedProperty name = stateStyleProperty.FindPropertyRelative("stylePropertyName");
-
-                //    //stateStyleProperty.objectReferenceValue.name = "New State Style Property";
-
-                //    StateStylePropertyConfiguration configuration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
-
-                //    configuration.StylePropertyName = "New State Style Property";
-
-                //    Debug.Log(configuration.StylePropertyName);
-
-                   
-                //}
-            }
         }
 
 

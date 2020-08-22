@@ -27,5 +27,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             States.Add(new InteractionState("Focus"));
         }
 
+
+        public bool IsStateTracked(string stateName)
+        {
+            if (States.Exists((state) => state.Name == stateName))
+            {
+                Debug.LogError($"The {stateName} state is already being tracked and cannot be added to TrackedStates.");
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
     }
 }

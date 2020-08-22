@@ -18,14 +18,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CustomEditor(typeof(TrackedStates))]
     public class TrackedStatesInspector : UnityEditor.Editor
     {
+        private TrackedStates instance;
         private SerializedProperty stateList;
-        private SerializedProperty availableStates;
 
         private static GUIContent RemoveStateButtonLabel;
         private static GUIContent AddStateButtonLabel;
 
         protected virtual void OnEnable()
         {
+            instance = target as TrackedStates;
             RemoveStateButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
             AddStateButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State");
         }
@@ -35,8 +36,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             serializedObject.Update();
 
             InspectorUIUtility.DrawTitle("Tracked States");
-
-            availableStates = serializedObject.FindProperty("availableStates");
 
             stateList = serializedObject.FindProperty("states");
 
@@ -121,31 +120,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                     Rect position = EditorGUILayout.GetControlRect();
                                     using (new EditorGUI.PropertyScope(position, new GUIContent("State"), stateItem))
                                     {
-                                        string[] availableStateArr = new string[availableStates.arraySize];
-
-                                        for (int j = 0; j < availableStates.arraySize; j++)
-                                        {
-                                            SerializedProperty availableState = availableStates.GetArrayElementAtIndex(j);
-
-                                            availableStateArr[j] = availableState.stringValue;
-                                        }
-
-                                        int id = Array.IndexOf(availableStateArr, name.stringValue);
-
-                                        int newId = EditorGUI.Popup(position, id, availableStateArr);
+                                        string[] coreInteractionStateNames = Enum.GetNames(typeof(CoreInteractionState)).ToArray();
+                                        int id = Array.IndexOf(coreInteractionStateNames, -1);
+                                        int newId = EditorGUI.Popup(position, id, coreInteractionStateNames);
 
                                         if (newId != -1)
                                         {
-                                            // If this state is not already in the stateList
-                                            //if ()
-                                            //{
-                                                name.stringValue = availableStateArr[newId];
-                                            //}
-                                            //else
-                                            //{
-                                                //Debug.LogError("This state is already being tracked.  Please select another state.")
-                                            //}
-                                            
+                                            string selectedState = coreInteractionStateNames[newId];
+
+                                            // If this state is not already being tracked
+                                            if (!instance.IsStateTracked(selectedState))
+                                            {
+                                                name.stringValue = selectedState;
+                                            }
+                                            else
+                                            {
+                                                newId = -1;
+                                            } 
                                         } 
                                     }
                                 }

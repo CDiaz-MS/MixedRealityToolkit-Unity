@@ -14,7 +14,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             if (meshRenderer == null)
             {
-                Debug.LogError("The Target Game Object for the Material State Style Property is missing a MeshRenderer component");
+                Debug.LogError($"The {Target.name} Game Object for the Material State Style Property is missing a MeshRenderer component.");
             }
         }
 
@@ -28,13 +28,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             if (meshRenderer != null)
             {
-                if (Material != null)
+                if (!Material.IsNull())
                 {
                     meshRenderer.material = Material;
                 }
+                else
+                {
+                    Debug.LogError($"A Material Property on the {Target.name} game object for the {StateName} state in the StateVisualizer has not been set.");
+                }
             } 
         }
-
-
     }
 }

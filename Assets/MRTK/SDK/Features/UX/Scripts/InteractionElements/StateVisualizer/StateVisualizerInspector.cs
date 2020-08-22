@@ -10,10 +10,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CustomEditor(typeof(StateVisualizer))]
     public class StateVisualizerInspector : UnityEditor.Editor
     {
+        private StateVisualizer instance;
         private SerializedProperty stateVisualizerDefinition;
 
         private void OnEnable()
         {
+            instance = (StateVisualizer)target;
             stateVisualizerDefinition = serializedObject.FindProperty("stateVisualizerDefinition");
         }
 
@@ -23,6 +25,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
+
+            if (InspectorUIUtility.FlexButton(new GUIContent("Sync States Tracked States with Base Interactable")))
+            {
+                instance.SyncTrackedStatesWithStateDefinition();
+            }
+
 
             serializedObject.ApplyModifiedProperties();
         }

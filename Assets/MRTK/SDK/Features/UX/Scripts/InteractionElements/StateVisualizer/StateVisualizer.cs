@@ -32,23 +32,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private StateManager StateManager => BaseInteractable.StateManager;
 
-
+        public StateTransitionManager StateTransitionManager { get; protected set; } = new StateTransitionManager();
 
         public void OnValidate()
         {
-            Debug.Log("State Visualizer Definition");
-
             if (StateVisualizerDefinition != null)
             {
                 if (StateVisualizerDefinition.StateStyleConfigurationContainers.Count == 0)
                 {
-                    StateVisualizerDefinition.SetUp(TrackedStates, gameObject);
+                    StateVisualizerDefinition.InitializeStateStyleContainers(TrackedStates, gameObject);
 
-                    AddStateStylePropertyToAState<MaterialStateStylePropertyConfiguration>("Focus");
-                    //AddStateStylePropertyToAState<TransformOffsetStateStylePropertyConfiguration>("Focus");
-                    
+                    //AddStateStylePropertyToAState<MaterialStateStylePropertyConfiguration>("Focus");
+                    //AddStateStylePropertyToAState<TransformOffsetStateStylePropertyConfiguration>("Focus");                   
                 }
             }
+        }
+
+        public void SyncTrackedStatesWithStateDefinition()
+        {
+            StateVisualizerDefinition.UpdateStateStyleContainers(TrackedStates);
         }
 
 
@@ -97,25 +99,27 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
             }
 
-
+            StateTransitionManager.SaveDefaultStates(gameObject);
 
             // Add listeners to the OnStateActivated(InteractionState)
             // enable all the style properties 
             StateManager.OnStateActivated.AddListener(
                 (state) =>
                 {
-                    //Debug.Log(state.Name + " Event");
                     ActivateStateStyleProperty(state.Name);
                 });
 
             StateManager.OnStateDeactivated.AddListener(
                 (stateTurnedOff, currentStateOn) =>
                 {
-                    Debug.Log("====================");
-                    Debug.Log("OnStateDeactivated");
+                    if (currentStateOn.Name == "Default")
+                    {
+                        StateTransitionManager.SetDefaults(gameObject);
+                    }
+
+                    
                     Debug.Log("StateTurnedOff: " + stateTurnedOff.Name);
                     Debug.Log("CurrentStateOn: " + currentStateOn.Name);
-                    Debug.Log("====================");
                 });
         }
 
