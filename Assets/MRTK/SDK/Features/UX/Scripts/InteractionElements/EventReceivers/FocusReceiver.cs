@@ -20,9 +20,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private readonly FocusInteractionEventConfiguration focusEventConfig;
 
-        private FocusUnityEvent onFocusOn => focusEventConfig.OnFocusOn;
+        private FocusInteractionEvent onFocusOn => focusEventConfig.OnFocusOn;
 
-        private FocusUnityEvent onFocusOff => focusEventConfig.OnFocusOff;
+        private FocusInteractionEvent onFocusOff => focusEventConfig.OnFocusOff;
 
         private bool hadFocus;
 

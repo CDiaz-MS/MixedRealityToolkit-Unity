@@ -27,6 +27,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         protected virtual void OnEnable()
         {
             instance = target as TrackedStates;
+
             RemoveStateButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
             AddStateButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State");
         }
@@ -44,33 +45,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-            using (new EditorGUILayout.VerticalScope())
-            {
-                if (InspectorUIUtility.FlexButton(AddStateButtonLabel))
-                {
-                    stateList.InsertArrayElementAtIndex(stateList.arraySize);
-
-                    SerializedProperty newState = stateList.GetArrayElementAtIndex(stateList.arraySize - 1);
-
-                    SerializedProperty name = newState.FindPropertyRelative("stateName");
-
-                    name.stringValue = "New State";
-                }
-
-            }
+            RenderAddCoreStateButton();
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
 
-            if (GUILayout.Button("Create New State"))
-            {
-
-            }
+            RenderCreateNewStateButton();
 
             serializedObject.ApplyModifiedProperties();
         }
-
-
 
         private void RenderStates()
         {
@@ -78,106 +61,80 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
                 {
-                    SerializedProperty stateItem = stateList.GetArrayElementAtIndex(i);
+                    SerializedProperty state = stateList.GetArrayElementAtIndex(i);
+                    SerializedProperty stateName = state.FindPropertyRelative("stateName");
+                    SerializedProperty stateValue = state.FindPropertyRelative("stateValue");
+                    SerializedProperty stateEventConfiguration = state.FindPropertyRelative("eventConfiguration");
 
-                    SerializedProperty name = stateItem.FindPropertyRelative("stateName");
-                    SerializedProperty value = stateItem.FindPropertyRelative("stateValue");
-                    SerializedProperty eventConfiguration = stateItem.FindPropertyRelative("eventConfiguration");
+                    EditorGUILayout.Space();
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        InspectorUIUtility.DrawLabel(stateName.stringValue, 14, InspectorUIUtility.ColorTint10);
+
+                        // Draw the state value in the state while the application is playing for debugging
+                        if (Application.isPlaying)
+                        {
+                            EditorGUILayout.LabelField(stateValue.intValue.ToString());
+                        }
+
+                        if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
+                        {
+                            stateList.DeleteArrayElementAtIndex(i);
+                            break;
+                        }
+                    }
 
                     using (new EditorGUILayout.VerticalScope())
                     {
                         EditorGUILayout.Space();
-
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            InspectorUIUtility.DrawLabel(name.stringValue, 14, InspectorUIUtility.ColorTint10);
-
-                            if (Application.isPlaying)
-                            {
-                                EditorGUILayout.LabelField(value.intValue.ToString());
-                            }
-
-                            if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
-                            {
-                                stateList.DeleteArrayElementAtIndex(i);
-                                break;
-                            }
-                        }
-
-                        EditorGUILayout.Space();
                         EditorGUILayout.Space();
 
-                        // Render state event configuration if an event configuration exists
-                        using (new EditorGUILayout.VerticalScope())
+                        using (new EditorGUI.IndentLevelScope())
                         {
-
-
-
-                            using (new EditorGUI.IndentLevelScope())
+                            if (ContainsEventConfiguration(stateEventConfiguration))
                             {
-                                if (name.stringValue == "New State")
-                                {
-                                    Rect position = EditorGUILayout.GetControlRect();
-                                    using (new EditorGUI.PropertyScope(position, new GUIContent("State"), stateItem))
-                                    {
-                                        string[] coreInteractionStateNames = Enum.GetNames(typeof(CoreInteractionState)).ToArray();
-                                        int id = Array.IndexOf(coreInteractionStateNames, -1);
-                                        int newId = EditorGUI.Popup(position, id, coreInteractionStateNames);
-
-                                        if (newId != -1)
-                                        {
-                                            string selectedState = coreInteractionStateNames[newId];
-
-                                            // If this state is not already being tracked
-                                            if (!instance.IsStateTracked(selectedState))
-                                            {
-                                                name.stringValue = selectedState;
-                                            }
-                                            else
-                                            {
-                                                newId = -1;
-                                            } 
-                                        } 
-                                    }
-                                }
-
-
-
                                 // Check if this state has state events before they are drawn
                                 // For example, the Default state does not have an event configuration but the Focus state does
-                                if (CreateEventScriptable(eventConfiguration,name.stringValue))
+                                if (CreateEventScriptable(stateEventConfiguration, stateName.stringValue))
                                 {
-                                    if (InspectorUIUtility.DrawSectionFoldoutWithKey(name.stringValue + " State Events", name.stringValue + "Events", MixedRealityStylesUtility.TitleFoldoutStyle, false))
+                                    string stateFoldoutID = stateName.stringValue + "EventConfiguration";
+
+                                    if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue + " State Events", stateFoldoutID, MixedRealityStylesUtility.TitleFoldoutStyle, false))
                                     {
-                                        using (new EditorGUILayout.VerticalScope())
-                                        {
-                                            DrawScriptableSubEditor(eventConfiguration);
-                                        }
+                                        // Draw the events for the associated state if this state has an event configuration
+                                        DrawStateEventsSciptableSubEditor(stateEventConfiguration);
+                                    }
+                                }
+                            }
+                            
+                            // When a new state is added via inspector, the name is initialized to "New State" and then changed
+                            // to the name the user selects from the list of CoreInteractionStates
+                            if (stateName.stringValue == "New Core State")
+                            {
+                                SetCoreStateType(state, stateName);
+                            }
+
+                            if (stateName.stringValue == "Create New State" )
+                            {
+                                using (new EditorGUILayout.HorizontalScope())
+                                { 
+                                    //serializedObject.
+                                    EditorGUILayout.PropertyField(stateName);
+
+                                    if (GUILayout.Button("Set Name"))
+                                    {
+                                        
                                     }
                                 }
                             }
                         }
-
-                        EditorGUILayout.Space();
                     }
+
+                    EditorGUILayout.Space();                    
                 }
             }
         }
-
-
-        private void DrawScriptableSubEditor(SerializedProperty scriptable)
-        {
-            if (scriptable.objectReferenceValue != null)
-            {
-                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(scriptable.objectReferenceValue);
-                EditorGUILayout.BeginVertical();
-                EditorGUILayout.Space();
-                configEditor.OnInspectorGUI();
-                EditorGUILayout.Space();
-                EditorGUILayout.EndVertical();
-            }
-        }
-
 
         /// <summary>
         /// Create an instance of an associated event scriptable object given the state.
@@ -211,20 +168,98 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             return false;
         }
 
-        private void OnStateAdded()
-        {
-            Debug.Log("State selected: " );
 
+        private void DrawStateEventsSciptableSubEditor(SerializedProperty scriptable)
+        {
+            if (scriptable.objectReferenceValue != null)
+            {
+                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(scriptable.objectReferenceValue);
+                
+                using (new EditorGUILayout.VerticalScope(InspectorUIUtility.Box(10)))
+                {
+                    EditorGUILayout.Space();
+                    configEditor.OnInspectorGUI();
+                    EditorGUILayout.Space();
+                }
+            }
+        }
+
+        private bool ContainsEventConfiguration(SerializedProperty eventConfiguration)
+        {
+            // If the event configuration 
+            if (eventConfiguration.IsNull())
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private void SetCoreStateType(SerializedProperty stateProp, SerializedProperty stateNameProp)
+        {
+            Rect position = EditorGUILayout.GetControlRect();
+            using (new EditorGUI.PropertyScope(position, new GUIContent("State"), stateProp))
+            {
+                string[] coreInteractionStateNames = Enum.GetNames(typeof(CoreInteractionState)).ToArray();
+                int id = Array.IndexOf(coreInteractionStateNames, -1);
+                int newId = EditorGUI.Popup(position, id, coreInteractionStateNames);
+
+                if (newId != -1)
+                {
+                    string selectedState = coreInteractionStateNames[newId];
+
+                    // If this state is not already being tracked then change the name
+                    if (!instance.IsStateTracked(selectedState))
+                    {
+                        stateNameProp.stringValue = selectedState;
+                    }
+                    else
+                    {
+                        // If a state that is already being tracked is selected, reset the id until a 
+                        // state that is not being tracked is selected
+                        newId = -1;
+                    }
+                }
+            }
+        }
+
+        private SerializedProperty AddNewState(string initialStateName)
+        {
             stateList.InsertArrayElementAtIndex(stateList.arraySize);
 
             SerializedProperty newState = stateList.GetArrayElementAtIndex(stateList.arraySize - 1);
 
-            SerializedProperty name = newState.FindPropertyRelative("stylePropertyName");
+            SerializedProperty name = newState.FindPropertyRelative("stateName");
 
-            Debug.Log(name.stringValue);
+            SerializedProperty eventConfiguration = newState.FindPropertyRelative("eventConfiguration");
 
-            name.stringValue = "NewState";
+            eventConfiguration.objectReferenceValue = null;
+
+            name.stringValue = initialStateName;
+
+            return name;
         }
 
+        private void RenderAddCoreStateButton()
+        {
+            using (new EditorGUILayout.VerticalScope())
+            {
+                if (InspectorUIUtility.FlexButton(AddStateButtonLabel))
+                {
+                    AddNewState("New Core State");
+                }
+            }
+        }
+
+        private void RenderCreateNewStateButton()
+        {
+            using (new EditorGUILayout.VerticalScope())
+            {
+                if (GUILayout.Button("Create New State"))
+                {
+                    AddNewState("Create New State");
+                }
+            }
+        }
     }
 }

@@ -1,23 +1,30 @@
-﻿using Microsoft.MixedReality.Toolkit.Utilities;
-using Microsoft.MixedReality.Toolkit.Utilities.Editor;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-
+    /// <summary>
+    /// Base class for interaction event configuration.  An event configuration maps to a single Interaction State.
+    /// </summary>
     [CreateAssetMenu]
     public abstract class BaseInteractionEventConfiguration : ScriptableObject
     {
-        [NonSerialized]
-        public string Name;
+        /// <summary>
+        /// The name of the state associated with this event configuration.
+        /// </summary>
+        public string StateName { get; set; }
 
-        public BaseEventReceiver EventReceiver;
+        /// <summary>
+        /// The associated runtime event receiver for this event configuration.
+        /// </summary>
+        public BaseEventReceiver EventReceiver { get; protected set; }
 
-        public abstract BaseEventReceiver CreateRuntimeInstance();
+        /// <summary>
+        /// Initializes the runtime event receiver.
+        /// </summary>
+        /// <returns>Event Receiver</returns>
+        public abstract BaseEventReceiver InitializeRuntimeEventReceiver();
     }
 }

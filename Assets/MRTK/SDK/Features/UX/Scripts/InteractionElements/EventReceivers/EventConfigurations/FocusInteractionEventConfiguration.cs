@@ -1,20 +1,30 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// The event configuration for the Focus state.
+    /// </summary>
     [CreateAssetMenu]
     public class FocusInteractionEventConfiguration : BaseInteractionEventConfiguration
     {
-        public FocusUnityEvent OnFocusOn = new FocusUnityEvent();
+        /// <summary>
+        /// A Unity event with FocusEventData.  This event is fired when focus enters an object.
+        /// </summary>
+        public FocusInteractionEvent OnFocusOn = new FocusInteractionEvent();
 
-        public FocusUnityEvent OnFocusOff = new FocusUnityEvent();
+        /// <summary>
+        /// A Unity event with FocusEventData.  This event is fired when focus exits an object.
+        /// </summary>
+        public FocusInteractionEvent OnFocusOff = new FocusInteractionEvent();
 
-        public override BaseEventReceiver CreateRuntimeInstance()
+        ///<inheritdoc/>
+        public override BaseEventReceiver InitializeRuntimeEventReceiver()
         {
-            Name = "Focus";
+            StateName = "Focus";
 
             FocusReceiver focusReceiver = new FocusReceiver(this);
 

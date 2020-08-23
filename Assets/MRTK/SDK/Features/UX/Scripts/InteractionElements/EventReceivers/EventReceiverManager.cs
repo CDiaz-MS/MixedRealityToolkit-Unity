@@ -33,7 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public BaseEventReceiver InitializeEventReceiver(string stateName)
         {
-            BaseEventReceiver receiver = StateManager.GetState(stateName).EventConfiguration.CreateRuntimeInstance();
+            BaseEventReceiver receiver = StateManager.GetState(stateName).EventConfiguration.InitializeRuntimeEventReceiver();
 
             return receiver;
         }

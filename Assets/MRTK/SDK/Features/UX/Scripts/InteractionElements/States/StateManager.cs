@@ -186,7 +186,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                     // Set the state event configuration 
                     newState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
-                    newState.EventConfiguration.Name = state + "EventConfiguration";
+                    newState.EventConfiguration.StateName = state + "EventConfiguration";
                 }
 
                 TrackedStates.Add(newState);
