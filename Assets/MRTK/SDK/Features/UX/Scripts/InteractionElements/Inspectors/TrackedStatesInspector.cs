@@ -30,6 +30,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             RemoveStateButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
             AddStateButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State");
+
         }
 
         public override void OnInspectorGUI()
@@ -51,6 +52,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             EditorGUILayout.Space();
 
             RenderCreateNewStateButton();
+
+            //RenderTextInputField();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -78,6 +81,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                             EditorGUILayout.LabelField(stateValue.intValue.ToString());
                         }
 
+                        // if the state visualizer is attached, then add a button for each state that highlights 
+                        // the state in the state visualizer
+                        //if (GUILayout.Button("Go State Visualizer"))
+                        //{
+                        //    if (Highlighter.Highlight("Inspector", "State Visualizer Definition (local)"))
+                        //    {
+                        //    }
+                        //}
+
                         if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
                         {
                             stateList.DeleteArrayElementAtIndex(i);
@@ -92,11 +104,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                         using (new EditorGUI.IndentLevelScope())
                         {
-                            if (ContainsEventConfiguration(stateEventConfiguration))
+                            if (CreateEventScriptable(stateEventConfiguration, stateName.stringValue))
                             {
                                 // Check if this state has state events before they are drawn
                                 // For example, the Default state does not have an event configuration but the Focus state does
-                                if (CreateEventScriptable(stateEventConfiguration, stateName.stringValue))
+                                if (ContainsEventConfiguration(stateEventConfiguration))
                                 {
                                     string stateFoldoutID = stateName.stringValue + "EventConfiguration";
 
@@ -118,14 +130,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                             if (stateName.stringValue == "Create New State" )
                             {
                                 using (new EditorGUILayout.HorizontalScope())
-                                { 
-                                    //serializedObject.
+                                {
                                     EditorGUILayout.PropertyField(stateName);
-
-                                    if (GUILayout.Button("Set Name"))
-                                    {
-                                        
-                                    }
                                 }
                             }
                         }
@@ -148,8 +154,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             // Get the list of the subclasses for BaseInteractionEventConfiguration and find the
             // event configuration that contains the given state name
             var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(stateName));
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
 
+            
             // Check if the state has an existing event configuration
             if (eventConfigType != null)
             {
@@ -187,7 +194,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private bool ContainsEventConfiguration(SerializedProperty eventConfiguration)
         {
             // If the event configuration 
-            if (eventConfiguration.IsNull())
+            if (eventConfiguration.objectReferenceValue.IsNull())
             {
                 return false;
             }
@@ -261,5 +268,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 }
             }
         }
+
+
+        //private void RenderTextInputField()
+        //{
+        //    using (new EditorGUILayout.VerticalScope())
+        //    {
+        //        string text = EditorGUILayout.TextField(new GUIContent("new state:"), newStateName);
+
+        //        newStateName = text;
+
+        //        Debug.Log(newStateName);
+        //    }
+        //}
+
     }
 }

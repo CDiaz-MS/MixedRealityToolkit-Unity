@@ -1,4 +1,6 @@
-﻿using Microsoft.MixedReality.Toolkit.UI;
+﻿
+using Microsoft.MixedReality.Toolkit.UI;
+using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -26,16 +28,24 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             foreach (BaseEventReceiver receiver in EventReceiverList)
             {
-                receiver.OnUpdate(StateManager, eventData);
-
+                if (!receiver.IsNull())
+                {
+                    receiver.OnUpdate(StateManager, eventData);
+                }               
             }
         }
 
         public BaseEventReceiver InitializeEventReceiver(string stateName)
         {
-            BaseEventReceiver receiver = StateManager.GetState(stateName).EventConfiguration.InitializeRuntimeEventReceiver();
+            if (IsEventConfigurationValid(stateName))
+            {
+                BaseEventReceiver receiver = StateManager.GetState(stateName).EventConfiguration.InitializeRuntimeEventReceiver();
+                
+                return receiver;
+            }
 
-            return receiver;
+            return null;
+            
         }
 
 
@@ -52,7 +62,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public BaseInteractionEventConfiguration GetEventConfiguration(string stateName)
         {
             // find the event receiver that has the state name in it and return the configuration
-            BaseEventReceiver eventReceiver = EventReceiverList.Find((receiver) => receiver.Name.Contains(stateName));
+            BaseEventReceiver eventReceiver = EventReceiverList.Find((receiver) => receiver.Name.StartsWith(stateName));
 
             if (eventReceiver == null)
             {
@@ -67,17 +77,31 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public BaseInteractionEventConfiguration SetEventConfiguration(string stateName)
         {
-            var eventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(stateName + "InteractionEventConfiguration");
-            
-            if (eventConfiguration == null)
-            {
-                Debug.LogError($"An event configuration for the {stateName} state does not exist");
+           if (IsEventConfigurationValid(stateName))
+           {
+                var eventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(stateName + "InteractionEventConfiguration");
+                return eventConfiguration;
             }
-            
-            return eventConfiguration;
+
+            //Debug.LogError($"An event configuration for the {stateName} state does not exist");
+            return null;
+           
+          
         }
 
 
+        public bool IsEventConfigurationValid(string stateName)
+        {
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
+
+            if (eventConfigType.IsNull())
+            {
+                return false;
+            }
+
+            return true;
+        }
 
         // Add method for non-manual updates for events
     }

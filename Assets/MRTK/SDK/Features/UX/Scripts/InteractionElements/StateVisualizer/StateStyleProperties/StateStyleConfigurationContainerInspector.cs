@@ -56,6 +56,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 stateStyleProperties = serializedObject.FindProperty("stateStyleProperties");
             }
 
+            RenderStateStylePropertyContainer();
+
+            serializedObject.ApplyModifiedProperties();
+        }
+
+
+        private void RenderStateStylePropertyContainer()
+        {
             if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue, stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
             {
                 if (stateName.stringValue == "Default")
@@ -75,38 +83,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                             EditorGUILayout.Space();
 
-                            // If a new property has been added, render a selection for the type of property 
+                            // If a new property has been added, render a selection menu for the type of property 
                             if (configuration.name == "New Style Property")
                             {
-                                using (new EditorGUILayout.VerticalScope())
-                                {
-                                    Rect position = EditorGUILayout.GetControlRect();
-                                    using (new EditorGUI.PropertyScope(position, new GUIContent("State Style Property"), stateStyleProperty))
-                                    {
-                                        string[] stateStyleNames = Enum.GetNames(typeof(CoreStyleProperty)).ToArray();
-                                        int id = Array.IndexOf(stateStyleNames, -1);
-                                        int newId = EditorGUI.Popup(position, id, stateStyleNames);
-
-                                        if (newId != -1)
-                                        {
-                                            string selectedProperty = stateStyleNames[newId];
-
-                                            stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty + "StateStylePropertyConfiguration");
-
-                                            if (!stateStyleProperty.objectReferenceValue.IsNull())
-                                            {
-                                                // Set the values of the local configuration on creation
-                                                var localConfiguration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
-                                                localConfiguration.StateName = stateName.stringValue;
-                                                localConfiguration.name = configuration.StylePropertyName;
-                                            }
-                                            else
-                                            {
-                                                Debug.LogError("The state style property added has a null type");
-                                            }
-                                        }
-                                    }
-                                }
+                                SetStateStylePropertyType(stateStyleProperty, configuration);
                             }
                             else
                             {
@@ -120,42 +100,32 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                         }
                                     }
 
+                                    // Draw a - button to remove a state style property from a single state 
                                     if (InspectorUIUtility.SmallButton(RemoveStyleButtonLabel))
                                     {
                                         instance.StateStyleProperties.Remove(configuration);
-
                                         break;
                                     }
-
                                 }
-
                             }
 
                             EditorGUILayout.Space();
                         }
                     }
 
+                    // Draw a + button to add a state style property for a single state
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
                         {
-                            // When a new property is added via inspector, initially initialize the state style property with the 
-                            // MaterialStateStylePropertyConfiguration type and add it to the stateStyleProperties list
-                            // This stateStyleProperty Configuration type will be changed after the user selects a the type from an enum
-                            StateStylePropertyConfiguration configuration = ScriptableObject.CreateInstance<MaterialStateStylePropertyConfiguration>();
-
-                            // Change the configuration name as a flag to display the CoreStylesProperty enum values for the user to select from 
-                            configuration.name = "New Style Property";
-
-                            instance.StateStyleProperties.Add(configuration);
+                            AddStateStyleProperty();
                         }
                     }
-
-                }
-
-                serializedObject.ApplyModifiedProperties();
+                }                
             }
         }
+
+
 
         private void DrawStateStylePropertyScriptableEditor(SerializedProperty stateStyleProperty)
         {
@@ -172,14 +142,55 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
 
 
-        private void SetStateStyleProperty(SerializedProperty stateStyleProperty)
+        private void SetStateStylePropertyType(SerializedProperty stateStyleProperty, StateStylePropertyConfiguration configuration)
         {
+            using (new EditorGUILayout.VerticalScope())
+            {
+                InspectorUIUtility.DrawLabel("Select State Style Property Type", 13, InspectorUIUtility.ColorTint10);
+
+                EditorGUILayout.Space();
+
+                Rect position = EditorGUILayout.GetControlRect();
+                using (new EditorGUI.PropertyScope(position, new GUIContent("State Style Property"), stateStyleProperty))
+                {
+                    string[] stateStyleNames = Enum.GetNames(typeof(CoreStyleProperty)).ToArray();
+                    int id = Array.IndexOf(stateStyleNames, -1);
+                    int newId = EditorGUI.Popup(position, id, stateStyleNames);
+
+                    if (newId != -1)
+                    {
+                        string selectedProperty = stateStyleNames[newId];
+
+                        stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty + "StateStylePropertyConfiguration");
+
+                        if (!stateStyleProperty.objectReferenceValue.IsNull())
+                        {
+                            // Set the values of the local configuration on creation
+                            var localConfiguration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
+                            localConfiguration.StateName = stateName.stringValue;
+                            localConfiguration.name = configuration.StylePropertyName;
+                        }
+                        else
+                        {
+                            Debug.LogError("The state style property added has a null type.");
+                        }
+                    }
+                }
+            }
 
         }
 
-        private void AddMenu()
+        private void AddStateStyleProperty()
         {
+            // When a new property is added via inspector, initially initialize the state style property with the 
+            // MaterialStateStylePropertyConfiguration type and add it to the stateStyleProperties list
+            // This stateStyleProperty Configuration type will be changed after the user selects a the type from an enum
+            StateStylePropertyConfiguration configuration = ScriptableObject.CreateInstance<MaterialStateStylePropertyConfiguration>();
 
+            // Change the configuration name as a flag to display the CoreStylesProperty enum values for the user to select from 
+            configuration.name = "New Style Property";
+
+            instance.StateStyleProperties.Add(configuration);
         }
 
 

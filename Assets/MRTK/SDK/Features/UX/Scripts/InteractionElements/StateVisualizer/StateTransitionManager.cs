@@ -30,6 +30,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void SaveDefaultStates(GameObject objectToSave)
         {
+
+            // But what if someone wants to set the default state?
+            // Allow someone to set the defalut state via code but not via in the editor?
             objectDefaults.Add(objectToSave);
 
             cachedMat = objectToSave.GetComponent<MeshRenderer>().material;

@@ -127,13 +127,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             InteractionState state = GetState(coreState);
 
-            if (state != null)
+            if (state != null )
             {
-                state.Value = 1;
+                if (state.Value != 1)
+                {
+                    state.Value = 1;
 
-                state.Active = 1;
+                    state.Active = 1;
 
-                OnStateActivated.Invoke(state);
+                    OnStateActivated.Invoke(state);
+                }
+
 
                 // ORDER MATTERS, make it not matter
                 currentStateSetActive = state;
@@ -153,12 +157,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             if (state != null)
             {
-                state.Value = 0;
+                if (state.Value != 0)
+                {
+                    state.Value = 0;
 
-                state.Active = 0;
+                    state.Active = 0;
 
-                // We need to save the last state active state so we can add transitions 
-                OnStateDeactivated.Invoke(state, currentStateSetActive);
+                    // We need to save the last state active state so we can add transitions 
+                    OnStateDeactivated.Invoke(state, currentStateSetActive);
+                }
 
                 return state;
             }
@@ -177,7 +184,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 InteractionState newState = new InteractionState(state.ToString());
 
                 var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-                var eventConfigType = eventConfigurationTypes.Find(t => t.Name.Contains(state.ToString()));
+                var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(state.ToString()));
 
                 // Check if the core state has a custom event configuration
                 if (eventConfigType != null)
@@ -186,7 +193,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                     // Set the state event configuration 
                     newState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
-                    newState.EventConfiguration.StateName = state + "EventConfiguration";
                 }
 
                 TrackedStates.Add(newState);

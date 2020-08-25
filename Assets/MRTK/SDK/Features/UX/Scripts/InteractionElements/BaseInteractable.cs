@@ -2,6 +2,7 @@
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditorInternal;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
@@ -44,6 +45,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
+        
+
+
         // Initialize in Awake because the States Visualizer depends on the initialization of these elements
         private void Awake()
         {
@@ -51,7 +55,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             InitializeEventReceiverManager();
 
-            SetStateOn(CoreInteractionState.Default);
+            //SetStateOn(CoreInteractionState.Default);
         }
 
 
@@ -138,7 +142,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // This is for updating manually
                 EventReceiverManager.InvokeStateEvent(eventData);
 
-                SetStateOff(CoreInteractionState.Default);
+                //SetStateOff(CoreInteractionState.Default);
             }
         }
 
@@ -148,7 +152,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             if (IsStateTracking("Focus"))
             {
                 // ORDER MATTERS, make it not matter
-                SetStateOn(CoreInteractionState.Default);
+                //SetStateOn(CoreInteractionState.Default);
 
                 SetStateOff(CoreInteractionState.Focus);
 
@@ -239,12 +243,28 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void Update()
         {
-            // If any of the other states are active, set the default state
-            // Handle how the defalut state is set 
+            int total = 0;
+
+            foreach (InteractionState state in StateManager.TrackedStates)
+            {
+                // Add up the values of each state except the default state
+                if (state.Name != "Default")
+                {
+                    total += state.Value;
+                }
+            }
+
+            // Only set the default state to on if all the other states have a value of 0
+            if (total == 0)
+            {
+                SetStateOn(CoreInteractionState.Default);
+            }
+            else
+            {
+                SetStateOff(CoreInteractionState.Default);
+            }
 
         }
-
-
 
     }
 }

@@ -11,6 +11,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     [CreateAssetMenu]
     public class FocusInteractionEventConfiguration : BaseInteractionEventConfiguration
     {
+        public override string StateName => "Focus";
+
         /// <summary>
         /// A Unity event with FocusEventData.  This event is fired when focus enters an object.
         /// </summary>
@@ -24,8 +26,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         ///<inheritdoc/>
         public override BaseEventReceiver InitializeRuntimeEventReceiver()
         {
-            StateName = "Focus";
-
             FocusReceiver focusReceiver = new FocusReceiver(this);
 
             EventReceiver = focusReceiver;

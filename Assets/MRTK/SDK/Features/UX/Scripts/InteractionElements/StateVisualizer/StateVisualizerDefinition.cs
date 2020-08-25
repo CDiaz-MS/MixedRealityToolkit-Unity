@@ -76,10 +76,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // Find the container that matches the state, if there is no container for the state then add one
                 StateStyleConfigurationContainer styleContainer = StateStyleConfigurationContainers.Find((container) => (container.StateName == state.Name));
 
-
                 if (styleContainer.IsNull())
                 {
-                    Debug.Log($"The state style container for the {state.Name} does not exist");
                     AddStateStyleContainer(state.Name);
                 }
             }
@@ -92,10 +90,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                 if (trackedState.IsNull() && styleContainer.StateName != "Default")
                 {
-                    Debug.Log($"The container {styleContainer.StateName} does not have a state in tracked states");
                     RemoveStateStyleContainer(styleContainer.StateName);
                 }
-
             }
         }
 

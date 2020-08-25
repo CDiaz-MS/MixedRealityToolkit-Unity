@@ -14,7 +14,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// <summary>
         /// The name of the state associated with this event configuration.
         /// </summary>
-        public string StateName { get; set; }
+        public virtual string StateName { get; } = null;
 
         /// <summary>
         /// The associated runtime event receiver for this event configuration.

@@ -106,21 +106,29 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             StateManager.OnStateActivated.AddListener(
                 (state) =>
                 {
-                    ActivateStateStyleProperty(state.Name);
+                    if (state.Name == "Default" && state.Value == 1)
+                    {
+                        StateTransitionManager.SetDefaults(gameObject);
+                    }
+                    else
+                    {
+                        ActivateStateStyleProperty(state.Name);
+                    }
+                    
                 });
 
             StateManager.OnStateDeactivated.AddListener(
                 (stateTurnedOff, currentStateOn) =>
                 {
-                    if (currentStateOn.Name == "Default")
-                    {
-                        StateTransitionManager.SetDefaults(gameObject);
-                    }
-
-                    
                     Debug.Log("StateTurnedOff: " + stateTurnedOff.Name);
                     Debug.Log("CurrentStateOn: " + currentStateOn.Name);
                 });
+        }
+
+
+        private void Update()
+        {
+           
         }
 
     }

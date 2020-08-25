@@ -89,9 +89,5 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 return null;
             } 
         }
-
-
-
-
     }
 }
