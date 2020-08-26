@@ -42,6 +42,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
+        public bool IsInDefaultState
+        {
+            get
+            {
+                int defaultStateValue = GetState(CoreInteractionState.Default).Value;
+
+                if (defaultStateValue == 0)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+
+        }
+
+
         // Initialize the State Manager and the Event Manager in Awake because 
         // the States Visualizer depends on the initialization of these elements
         private void Awake()
@@ -226,23 +245,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             StateManager.CreateNewStateWithEventConfiguration(stateName, eventConfiguration);
         }
-
-        public bool IsInDefaultState()
-        {
-            foreach (InteractionState state in StateManager.TrackedStates)
-            {
-                int value = StateManager.GetState(state.Name).Value;
-
-                if ((value > 0) && (state.Name != "Default"))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-
 
         private void Update()
         {

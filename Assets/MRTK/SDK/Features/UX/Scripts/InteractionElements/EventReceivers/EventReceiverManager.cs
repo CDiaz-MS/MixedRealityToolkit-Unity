@@ -48,16 +48,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             
         }
 
-
-
         public T GetEventConfiguration<T>(string stateName) where T : BaseInteractionEventConfiguration
         {
             T receiver = StateManager.GetState(stateName).EventConfiguration as T;
 
             return receiver;
         }
-
-
 
         public BaseInteractionEventConfiguration GetEventConfiguration(string stateName)
         {
@@ -81,16 +77,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
            {
                 var eventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(stateName + "InteractionEventConfiguration");
                 return eventConfiguration;
+           }
+            else
+            {
+                //Debug.LogError($"An event configuration for the {stateName} state does not exist");
+                return null;
             }
-
-            //Debug.LogError($"An event configuration for the {stateName} state does not exist");
-            return null;
-           
-          
         }
 
 
-        public bool IsEventConfigurationValid(string stateName)
+        private bool IsEventConfigurationValid(string stateName)
         {
             var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
             var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));

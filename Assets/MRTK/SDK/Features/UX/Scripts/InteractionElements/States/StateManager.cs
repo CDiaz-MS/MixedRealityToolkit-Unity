@@ -21,7 +21,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             TrackedStates = trackedStates.States;
         }
 
-        public List<InteractionState> TrackedStates { get; protected set;}
+        public List<InteractionState> TrackedStates { get; protected set; } = null;
 
         public InteractionStateActiveEvent OnStateActivated { get; protected set; } = new InteractionStateActiveEvent();
 
@@ -197,6 +197,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 Debug.Log($" The {state} state is already being tracked and does not need to be added");
                 return coreState;
+            }
+        }
+
+        public void RemoveCoreState(CoreInteractionState state)
+        {
+            InteractionState coreState = GetState(state);
+
+            if (coreState != null)
+            {
+                TrackedStates.Remove(coreState);
+            }
+            else
+            {
+                Debug.Log($"The {state} state is not tracking and has already been removed.");
             }
         }
 

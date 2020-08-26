@@ -54,7 +54,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
 
-        // Go through each object referenced in each style property and store their defalut states
+        // Go through each object referenced in each style property and store their default states
 
 
     }

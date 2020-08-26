@@ -90,11 +90,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                         //    }
                         //}
 
-                        if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
+                        if (stateName.stringValue != "Default")
                         {
-                            stateList.DeleteArrayElementAtIndex(i);
-                            break;
+                            if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
+                            {
+                                stateList.DeleteArrayElementAtIndex(i);
+                                break;
+                            }
                         }
+
                     }
 
                     using (new EditorGUILayout.VerticalScope())
@@ -104,11 +108,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                         using (new EditorGUI.IndentLevelScope())
                         {
-                            if (CreateEventScriptable(stateEventConfiguration, stateName.stringValue))
+                            if (StateContainsValidEventConfiguration(stateEventConfiguration, stateName.stringValue))
                             {
                                 // Check if this state has state events before they are drawn
                                 // For example, the Default state does not have an event configuration but the Focus state does
-                                if (ContainsEventConfiguration(stateEventConfiguration))
+                                if (stateEventConfiguration.objectReferenceValue == null)
+                                {
+                                    CreateEventScriptable(stateEventConfiguration, stateName.stringValue);
+                                }
+                                else
                                 {
                                     string stateFoldoutID = stateName.stringValue + "EventConfiguration";
 
@@ -117,6 +125,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                         // Draw the events for the associated state if this state has an event configuration
                                         DrawStateEventsSciptableSubEditor(stateEventConfiguration);
                                     }
+
                                 }
                             }
                             
@@ -149,30 +158,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// <param name="stateName">The state name</param>
         /// <returns>Returns true if the associated event configuration for this state exists and has been 
         /// initialized.  Returns false if an event configuration for the state does not exist.</returns>
-        private bool CreateEventScriptable(SerializedProperty eventConfiguration, string stateName)
+        private void CreateEventScriptable(SerializedProperty eventConfiguration, string stateName)
         {
-            // Get the list of the subclasses for BaseInteractionEventConfiguration and find the
-            // event configuration that contains the given state name
-            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
+            string className = stateName + "InteractionEventConfiguration";
 
-            
-            // Check if the state has an existing event configuration
-            if (eventConfigType != null)
+            if (eventConfiguration.objectReferenceValue == null)
             {
-                string className = eventConfigType.Name;
-
-                if (eventConfiguration.objectReferenceValue == null)
-                {
-                    // Initialize the associated scriptable object event configuration with the correct state 
-                    eventConfiguration.objectReferenceValue = ScriptableObject.CreateInstance(className);
-                    eventConfiguration.objectReferenceValue.name = stateName + "EventConfiguration";
-                }
-
-                return true;
+                // Initialize the associated scriptable object event configuration with the correct state 
+                eventConfiguration.objectReferenceValue = ScriptableObject.CreateInstance(className);
+                eventConfiguration.objectReferenceValue.name = stateName + "EventConfiguration";
             }
-
-            return false;
         }
 
 
@@ -191,15 +186,35 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        private bool ContainsEventConfiguration(SerializedProperty eventConfiguration)
+        private bool StateContainsValidEventConfiguration(SerializedProperty eventConfiguration, string stateName)
         {
-            // If the event configuration 
-            if (eventConfiguration.objectReferenceValue.IsNull())
+            // Get the list of the subclasses for BaseInteractionEventConfiguration and find the
+            // event configuration that contains the given state name
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
+
+            if (eventConfiguration == null)
+            {
+                // Check if the state has an existing event configuration
+                if (eventConfigType == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+
+            }
+            else if (eventConfiguration != null && eventConfigType != null)
+            {
+                return true;
+            }
+            else
             {
                 return false;
             }
 
-            return true;
         }
 
         private void SetCoreStateType(SerializedProperty stateProp, SerializedProperty stateNameProp)
