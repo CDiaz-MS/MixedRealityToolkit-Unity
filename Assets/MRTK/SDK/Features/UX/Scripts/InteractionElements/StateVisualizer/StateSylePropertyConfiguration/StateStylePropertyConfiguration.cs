@@ -1,15 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu]
     public abstract class StateStylePropertyConfiguration: ScriptableObject
     {
-        public string StylePropertyName { get; protected set; }
+        public virtual string StylePropertyName { get; } = null;
 
-        [SerializeField]
+        [SerializeField,HideInInspector]
         private string stateName = null;
 
         public string StateName
@@ -23,20 +23,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public GameObject Target
         {
-            get 
-            {
-                return target; 
-            }
-            set
-            {
-                if (target != value)
-                {
-                    target = value;
-                }
-            }
+            get => target;
+            set => target = value;
         }
 
-        public StateStyleProperty StateStyleProperty;
+        public StateStyleProperty StateStyleProperty = null;
 
         public abstract StateStyleProperty CreateRuntimeInstance();
     }

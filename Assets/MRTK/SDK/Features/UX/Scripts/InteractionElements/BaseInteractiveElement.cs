@@ -1,13 +1,13 @@
-﻿using Microsoft.MixedReality.Toolkit.Input;
-using Microsoft.MixedReality.Toolkit.Utilities;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
+using Microsoft.MixedReality.Toolkit.Input;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEditorInternal;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    public abstract class BaseInteractable :
+    public abstract class BaseInteractiveElement :
         MonoBehaviour,
         IMixedRealityFocusChangedHandler,
         IMixedRealityFocusHandler
@@ -28,10 +28,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public TrackedStates TrackedStates
         {
             get => trackedStates;
-            set
-            {
-                trackedStates = value;
-            }
+            set => trackedStates = value;
         }
 
         /// <summary>
@@ -45,23 +42,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public EventReceiverManager EventReceiverManager { get; protected set; }
 
 
-        
-
-
-        // Initialize in Awake because the States Visualizer depends on the initialization of these elements
+        // Initialize the State Manager and the Event Manager in Awake because 
+        // the States Visualizer depends on the initialization of these elements
         private void Awake()
         {
             InitializeStateManager();
 
             InitializeEventReceiverManager();
-
-            //SetStateOn(CoreInteractionState.Default);
-        }
-
-
-        public virtual void Start()
-        {
-
         }
 
         /// <summary>
@@ -189,6 +176,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             StateManager.SetStateOff(coreState);
         }
+        #endregion
+
+        #region State Getting Utilities
+
+        public InteractionState GetState(string stateName)
+        {
+            return StateManager.GetState(stateName);
+        }
+
+        public InteractionState GetState(CoreInteractionState coreState)
+        {
+            return StateManager.GetState(coreState);
+        }
+
+
+        #endregion
+
 
         public void ResetAllStates()
         {
@@ -238,7 +242,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             return true;
         }
 
-        #endregion
 
 
         private void Update()

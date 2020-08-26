@@ -1,7 +1,8 @@
-﻿using System.Collections;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using System.Collections.Generic;
 using UnityEngine;
-
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
@@ -54,5 +55,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
 
         // Go through each object referenced in each style property and store their defalut states
+
+
     }
 }

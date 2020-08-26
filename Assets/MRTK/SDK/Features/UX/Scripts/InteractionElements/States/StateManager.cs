@@ -27,7 +27,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public InteractionStateInactiveEvent OnStateDeactivated { get; protected set; } = new InteractionStateInactiveEvent();
 
-        private string[] availableStates => Enum.GetNames(typeof(CoreInteractionState)).ToArray();
+        private string[] coreStates = Enum.GetNames(typeof(CoreInteractionState)).ToArray();
 
         private InteractionState currentStateSetActive;
 
@@ -179,28 +179,45 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public InteractionState AddCoreState(CoreInteractionState state)
         {
-            if (GetState(state) == null)
+            InteractionState coreState = GetState(state);
+
+            if (coreState.IsNull())
             {
+                // Create a new core state
                 InteractionState newState = new InteractionState(state.ToString());
 
-                var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-                var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(state.ToString()));
-
-                // Check if the core state has a custom event configuration
-                if (eventConfigType != null)
-                {
-                    string className = eventConfigType.Name;
-
-                    // Set the state event configuration 
-                    newState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
-                }
+                // Set the event configuration if one exists for the state
+                SetEventConfigurationOfCoreState(newState);
 
                 TrackedStates.Add(newState);
 
                 return newState;
             }
+            else
+            {
+                Debug.Log($" The {state} state is already being tracked and does not need to be added");
+                return coreState;
+            }
+        }
 
-            return null;
+
+        private void SetEventConfigurationOfCoreState(InteractionState coreState)
+        {
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(coreState.ToString()));
+
+            // Check if the core state has a custom event configuration
+            if (eventConfigType != null)
+            {
+                string className = eventConfigType.Name;
+
+                // Set the state event configuration 
+                coreState.EventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(className);
+            }
+            else
+            {
+                Debug.Log($" The {coreState.Name} state does not have an existing event configuration");
+            }
         }
 
 
@@ -208,7 +225,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             if (!stateName.IsNull() && !eventConfiguration.IsNull())
             {
-                if (!availableStates.Contains(stateName))
+                if (!coreStates.Contains(stateName))
                 {
                     InteractionState newState = new InteractionState(stateName);
                     newState.EventConfiguration = eventConfiguration;
@@ -238,5 +255,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 Debug.Log("The state name " + stateName + " is a defined core state, please use AddNewState(" + stateName + ") to add to Tracked States.");
             }
         }
+
+        // IF the tracked states list is edited during runtime, make sure to remove the state from the state visualizer
+
+        //public bool HasTrackedStatesBeenModified()
+        //{
+        //    if (TrackedStates.Count != trackedStatesCount)
+        //    {
+        //        return true;
+        //    }
+
+        //    return false;
+        //}
     }
 }

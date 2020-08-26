@@ -10,7 +10,7 @@ using System.CodeDom;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CustomEditor(typeof(StateStyleConfigurationContainer))]
+    [CustomEditor(typeof(StateContainer))]
     public class StateStyleConfigurationContainerInspector : UnityEditor.Editor
     {
         private SerializedProperty stateName;
@@ -19,11 +19,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private static GUIContent AddStyleButtonLabel;
         private static GUIContent RemoveStyleButtonLabel;
 
-        private StateStyleConfigurationContainer instance;
+        private StateContainer instance;
 
         private void OnEnable()
         {
-            instance = target as StateStyleConfigurationContainer;
+            instance = target as StateContainer;
 
             //stateName = serializedObject.FindProperty("stateName");
 
@@ -33,6 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             AddStyleButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State Style Property");
             RemoveStyleButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Add State Style Property");
+
         }
 
 
@@ -64,6 +65,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void RenderStateStylePropertyContainer()
         {
+            // Check if the app is playing to disable adding properties during runtime 
+            bool isPlayMode = EditorApplication.isPlaying || EditorApplication.isPaused;
+
             if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue, stateName.stringValue, MixedRealityStylesUtility.BoldTitleFoldoutStyle, false))
             {
                 if (stateName.stringValue == "Default")
@@ -116,9 +120,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     // Draw a + button to add a state style property for a single state
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
+                        using (new EditorGUI.DisabledScope(isPlayMode))
                         {
-                            AddStateStyleProperty();
+                            if (InspectorUIUtility.FlexButton(AddStyleButtonLabel))
+                            {
+                                AddStateStyleProperty();
+                            }
                         }
                     }
                 }                
@@ -161,18 +168,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     {
                         string selectedProperty = stateStyleNames[newId];
 
-                        stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty + "StateStylePropertyConfiguration");
+                        stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty);
 
-                        if (!stateStyleProperty.objectReferenceValue.IsNull())
+                        if (stateStyleProperty.objectReferenceValue.IsNull())
                         {
-                            // Set the values of the local configuration on creation
-                            var localConfiguration = stateStyleProperty.objectReferenceValue as StateStylePropertyConfiguration;
-                            localConfiguration.StateName = stateName.stringValue;
-                            localConfiguration.name = configuration.StylePropertyName;
-                        }
-                        else
-                        {
-                            Debug.LogError("The state style property added has a null type.");
+                            Debug.LogError("The state style property was not added and the object reference value is null.");
                         }
                     }
                 }
@@ -189,12 +189,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Change the configuration name as a flag to display the CoreStylesProperty enum values for the user to select from 
             configuration.name = "New Style Property";
+            //configuration.Target = instance.ta
 
             instance.StateStyleProperties.Add(configuration);
         }
-
-
-
 
     }
 }

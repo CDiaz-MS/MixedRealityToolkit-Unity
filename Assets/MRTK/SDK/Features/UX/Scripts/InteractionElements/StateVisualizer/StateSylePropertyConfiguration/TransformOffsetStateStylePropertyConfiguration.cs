@@ -1,29 +1,56 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Interaction;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
 
+using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(fileName = "TransformOffsetStateStylePropertyConfiguration", menuName = "Mixed Reality Toolkit/State Visualizer/State Style Property Configurations/Transform Offset")]
     public class TransformOffsetStateStylePropertyConfiguration : StateStylePropertyConfiguration
     {
-        public Vector3 Position;
+        public override string StylePropertyName => "Transform Offset";
 
-        public Vector3 Rotation;
+        [SerializeField]
+        [Tooltip("")]
+        private Vector3 position = Vector3.zero;
 
-        public Vector3 Scale;
-
-        public TransformOffsetStateStylePropertyConfiguration()
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector3 Position
         {
-            StylePropertyName = "Transform Offset";
+            get => position;
+            set => position = value;
+        }
+
+        [SerializeField]
+        [Tooltip("")]
+        private Vector3 rotation = Vector3.zero;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector3 Rotation
+        {
+            get => rotation;
+            set => rotation = value;
+        }
+
+        [SerializeField]
+        [Tooltip("")]
+        private Vector3 scale = Vector3.zero;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public Vector3 Scale
+        {
+            get => scale;
+            set => scale = value;
         }
 
         public override StateStyleProperty CreateRuntimeInstance()
         {
-            Debug.Log("Transform Create");
-
             TransformOffsetStateStyleProperty stateStyleProperty = new TransformOffsetStateStyleProperty(this);
 
             StateStyleProperty = stateStyleProperty;

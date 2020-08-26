@@ -1,11 +1,12 @@
-﻿using System.Collections;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(fileName = "TrackedStates", menuName = "Mixed Reality Toolkit/Interactive Element/Tracked States")]
     public class TrackedStates : ScriptableObject
     {
         [SerializeField]
@@ -22,7 +23,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public TrackedStates()
         {
-            // Add default states to StateList
+            // Add default states to the States list 
             States.Add(new InteractionState("Default"));
             States.Add(new InteractionState("Focus"));
         }

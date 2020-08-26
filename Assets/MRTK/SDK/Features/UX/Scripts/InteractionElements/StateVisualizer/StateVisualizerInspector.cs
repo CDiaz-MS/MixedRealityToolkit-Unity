@@ -26,11 +26,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
 
-            if (InspectorUIUtility.FlexButton(new GUIContent("Sync States Tracked States with Base Interactable")))
+            if (InspectorUIUtility.FlexButton(new GUIContent("Update State Visualizer Definition States")))
             {
-                instance.SyncTrackedStatesWithStateDefinition();
+                instance.UpdateStateVisualizerDefinitionStates();
             }
-
 
             serializedObject.ApplyModifiedProperties();
         }

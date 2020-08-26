@@ -1,25 +1,30 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Interaction;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using UnityEngine;
 
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class TransformOffsetStateStyleProperty : StateStyleProperty
     {
         public TransformOffsetStateStyleProperty(TransformOffsetStateStylePropertyConfiguration stateStylePropertyConfiguration) : base(stateStylePropertyConfiguration, "TransformOffset")
         {
-            TransformOffsetStateStylePropertyConfiguration = stateStylePropertyConfiguration;
+            transformOffsetStateStylePropertyConfiguration = stateStylePropertyConfiguration;
 
             initialTransform = Target.GetComponent<Transform>();
         }
 
-        public TransformOffsetStateStylePropertyConfiguration TransformOffsetStateStylePropertyConfiguration;
+        private TransformOffsetStateStylePropertyConfiguration transformOffsetStateStylePropertyConfiguration = null;
 
-        private Vector3 position => TransformOffsetStateStylePropertyConfiguration.Position;
-        private Vector3 rotation => TransformOffsetStateStylePropertyConfiguration.Rotation;
-        private Vector3 scale => TransformOffsetStateStylePropertyConfiguration.Scale;
+        private Vector3 position => transformOffsetStateStylePropertyConfiguration.Position;
+
+        private Vector3 rotation => transformOffsetStateStylePropertyConfiguration.Rotation;
+
+        private Vector3 scale => transformOffsetStateStylePropertyConfiguration.Scale;
 
         private Transform currentTransform => Target.GetComponent<Transform>();
 
@@ -27,8 +32,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public override void SetStyleProperty()
         {
-            Debug.Log("Set transform");
-
             currentTransform.Translate(position);
             currentTransform.Rotate(rotation);
             currentTransform.localScale += scale;

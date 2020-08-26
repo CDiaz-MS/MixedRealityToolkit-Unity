@@ -1,16 +1,16 @@
-﻿
-using Microsoft.MixedReality.Toolkit.UI;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.PlayerLoop;
-
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// Class for managing the events with InteractionStates.
+    /// </summary>
     public class EventReceiverManager
     {
         public EventReceiverManager(StateManager stateManager)

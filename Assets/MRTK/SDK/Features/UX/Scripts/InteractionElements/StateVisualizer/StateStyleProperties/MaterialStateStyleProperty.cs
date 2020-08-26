@@ -1,14 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public class MaterialStateStyleProperty : StateStyleProperty
     {
         public MaterialStateStyleProperty(MaterialStateStylePropertyConfiguration stateStylePropertyConfiguration) : base(stateStylePropertyConfiguration, "Material")
         {
-            MaterialStateStylePropertyConfiguration = stateStylePropertyConfiguration;
+            materialStateStylePropertyConfiguration = stateStylePropertyConfiguration;
 
             meshRenderer = Target.GetComponent<MeshRenderer>();
 
@@ -18,11 +22,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        public MaterialStateStylePropertyConfiguration MaterialStateStylePropertyConfiguration;
+        private MaterialStateStylePropertyConfiguration materialStateStylePropertyConfiguration = null;
 
-        private Material Material => MaterialStateStylePropertyConfiguration.Material;
+        private Material Material => materialStateStylePropertyConfiguration.Material;
 
-        private MeshRenderer meshRenderer;
+        private MeshRenderer meshRenderer = null;
 
         public override void SetStyleProperty()
         {

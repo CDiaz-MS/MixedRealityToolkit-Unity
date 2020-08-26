@@ -9,19 +9,19 @@ using UnityEngine.Serialization;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    public class BasicButton : BaseInteractable
+    public class BasicButton : BaseInteractiveElement
     {
-        public override void Start()
-        {
-            base.Start();
+        //public override void Start()
+        //{
+        //    base.Start();
 
-            // Handle cases for changing list sizes
-            //StateManager.TrackedStates.Add(new InteractionState("Press"));
+        //    // Handle cases for changing list sizes
+        //    //StateManager.TrackedStates.Add(new InteractionState("Press"));
 
 
-            //SetStateOn(CoreInteractionState.Touch);
+        //    //SetStateOn(CoreInteractionState.Touch);
 
-        }
+        //}
 
     }
 

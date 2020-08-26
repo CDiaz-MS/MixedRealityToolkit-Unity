@@ -13,7 +13,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
     /// Custom inspector for the Tracked States scriptable object that is contained in an object that inherits from 
-    /// BaseInteractable.
+    /// BaseInteractiveElement.
     /// </summary>
     [CustomEditor(typeof(TrackedStates))]
     public class TrackedStatesInspector : UnityEditor.Editor

@@ -10,15 +10,15 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(BaseInteractable))]
+    [CustomEditor(typeof(BaseInteractiveElement))]
     public class BaseInteractableInspector : UnityEditor.Editor
     {
-        private BaseInteractable instance;
+        private BaseInteractiveElement instance;
         private SerializedProperty trackedStates;
 
         protected virtual void OnEnable()
         {
-            instance = (BaseInteractable)target;
+            instance = (BaseInteractiveElement)target;
             trackedStates = serializedObject.FindProperty("trackedStates");
         }
 
