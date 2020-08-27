@@ -1,10 +1,8 @@
-﻿using Microsoft.MixedReality.Toolkit.UI;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Experimental.TerrainAPI;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction

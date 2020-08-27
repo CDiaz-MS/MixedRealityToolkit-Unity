@@ -1,15 +1,18 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
-using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
 using System.Linq;
-using System.CodeDom;
+using UnityEditor;
+using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// Custom inspector for the State Container. A state container is a fold out that represents a single state such as 
+    /// Focus in the StateVisualizer.  A state container contains a list of the state style properties for a state.
+    /// </summary>
     [CustomEditor(typeof(StateContainer))]
     public class StateStyleConfigurationContainerInspector : UnityEditor.Editor
     {

@@ -10,20 +10,19 @@ using UnityEngine.EventSystems;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// 
+    /// Base class for event receivers
     /// </summary>
     public abstract class BaseEventReceiver
     {
-
-        public string Name { get; protected set; }
-
-        public BaseInteractionEventConfiguration EventConfiguration {get; protected set;}
-
-        protected BaseEventReceiver(BaseInteractionEventConfiguration eventConfiguration, string name)
+        public BaseEventReceiver(BaseInteractionEventConfiguration eventConfiguration, string name)
         {
             EventConfiguration = eventConfiguration;
             Name = name;
         }
+
+        public string Name { get; protected set; } = null;
+
+        public BaseInteractionEventConfiguration EventConfiguration { get; protected set; } = null;
 
         /// <summary>
         /// Update an event receiver 

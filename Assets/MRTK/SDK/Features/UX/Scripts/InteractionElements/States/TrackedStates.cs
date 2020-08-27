@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu(fileName = "TrackedStates", menuName = "Mixed Reality Toolkit/Interactive Element/Tracked States")]
+    [CreateAssetMenu(fileName = "states", menuName = "Mixed Reality Toolkit/Interactive Element/Tracked States")]
     public class TrackedStates : ScriptableObject
     {
         [SerializeField]
@@ -33,7 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             if (States.Exists((state) => state.Name == stateName))
             {
-                Debug.LogError($"The {stateName} state is already being tracked and cannot be added to TrackedStates.");
+                Debug.LogError($"The {stateName} state is already being tracked and cannot be added to states.");
                 return true;
             }
             else

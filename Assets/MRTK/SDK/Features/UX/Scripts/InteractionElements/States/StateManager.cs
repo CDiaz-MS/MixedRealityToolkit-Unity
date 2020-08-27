@@ -1,27 +1,36 @@
-﻿using Microsoft.MixedReality.Toolkit.UI;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Dynamic;
 using System.Linq;
 using UnityEngine;
-
 
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// 
+    /// Manages state values of Interaction States within the Tracked States Scriptable Object.  The Tracked States
+    /// scriptable object is contained within a class that derives from BaseInteractionElement.  This class contains helper
+    /// methods for setting, getting and creating Interaction States.
     /// </summary>
     public class StateManager 
     {
+        /// <summary>
+        /// Create a new state manager with a given states scriptable object.
+        /// </summary>
+        /// <param name="trackedStates"></param>
         public StateManager(TrackedStates trackedStates) 
         {
-            TrackedStates = trackedStates.States;
+            states = trackedStates.States;
         }
 
-        public List<InteractionState> TrackedStates { get; protected set; } = null;
+        private List<InteractionState> states = null;
+
+        // Make the public list readonly to prevent users from editing the list directly
+        // forces the use of the AddCoreState, RemoveCoreState methods that contain checks and error logs
+        public IList<InteractionState> States => states.AsReadOnly();
 
         public InteractionStateActiveEvent OnStateActivated { get; protected set; } = new InteractionStateActiveEvent();
 
@@ -32,13 +41,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private InteractionState currentStateSetActive;
 
         /// <summary>
-        /// Get a non core state by name
+        /// Get a non core or core interaction state by name
         /// </summary>
         /// <param name="stateName"></param>
         /// <returns></returns>
         public InteractionState GetState(string stateName)
         {
-            return TrackedStates.Find((state) => state.Name == stateName);
+            return states.Find((state) => state.Name == stateName);
         }
 
         /// <summary>
@@ -48,7 +57,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// <returns></returns>
         public InteractionState GetState(CoreInteractionState coreState)
         {
-            return TrackedStates.Find((state) => state.Name == coreState.ToString());
+            return states.Find((state) => state.Name == coreState.ToString());
         }
 
         public InteractionState SetState(string stateName, int value)
@@ -81,7 +90,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
             else
             {
-                Debug.LogError("The state name " + stateName +  " does not exist within TrackedStates, check the spelling.");
+                Debug.LogError("The state name " + stateName +  " does not exist within states, check the spelling.");
                 return null;
             }
         }
@@ -146,7 +155,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
             else
             {
-                Debug.LogError($"The core state {coreState} is not being tracked, add this state to TrackedStates to set it");
+                Debug.LogError($"The core state {coreState} is not being tracked, add this state to states to set it");
                 return null;
             }
         }
@@ -171,7 +180,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
             else
             {
-                Debug.LogError($"The core state {coreState} is not being tracked, add this state to TrackedStates to set it");
+                Debug.LogError($"The core state {coreState} is not being tracked, add this state to states to set it");
                 return null;
             }
         }
@@ -181,7 +190,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             InteractionState coreState = GetState(state);
 
-            if (coreState.IsNull())
+            if (coreState == null)
             {
                 // Create a new core state
                 InteractionState newState = new InteractionState(state.ToString());
@@ -189,7 +198,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // Set the event configuration if one exists for the state
                 SetEventConfigurationOfCoreState(newState);
 
-                TrackedStates.Add(newState);
+                states.Add(newState);
+
+                //// Add a near interaction touchable if it is not present on the item 
+                //if (state == CoreInteractionState.Touch)
+                //{
+
+                //}
+
+                //// Add a near interaction grabbable if it is not present on the item
+                //if (state == CoreInteractionState.Grab)
+                //{
+
+                //}
 
                 return newState;
             }
@@ -204,13 +225,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             InteractionState coreState = GetState(state);
 
-            if (coreState != null)
+            if (state == CoreInteractionState.Default)
             {
-                TrackedStates.Remove(coreState);
+                if (coreState != null)
+                {
+                    states.Remove(coreState);
+                }
+                else
+                {
+                    Debug.Log($"The {state} state is not tracking and has already been removed.");
+                }
             }
             else
             {
-                Debug.Log($"The {state} state is not tracking and has already been removed.");
+                Debug.Log($"The {state} state cannot be removed");
             }
         }
 
@@ -243,7 +271,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 {
                     InteractionState newState = new InteractionState(stateName);
                     newState.EventConfiguration = eventConfiguration;
-                    TrackedStates.Add(newState);
+                    states.Add(newState);
                 }
                 else
                 {
@@ -262,7 +290,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             if (GetState(stateName) == null)
             {
                 InteractionState newState = new InteractionState(stateName);
-                TrackedStates.Add(newState);
+                states.Add(newState);
             }
             else
             {
@@ -274,7 +302,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         //public bool HasTrackedStatesBeenModified()
         //{
-        //    if (TrackedStates.Count != trackedStatesCount)
+        //    if (states.Count != trackedStatesCount)
         //    {
         //        return true;
         //    }

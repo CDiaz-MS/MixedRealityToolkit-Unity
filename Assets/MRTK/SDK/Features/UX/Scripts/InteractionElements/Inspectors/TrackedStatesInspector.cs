@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Boo.Lang;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System;
@@ -90,8 +89,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                         //    }
                         //}
 
+                        // Do not draw a - button for the default state
                         if (stateName.stringValue != "Default")
                         {
+                            // Draw - button to remove a state
                             if (InspectorUIUtility.SmallButton(RemoveStateButtonLabel))
                             {
                                 stateList.DeleteArrayElementAtIndex(i);
@@ -136,13 +137,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                 SetCoreStateType(state, stateName);
                             }
 
-                            if (stateName.stringValue == "Create New State" )
+
+                            if (stateName.stringValue == "Create New State")
                             {
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
                                     EditorGUILayout.PropertyField(stateName);
+
+                                    if (GUILayout.Button("Set State Name"))
+                                    {
+                                        state.serializedObject.targetObject.name = stateName.stringValue;
+
+                                    }
                                 }
+
                             }
+
+                           
                         }
                     }
 

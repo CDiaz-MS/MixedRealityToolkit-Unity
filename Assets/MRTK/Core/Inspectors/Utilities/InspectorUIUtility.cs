@@ -653,7 +653,7 @@ namespace Microsoft.MixedReality.Toolkit.Utilities.Editor
         }
 
 
-        static private void DrawScriptableSubEditor(SerializedProperty scriptable)
+        static public void DrawScriptableSubEditor(SerializedProperty scriptable)
         {
             if (scriptable.objectReferenceValue != null)
             {

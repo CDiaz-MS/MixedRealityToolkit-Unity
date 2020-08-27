@@ -6,9 +6,9 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// 
+    /// The internal class for the Material style property.
     /// </summary>
-    public class MaterialStateStyleProperty : StateStyleProperty
+    internal class MaterialStateStyleProperty : StateStyleProperty
     {
         public MaterialStateStyleProperty(MaterialStateStylePropertyConfiguration stateStylePropertyConfiguration) : base(stateStylePropertyConfiguration, "Material")
         {

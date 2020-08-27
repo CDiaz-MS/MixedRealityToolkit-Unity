@@ -16,7 +16,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         //    base.Start();
 
         //    // Handle cases for changing list sizes
-        //    //StateManager.TrackedStates.Add(new InteractionState("Press"));
+        //    //StateManager.states.Add(new InteractionState("Press"));
 
 
         //    //SetStateOn(CoreInteractionState.Touch);

@@ -71,7 +71,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
         /// <summary>
-        /// Initializes the StateList in the StateManager with the states defined in the TrackedStates scriptable object.
+        /// Initializes the StateList in the StateManager with the states defined in the states scriptable object.
         /// </summary>
         private void InitializeStateManager()
         {
@@ -215,7 +215,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void ResetAllStates()
         {
-            foreach (InteractionState state in StateManager.TrackedStates)
+            foreach (InteractionState state in StateManager.States)
             {
                 StateManager.SetState(state.Name, 0);
             }
@@ -250,7 +250,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             int total = 0;
 
-            foreach (InteractionState state in StateManager.TrackedStates)
+            foreach (InteractionState state in StateManager.States)
             {
                 // Add up the values of each state except the default state
                 if (state.Name != "Default")

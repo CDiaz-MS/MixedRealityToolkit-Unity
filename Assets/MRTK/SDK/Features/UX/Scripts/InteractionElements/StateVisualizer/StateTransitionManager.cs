@@ -28,6 +28,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private Quaternion cachedRotation;
         private Vector3 cachedScale;
 
+        public Queue<string> StateTransitionsQueue = new Queue<string>();
 
         public void SaveDefaultStates(GameObject objectToSave)
         {
@@ -51,6 +52,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             objectToSave.transform.position = cachedPosition;
             objectToSave.transform.rotation = cachedRotation;
             objectToSave.transform.localScale = cachedScale;
+        }
+
+        public void StartTransition()
+        {
+            // Is Transition valid
         }
 
 

@@ -1,4 +1,7 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Interaction;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.MixedReality.Toolkit.UI.Interaction;
 using Microsoft.MixedReality.Toolkit.Utilities;
 using NUnit.Framework;
 using System.Collections;
@@ -8,8 +11,15 @@ using UnityEngine.TestTools;
 
 namespace Microsoft.MixedReality.Toolkit.Tests
 {
+    /// <summary>
+    /// Tests for a BaseInteractiveElement and the StateVisualizer
+    /// </summary>
     public class InteractionElementsTests : BasePlayModeTests
     {
+        /// <summary>
+        /// Tests adding event data
+        /// </summary>
+        /// <returns></returns>
         [UnityTest]
         public IEnumerator TestEventsOfATrackedCoreState()
         {
@@ -44,8 +54,6 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             // Set hand position 
             yield return ShowHandWithObjectInFocus(leftHand);
 
-            yield return PlayModeTestUtilities.WaitForEnterKey();
-
             // Check if OnFocusOn has fired
             Assert.True(onFocusOn);
 
@@ -55,62 +63,8 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             // Check if OnFocusOn has fired
             Assert.True(onFocusOff);
 
-            yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
-
-            //yield return PlayModeTestUtilities.WaitForEnterKey();
-
             yield return null;
         }
-
-        //[UnityTest]
-        //public IEnumerator TestAddingAndSettingNewCoreState()
-        //{
-        //    BasicButton basicButton = CreateInteractionCube();
-        //    yield return null;
-
-        //    InteractionState touchState = basicButton.AddCoreState(CoreInteractionState.Touch);
-        //    yield return null;
-
-        //    //yield return PlayModeTestUtilities.WaitForEnterKey();
-
-        //    //TouchInteractionEventConfiguration eventConfiguration = touchState.EventConfiguration as TouchInteractionEventConfiguration;
-
-        //    bool onFocusOn = false;
-        //    bool onFocusOff = false;
-
-        //    eventConfiguration.OnFocusOn.AddListener((eventData) =>
-        //    {
-        //        onFocusOn = true;
-        //    });
-
-        //    eventConfiguration.OnFocusOff.AddListener((eventData) =>
-        //    {
-        //        onFocusOff = true;
-        //    });
-
-        //    var leftHand = new TestHand(Handedness.Left);
-
-        //    // Set hand position 
-        //    yield return ShowHandWithObjectInFocus(leftHand);
-
-        //    yield return PlayModeTestUtilities.WaitForEnterKey();
-
-        //    // Check if OnFocusOn has fired
-        //    Assert.True(onFocusOn);
-
-        //    // Move the Hand
-        //    yield return MoveHandObjectOutOfFocus(leftHand);
-
-        //    // Check if OnFocusOn has fired
-        //    Assert.True(onFocusOff);
-
-        //    yield return PlayModeTestUtilities.WaitForInputSystemUpdate();
-
-        //    //yield return PlayModeTestUtilities.WaitForEnterKey();
-
-        //    yield return null;
-        //}
-
 
         /// <summary>
         /// Test creating a new state and setting the values of the new state.
@@ -201,8 +155,14 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         [UnityTest]
         public IEnumerator AdjustStatesDuringRuntime()
         {
-            yield return null;
+            BasicButton basicButton = CreateInteractionCube();
 
+            InteractionState newState = new InteractionState("newState");
+
+            
+
+
+            yield return null;
         }
 
 

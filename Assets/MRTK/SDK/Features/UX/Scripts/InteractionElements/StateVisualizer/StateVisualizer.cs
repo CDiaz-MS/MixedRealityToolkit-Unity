@@ -9,6 +9,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     public class StateVisualizer : MonoBehaviour
     {
         [SerializeField]
+        [Tooltip("")]
         private StateVisualizerDefinition stateVisualizerDefinition;
 
         /// <summary>
@@ -28,7 +29,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private TrackedStates trackedStates => interactiveElement.TrackedStates;
 
         // The state manager within the Interactive Element
-        private StateManager stateManager;
+        private StateManager stateManager = null;
 
         /// <summary>
         /// Manages the transitions between states
@@ -55,7 +56,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         /// <summary>
         /// The states in the StateVisualizer definition mirror the states in an InteractionElement's Tracked States.
-        /// If the TrackedStates are updated, i.e. a new state is added or removed, the states in the State Visualizer need
+        /// If the states are updated, i.e. a new state is added or removed, the states in the State Visualizer need
         /// to be updated to match the Tracked States in the Interaction Element.
         /// </summary>
         public void UpdateStateVisualizerDefinitionStates()
@@ -152,6 +153,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             stateManager.OnStateActivated.AddListener(
                 (state) =>
                 {
+                    StateTransitionManager.StateTransitionsQueue.Enqueue(state.Name);
+
                     if (state.Name == "Default" && state.Value == 1)
                     {
                         StateTransitionManager.SetDefaults(gameObject);

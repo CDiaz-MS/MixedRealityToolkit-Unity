@@ -1,15 +1,16 @@
-﻿using Microsoft.MixedReality.Toolkit.Input;
-using Microsoft.MixedReality.Toolkit.UI;
-using Microsoft.MixedReality.Toolkit.Utilities.Editor;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
+using Microsoft.MixedReality.Toolkit.Input;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    public class FocusReceiver : BaseEventReceiver
+    /// <summary>
+    /// The internal event receiver for the events defined in the Focus Interaction Event Configuration
+    /// </summary>
+    internal class FocusReceiver : BaseEventReceiver
     {
         public FocusReceiver(FocusInteractionEventConfiguration focusEventConfiguration) : base(focusEventConfiguration, "FocusReceiver") 
         {

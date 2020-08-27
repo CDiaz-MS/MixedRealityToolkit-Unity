@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// Runtime class for state style properties 
+    /// Runtime class for state style properties. 
     /// </summary>
     public abstract class StateStyleProperty
     {
@@ -26,7 +26,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        public StateStylePropertyConfiguration StateStylePropertyConfiguration { get; protected set; }
+        protected StateStylePropertyConfiguration StateStylePropertyConfiguration;
 
         protected GameObject Target;
 
@@ -34,6 +34,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         protected string StylePropertyName;
 
+        /// <summary>
+        /// This method is called when an interaction state is set to on.
+        /// </summary>
         public abstract void SetStyleProperty();
 
     }

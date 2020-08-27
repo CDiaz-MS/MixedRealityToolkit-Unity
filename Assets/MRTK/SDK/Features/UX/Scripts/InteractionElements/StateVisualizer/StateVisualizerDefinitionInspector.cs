@@ -1,19 +1,19 @@
-﻿using Microsoft.MixedReality.Toolkit.Utilities;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEditor;
 using UnityEngine;
 
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// Custom inspector for the StateVisualizerDefinition scriptable object.
+    /// </summary>
     [CustomEditor(typeof(StateVisualizerDefinition))]
     public class StateVisualizerDefinitionInspector : UnityEditor.Editor
     {
-
         private SerializedProperty stateStyleConfigurationContainers;
 
         private void OnEnable()
@@ -35,7 +35,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 SerializedProperty stateStyleContainer = stateStyleConfigurationContainers.GetArrayElementAtIndex(i);
                 
-                DrawScriptableSubEditor(stateStyleContainer);
+                InspectorUIUtility.DrawScriptableSubEditor(stateStyleContainer);
             }
 
             EditorGUILayout.Space();
@@ -51,23 +51,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             serializedObject.ApplyModifiedProperties();
 
         }
-
-        private void DrawScriptableSubEditor(SerializedProperty scriptable)
-        {
-            if (scriptable.objectReferenceValue != null)
-            {
-                UnityEditor.Editor configEditor = UnityEditor.Editor.CreateEditor(scriptable.objectReferenceValue);
-                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                EditorGUILayout.Space();
-                configEditor.OnInspectorGUI();
-                EditorGUILayout.Space();
-                EditorGUILayout.EndVertical();
-            }
-        }
-
-
-
-
 
     }
 }

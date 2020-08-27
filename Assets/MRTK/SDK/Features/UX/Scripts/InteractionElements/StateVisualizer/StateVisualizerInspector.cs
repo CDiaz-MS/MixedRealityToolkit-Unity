@@ -1,11 +1,15 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License
+
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
+using UnityEditor;
+using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
+    /// <summary>
+    /// Custom inspector for the StateVisualizer component
+    /// </summary>
     [CanEditMultipleObjects]
     [CustomEditor(typeof(StateVisualizer))]
     public class StateVisualizerInspector : UnityEditor.Editor
@@ -23,9 +27,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             serializedObject.Update();
 
-            // Draw the States scriptable object
+            // The StateVisualizerDefinition has its own custom inspector
             InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
 
+            // If the states in Tracked states are modified then update the states drawn in the state visualizer to match.
             if (InspectorUIUtility.FlexButton(new GUIContent("Update State Visualizer Definition States")))
             {
                 instance.UpdateStateVisualizerDefinitionStates();
