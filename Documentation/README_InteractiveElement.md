@@ -19,7 +19,7 @@ A CoreInteractionState is a state where the setting logic is already defined.  F
 
 ```c#
 
-InteractionState focusState = interactiveElement.AddState(CoreInteractionState.Focus);
+InteractionState focusState = interactiveElement.AddCoreState(CoreInteractionState.Focus);
 
 ```
 

@@ -9,7 +9,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     [CanEditMultipleObjects]
     [CustomEditor(typeof(BaseInteractiveElement))]
-    public class BaseInteractableInspector : UnityEditor.Editor
+    public class BaseInteractiveElementInspector : UnityEditor.Editor
     {
         private BaseInteractiveElement instance;
         private SerializedProperty trackedStates;
@@ -24,6 +24,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             serializedObject.Update();
 
+            RenderTrackedStatesScriptable();
+
+            serializedObject.ApplyModifiedProperties();
+        }
+
+
+        private void RenderTrackedStatesScriptable()
+        {
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
 
@@ -37,12 +45,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 }
                 else
                 {
-                    Debug.LogError("A State Visualizer component is already attached to this gameobject.");                }
-                
+                    Debug.LogError("A State Visualizer component is already attached to this gameobject.");
+                }
             }
 
-
-            serializedObject.ApplyModifiedProperties();
         }
 
     }

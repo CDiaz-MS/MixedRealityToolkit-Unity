@@ -23,13 +23,11 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         [UnityTest]
         public IEnumerator TestEventsOfATrackedCoreState()
         {
-            BasicButton basicButton = CreateInteractionCube();
+            InteractiveElement interactiveElement = CreateInteractionCube();
             yield return null;
 
-            yield return PlayModeTestUtilities.WaitForEnterKey();
-
             // The focus state is a state that is added by default
-            InteractionState focusState = basicButton.GetState(CoreInteractionState.Focus);
+            InteractionState focusState = interactiveElement.GetState(CoreInteractionState.Focus);
             yield return null;
 
             //yield return PlayModeTestUtilities.WaitForEnterKey();
@@ -73,31 +71,31 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         public IEnumerator TestAddingAndSettingNewState()
         {
             // Create a cube 
-            BasicButton basicButton = CreateInteractionCube();
+            InteractiveElement interactiveElement = CreateInteractionCube();
             yield return null;
 
             // Creat a new state and add it to Tracked States
-            basicButton.CreateAndAddNewState("MyNewState");
+            interactiveElement.AddNewState("MyNewState");
 
             // Change the value of my new state if the object comes into focus
-            InteractionState focusState = basicButton.GetState(CoreInteractionState.Focus);
+            InteractionState focusState = interactiveElement.GetState(CoreInteractionState.Focus);
 
             FocusInteractionEventConfiguration focusEventConfiguration = focusState.EventConfiguration as FocusInteractionEventConfiguration;
 
             focusEventConfiguration.OnFocusOn.AddListener((focusEventData) => 
             {
                 // When the object comes into focus, set my new state to on
-                basicButton.SetStateOn("MyNewState");
+                interactiveElement.SetStateOn("MyNewState");
             });
 
             focusEventConfiguration.OnFocusOff.AddListener((focusEventData) =>
             {
                 // When the object comes out of  focus, set my new state to off
-                basicButton.SetStateOff("MyNewState");
+                interactiveElement.SetStateOff("MyNewState");
             });
 
             // Make sure MyNewState is in TrackedStates
-            InteractionState myNewState = basicButton.GetState("MyNewState");
+            InteractionState myNewState = interactiveElement.GetState("MyNewState");
             Assert.IsNotNull(myNewState);
 
             // Make sure the value is 0 initially
@@ -123,13 +121,13 @@ namespace Microsoft.MixedReality.Toolkit.Tests
         public IEnumerator TestAddStateVisualizerAndSettingAStateStyleProperty()
         {
             // Create a cube 
-            BasicButton basicButton = CreateInteractionCube();
+            InteractiveElement interactiveElement = CreateInteractionCube();
             yield return null;
 
-            Vector3 initialScale = basicButton.gameObject.transform.localScale;
+            Vector3 initialScale = interactiveElement.gameObject.transform.localScale;
 
             // Add StateVisualizer
-            StateVisualizer stateVisualizer = basicButton.gameObject.AddComponent<StateVisualizer>();
+            StateVisualizer stateVisualizer = interactiveElement.gameObject.AddComponent<StateVisualizer>();
             yield return null;
 
             TransformOffsetStateStylePropertyConfiguration transformOffsetConfig = stateVisualizer.AddStateStylePropertyToAState(CoreStyleProperty.TransformOffset, CoreInteractionState.Focus) as TransformOffsetStateStylePropertyConfiguration;
@@ -141,23 +139,45 @@ namespace Microsoft.MixedReality.Toolkit.Tests
             var leftHand = new TestHand(Handedness.Left);
             yield return ShowHandWithObjectInFocus(leftHand);
 
-            Assert.True(basicButton.gameObject.transform.localScale == initialScale + (Vector3.one * 0.1f));
+            Assert.True(interactiveElement.gameObject.transform.localScale == initialScale + (Vector3.one * 0.1f));
 
             // Move hand away from object to remove focus
             yield return MoveHandObjectOutOfFocus(leftHand);
 
-            Assert.True(basicButton.gameObject.transform.localScale == initialScale);
+            Assert.True(interactiveElement.gameObject.transform.localScale == initialScale);
 
         }
 
 
 
         [UnityTest]
-        public IEnumerator AdjustStatesDuringRuntime()
+        public IEnumerator TestAdjustStatesDuringRuntime()
         {
-            BasicButton basicButton = CreateInteractionCube();
+            InteractiveElement interactiveElement = CreateInteractionCube();
 
-            InteractionState newState = new InteractionState("newState");
+            interactiveElement.AddNewState("NewState");
+
+            StateVisualizer stateVisualizer = interactiveElement.gameObject.AddComponent<StateVisualizer>();
+
+            stateVisualizer.AddStateStylePropertyToAState(CoreStyleProperty.TransformOffset, "NewState");
+
+            interactiveElement.AddNewState("AnotherNewState");
+
+            // Add state style property to a new state
+
+            stateVisualizer.AddStateStylePropertyToAState(CoreStyleProperty.TransformOffset, "AnotherNewState");
+
+
+            //basicButton.RemoveState("newState");
+
+           
+            yield return null;
+        }
+
+
+        [UnityTest]
+        public IEnumerator TestAddingStateStylePropertyToNullContainer()
+        {
 
             
 
@@ -169,13 +189,13 @@ namespace Microsoft.MixedReality.Toolkit.Tests
 
         #region Interaction Tests Helpers
 
-        private BasicButton CreateInteractionCube()
+        private InteractiveElement CreateInteractionCube()
         {
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.transform.position = new Vector3(0, 0, 0.7f);
             cube.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
 
-            BasicButton basicButton = cube.AddComponent<BasicButton>();
+            InteractiveElement basicButton = cube.AddComponent<InteractiveElement>();
 
             return basicButton;
         }

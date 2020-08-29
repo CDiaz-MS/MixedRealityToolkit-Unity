@@ -136,7 +136,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
 
-
         private void DrawStateStylePropertyScriptableEditor(SerializedProperty stateStyleProperty)
         {
             if (stateStyleProperty.objectReferenceValue != null)
@@ -149,8 +148,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 EditorGUILayout.EndVertical();
             }
         }
-
-
 
         private void SetStateStylePropertyType(SerializedProperty stateStyleProperty, StateStylePropertyConfiguration configuration)
         {

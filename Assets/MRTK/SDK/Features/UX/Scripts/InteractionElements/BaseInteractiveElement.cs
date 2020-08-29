@@ -68,6 +68,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             InitializeStateManager();
 
             InitializeEventReceiverManager();
+
+            SetStateOn(CoreInteractionState.Default);
         }
 
         /// <summary>
@@ -178,7 +180,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void SetStateOn(string stateName)
         {
-            StateManager.SetState(stateName, 1);
+            StateManager.SetStateOn(stateName);
         }
 
         public void SetStateOn(CoreInteractionState coreState)
@@ -188,7 +190,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public void SetStateOff(string stateName)
         {
-            StateManager.SetState(stateName, 0);
+            StateManager.SetStateOff(stateName);
         }        
         
         public void SetStateOff(CoreInteractionState coreState)
@@ -236,38 +238,29 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             return StateManager.AddCoreState(state);
         }
 
-        public void CreateAndAddNewState(string stateName)
+        public InteractionState AddNewState(string stateName)
         {
-            StateManager.CreateAndAddNewState(stateName);
+            return StateManager.AddNewState(stateName);
         }
 
-        public void CreateNewStateWithEventConfiguration(string stateName, BaseInteractionEventConfiguration eventConfiguration)
+        public void RemoveCoreState(CoreInteractionState state)
         {
-            StateManager.CreateNewStateWithEventConfiguration(stateName, eventConfiguration);
+            StateManager.RemoveCoreState(state);
+        }
+
+        public void RemoveState(string stateName)
+        {
+            StateManager.RemoveState(stateName);
+        }
+
+        public void AddNewStateWithEventConfiguration(string stateName, BaseInteractionEventConfiguration eventConfiguration)
+        {
+            StateManager.AddNewStateWithEventConfiguration(stateName, eventConfiguration);
         }
 
         private void Update()
         {
-            int total = 0;
 
-            foreach (InteractionState state in StateManager.States)
-            {
-                // Add up the values of each state except the default state
-                if (state.Name != "Default")
-                {
-                    total += state.Value;
-                }
-            }
-
-            // Only set the default state to on if all the other states have a value of 0
-            if (total == 0)
-            {
-                SetStateOn(CoreInteractionState.Default);
-            }
-            else
-            {
-                SetStateOff(CoreInteractionState.Default);
-            }
 
         }
 

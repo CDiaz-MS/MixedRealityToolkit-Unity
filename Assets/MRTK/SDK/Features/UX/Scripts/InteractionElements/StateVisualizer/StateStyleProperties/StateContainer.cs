@@ -8,7 +8,8 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu]
+    [CreateAssetMenu(fileName = "StateContainer", menuName = "Mixed Reality Toolkit/State Visualizer/State Container")]
+
     public class StateContainer : ScriptableObject
     {
         
@@ -24,8 +25,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             set => stateName = value;
         }
 
-
-        // Read only 
         [SerializeField]
         private InteractionState state = null;
 
@@ -50,32 +49,44 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             protected set => stateStyleProperties = value;
         }
 
-        public GameObject DefaultTarget { get; set; }
+        [SerializeField]
+        private GameObject defaultTarget = null;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public GameObject DefaultTarget
+        {
+            get => defaultTarget;
+            set => defaultTarget = value;
+        }
 
         private string[] coreStyleProperties = Enum.GetNames(typeof(CoreStyleProperty)).ToArray();
 
         // For the inspector 
-        public StateStylePropertyConfiguration AddStateStyleProperty(CoreStyleProperty styleProperty)
+        public StateStylePropertyConfiguration AddStateStyleProperty(CoreStyleProperty styleProperty, GameObject target = null)
         {
 
             StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)CreateInstance(styleProperty + "StateStylePropertyConfiguration");
             stateStylePropertyInstance.StateName = StateName;
+            stateStylePropertyInstance.name = styleProperty + StateName;
 
-            if (!DefaultTarget.IsNull())
+            if (target == null)
             {
                 stateStylePropertyInstance.Target = DefaultTarget;
             }
-            
-
+            else
+            {
+                stateStylePropertyInstance.Target = target;
+            }
 
             StateStyleProperties.Add(stateStylePropertyInstance);
 
             return stateStylePropertyInstance;
-           
         }
 
 
-        public StateStylePropertyConfiguration AddStateStyleProperty(string styleProperty)
+        public StateStylePropertyConfiguration AddStateStyleProperty(string styleProperty, GameObject target = null)
         {
             if (coreStyleProperties.Contains(styleProperty))
             {
@@ -83,11 +94,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 stateStylePropertyInstance.StateName = StateName;
                 stateStylePropertyInstance.name = styleProperty + StateName;
 
-                if (!DefaultTarget.IsNull())
+                if (target == null)
                 {
                     stateStylePropertyInstance.Target = DefaultTarget;
                 }
-
+                else
+                {
+                    stateStylePropertyInstance.Target = target;
+                }
+       
                 StateStyleProperties.Add(stateStylePropertyInstance);
 
                 return stateStylePropertyInstance;

@@ -20,7 +20,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public string Name
         {
             get => stateName;
-            set => stateName = value;
+            internal set => stateName = value;
         }
 
         [SerializeField]
@@ -29,7 +29,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public int Value
         {
             get => stateValue;
-            set => stateValue = value; 
+            internal set => stateValue = value; 
         }        
         
         [SerializeField]
@@ -38,7 +38,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public int Active
         {
             get => active;
-            set => active = value; 
+            internal set => active = value; 
         }
 
 
@@ -48,7 +48,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public BaseInteractionEventConfiguration EventConfiguration
         {
             get => eventConfiguration;
-            set => eventConfiguration = value;
+            internal set => eventConfiguration = value;
         }
 
 

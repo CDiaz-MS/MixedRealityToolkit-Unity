@@ -37,12 +37,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 if (hasFocus)
                 {
                     onFocusOn.Invoke(eventData as FocusEventData);
-                    Debug.Log("Focus On Event Receiver");
                 }
                 else
                 {
                     onFocusOff.Invoke(eventData as FocusEventData);
-                    Debug.Log("Focus Off Event Receiver");
                 }
             }
 

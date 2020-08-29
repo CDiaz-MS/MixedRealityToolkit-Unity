@@ -18,7 +18,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void OnEnable()
         {
-            //stateStyleConfigurationContainers = serializedObject.FindProperty("stateStyleConfigurationContainers");
 
         }
 
@@ -26,17 +25,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             serializedObject.Update();
 
-            if (stateStyleConfigurationContainers == null)
-            {
-                stateStyleConfigurationContainers = serializedObject.FindProperty("stateStyleConfigurationContainers");
-            }
+            // The stateStyleConfigurationContainers is a list of scriptable objects that are modified regularly and cannot be cached in OnEnable 
+            stateStyleConfigurationContainers = serializedObject.FindProperty("stateStyleConfigurationContainers");
 
-            for (int i = 0; i < stateStyleConfigurationContainers.arraySize; i++)
-            {
-                SerializedProperty stateStyleContainer = stateStyleConfigurationContainers.GetArrayElementAtIndex(i);
-                
-                InspectorUIUtility.DrawScriptableSubEditor(stateStyleContainer);
-            }
+            // Each state in tracked states has an associated state container
+            RenderStateContainers();
 
             EditorGUILayout.Space();
 
@@ -44,13 +37,24 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 if (GUILayout.Button("Save Current Theme"))
                 {
-
+                    // Save the current config of the statevisualizer definition to a folder in the proj
                 }
             }
 
             serializedObject.ApplyModifiedProperties();
-
         }
+
+
+        private void RenderStateContainers()
+        {
+            for (int i = 0; i < stateStyleConfigurationContainers.arraySize; i++)
+            {
+                SerializedProperty stateStyleContainer = stateStyleConfigurationContainers.GetArrayElementAtIndex(i);
+
+                InspectorUIUtility.DrawScriptableSubEditor(stateStyleContainer);
+            }
+        }
+
 
     }
 }

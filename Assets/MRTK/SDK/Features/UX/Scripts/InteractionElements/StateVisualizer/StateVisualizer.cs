@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [RequireComponent(typeof(BasicButton))]
+    [RequireComponent(typeof(InteractiveElement))]
     public class StateVisualizer : MonoBehaviour
     {
         [SerializeField]
@@ -65,44 +65,70 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
 
-        public StateStylePropertyConfiguration AddStateStylePropertyToAState(CoreStyleProperty styleProperty, string stateName)
+        public StateStylePropertyConfiguration AddStateStylePropertyToAState(CoreStyleProperty styleProperty, string stateName, GameObject target = null)
         {
-            // Find the state container for the state entered
-            StateContainer stateStyleContainer = StateVisualizerDefinition.StateContainers.Find((container) => (container.StateName == stateName));
+            // If a state property is added during runtime, make sure the state containers match the tracked states
+            // If the state containers and the tracked states are in sync, nothing will happen when this is called
+            UpdateStateVisualizerDefinitionStates();
 
-            if (!stateStyleContainer.IsNull())
+            // Find the state container for the state entered
+            StateContainer stateStyleContainer = StateVisualizerDefinition.GetStateContainer(stateName);
+
+            if (stateStyleContainer != null)
             {
-                StateStylePropertyConfiguration newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty);
+                StateStylePropertyConfiguration newStyleProperty;
+
+                if (target == null)
+                {
+                    newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty, gameObject);
+                }
+                else
+                {
+                    newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty, target);
+                }
 
                 return newStyleProperty;
             }
             else
             {
-                Debug.LogError($"The {stateName} state does not have an existing state container for state style properties");
                 return null;
             }
+
+            
         }
 
-        public StateStylePropertyConfiguration AddStateStylePropertyToAState(CoreStyleProperty styleProperty, CoreInteractionState state)
+        public StateStylePropertyConfiguration AddStateStylePropertyToAState(CoreStyleProperty styleProperty, CoreInteractionState state, GameObject target = null)
         {
+            // If a state property is added during runtime, make sure the state containers match the tracked states
+            // If the state containers and the tracked states are in sync, nothing will happen when this is called
+            UpdateStateVisualizerDefinitionStates();
+
             // Find the state container for the state entered
-            StateContainer stateStyleContainer = StateVisualizerDefinition.StateContainers.Find((container) => (container.StateName == state.ToString()));
+            StateContainer stateStyleContainer = StateVisualizerDefinition.GetStateContainer(state.ToString());
 
-            if (!stateStyleContainer.IsNull())
+            if (stateStyleContainer != null)
             {
-                StateStylePropertyConfiguration newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty);
+                StateStylePropertyConfiguration newStyleProperty;
 
+                if (target == null)
+                {
+                    newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty, gameObject);
+                }
+                else
+                {
+                    newStyleProperty = stateStyleContainer.AddStateStyleProperty(styleProperty, target);
+                }
+                
                 return newStyleProperty;
             }
             else
             {
-                Debug.LogError($"The {state} state does not have an existing state container for state style properties");
                 return null;
             }
         }
 
 
-        public void ActivateStateStyleProperty(string stateName)
+        private void ActivateStateStyleProperty(string stateName)
         {
             StateContainer stateStyleProperties = StateVisualizerDefinition.StateContainers.Find((x) => x.StateName == stateName);
 
@@ -134,16 +160,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void Start()
         {
-            if (StateVisualizerDefinition == null)
-            {
-                StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
-
-                // Set the default target object for the state definition
-                StateVisualizerDefinition.DefaultTarget = gameObject;
-
-                StateVisualizerDefinition.InitializeStateContainers(trackedStates, gameObject);
-            }
-
             stateManager = interactiveElement.StateManager;
 
             StateTransitionManager.SaveDefaultStates(gameObject);
@@ -175,6 +191,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             
         }
 
+
+        private void Awake()
+        {
+            InitializeStateVisualizerDefinition();
+        }
+
+
+        private void InitializeStateVisualizerDefinition()
+        {
+            if (StateVisualizerDefinition == null)
+            {
+                StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
+
+                // Set the default target object for the state definition
+                StateVisualizerDefinition.DefaultTarget = gameObject;
+
+                StateVisualizerDefinition.InitializeStateContainers(trackedStates, gameObject);
+            }
+        }
 
         private void Update()
         {

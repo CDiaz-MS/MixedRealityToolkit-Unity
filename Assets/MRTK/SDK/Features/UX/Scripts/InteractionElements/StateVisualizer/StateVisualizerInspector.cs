@@ -19,14 +19,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void OnEnable()
         {
-            instance = (StateVisualizer)target;
-            stateVisualizerDefinition = serializedObject.FindProperty("stateVisualizerDefinition");
+            instance = (StateVisualizer)target;           
         }
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
+            // The stateVisualizerDefinition is scriptable object that is modified regularly and cannot be cached in OnEnable 
+            stateVisualizerDefinition = serializedObject.FindProperty("stateVisualizerDefinition");
+
+            RenderStateVisualizerDefinition();
+
+            serializedObject.ApplyModifiedProperties();
+        }
+
+        private void RenderStateVisualizerDefinition()
+        {
             // The StateVisualizerDefinition has its own custom inspector
             InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
 
@@ -35,8 +44,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 instance.UpdateStateVisualizerDefinitionStates();
             }
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }

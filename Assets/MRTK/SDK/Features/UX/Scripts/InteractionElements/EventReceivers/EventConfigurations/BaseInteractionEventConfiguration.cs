@@ -8,7 +8,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     /// <summary>
     /// Base class for interaction event configuration.  An event configuration maps to a single Interaction State.
     /// </summary>
-    [CreateAssetMenu]
+    [CreateAssetMenu(fileName = "BaseInteractionEventConfiguration", menuName = "Mixed Reality Toolkit/Interactive Element/Event Configurations/Base Event Configuration")]
+
     public abstract class BaseInteractionEventConfiguration : ScriptableObject
     {
         /// <summary>
