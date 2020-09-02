@@ -18,6 +18,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         public override void OnInspectorGUI()
         {
+            // Interactive Element is a place holder class
             base.OnInspectorGUI();
         }
     }

@@ -23,13 +23,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private static GUIContent RemoveStateButtonLabel;
         private static GUIContent AddStateButtonLabel;
 
+        private static string newStateName = "New State Name"; 
+
         protected virtual void OnEnable()
         {
             instance = target as TrackedStates;
 
             RemoveStateButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Remove State");
             AddStateButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State");
-
         }
 
         public override void OnInspectorGUI()
@@ -51,8 +52,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             EditorGUILayout.Space();
 
             RenderCreateNewStateButton();
-
-            //RenderTextInputField();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -80,15 +79,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                             EditorGUILayout.LabelField(stateValue.intValue.ToString());
                         }
 
-                        // if the state visualizer is attached, then add a button for each state that highlights 
-                        // the state in the state visualizer
-                        //if (GUILayout.Button("Go State Visualizer"))
-                        //{
-                        //    if (Highlighter.Highlight("Inspector", "State Visualizer Definition (local)"))
-                        //    {
-                        //    }
-                        //}
-
                         // Do not draw a - button for the default state
                         if (stateName.stringValue != "Default")
                         {
@@ -109,51 +99,31 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
                         using (new EditorGUI.IndentLevelScope())
                         {
-                            if (StateContainsValidEventConfiguration(stateEventConfiguration, stateName.stringValue))
-                            {
-                                // Check if this state has state events before they are drawn
-                                // For example, the Default state does not have an event configuration but the Focus state does
-                                if (stateEventConfiguration.objectReferenceValue == null)
-                                {
-                                    CreateEventScriptable(stateEventConfiguration, stateName.stringValue);
-                                }
-                                else
-                                {
-                                    string stateFoldoutID = stateName.stringValue + "EventConfiguration";
+                            // If an event configuration for a state exists then draw the event config scriptable 
+                            RenderStateEventConfiguration(stateName, stateEventConfiguration);
 
-                                    if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue + " State Events", stateFoldoutID, MixedRealityStylesUtility.TitleFoldoutStyle, false))
-                                    {
-                                        // Draw the events for the associated state if this state has an event configuration
-                                        DrawStateEventsSciptableSubEditor(stateEventConfiguration);
-                                    }
-
-                                }
-                            }
-                            
-                            // When a new state is added via inspector, the name is initialized to "New State" and then changed
-                            // to the name the user selects from the list of CoreInteractionStates
+                            // When a new core state is added via inspector, the name is initialized to "New Core State" and then changed
+                            // to the name the user selects from the enum list of CoreInteractionStates
                             if (stateName.stringValue == "New Core State")
                             {
                                 SetCoreStateType(state, stateName);
                             }
 
-
+                            // When a new state is added via inspector, the name is initialized to "Create New State" and then changed
+                            // to the name the user enters a name in the text field and then selects the "Set State Name" button
                             if (stateName.stringValue == "Create New State")
                             {
                                 using (new EditorGUILayout.HorizontalScope())
                                 {
-                                    EditorGUILayout.PropertyField(stateName);
+                                    newStateName = EditorGUILayout.TextField("New State Name", newStateName);
 
                                     if (GUILayout.Button("Set State Name"))
                                     {
-                                        state.serializedObject.targetObject.name = stateName.stringValue;
+                                        stateName.stringValue = newStateName;
 
                                     }
                                 }
-
                             }
-
-                           
                         }
                     }
 
@@ -162,17 +132,55 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        /// <summary>
-        /// Create an instance of an associated event scriptable object given the state.
-        /// </summary>
-        /// <param name="eventConfiguration">The event configuration on an Interaction State</param>
-        /// <param name="stateName">The state name</param>
-        /// <returns>Returns true if the associated event configuration for this state exists and has been 
-        /// initialized.  Returns false if an event configuration for the state does not exist.</returns>
+
+        private void RenderStateEventConfiguration(SerializedProperty stateName, SerializedProperty stateEventConfiguration)
+        {
+            if (stateEventConfiguration.objectReferenceValue == null && StateHasExistingEventConfiguration(stateName.stringValue))
+            {
+                if (GUILayout.Button("Add " + stateName.stringValue + " State Events"))
+                {
+                    CreateEventScriptable(stateEventConfiguration, stateName.stringValue);
+                }
+            }
+            else if (stateEventConfiguration.objectReferenceValue != null)
+            {
+                string stateFoldoutID = stateName.stringValue + "EventConfiguration";
+
+                if (InspectorUIUtility.DrawSectionFoldoutWithKey(stateName.stringValue + " State Events", stateFoldoutID, MixedRealityStylesUtility.TitleFoldoutStyle, false))
+                {
+                    // Draw the events for the associated state if this state has an event configuration
+                    DrawStateEventsSciptableSubEditor(stateEventConfiguration);
+                }
+            }
+        }
+
+        // Check if the given state has a valid event configuration to render
+        private bool StateHasExistingEventConfiguration(string stateName)
+        {
+            // Get the list of the subclasses for BaseInteractionEventConfiguration and find the
+            // event configuration that contains the given state name
+            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
+            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
+
+            // If there is associated event configuration for the state, then it is valid
+            if (eventConfigType != null)
+            {
+                return true;
+
+            }
+            // If an associated class for the state could not be found then the event config is not valid
+            else
+            {
+                return false;
+            }
+        }
+
+        // Create an instance of an associated event scriptable object given the state.
         private void CreateEventScriptable(SerializedProperty eventConfiguration, string stateName)
         {
             string className = stateName + "InteractionEventConfiguration";
 
+            // If the event configuration for the state is currently, then create a scrpitable instance
             if (eventConfiguration.objectReferenceValue == null)
             {
                 // Initialize the associated scriptable object event configuration with the correct state 
@@ -181,7 +189,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-
+        // Draw custom container for the event configuration scriptable
         private void DrawStateEventsSciptableSubEditor(SerializedProperty scriptable)
         {
             if (scriptable.objectReferenceValue != null)
@@ -197,37 +205,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
         }
 
-        private bool StateContainsValidEventConfiguration(SerializedProperty eventConfiguration, string stateName)
-        {
-            // Get the list of the subclasses for BaseInteractionEventConfiguration and find the
-            // event configuration that contains the given state name
-            var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
-
-            if (eventConfiguration == null)
-            {
-                // Check if the state has an existing event configuration
-                if (eventConfigType == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-
-            }
-            else if (eventConfiguration != null && eventConfigType != null)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
-
         private void SetCoreStateType(SerializedProperty stateProp, SerializedProperty stateNameProp)
         {
             Rect position = EditorGUILayout.GetControlRect();
@@ -236,6 +213,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 string[] coreInteractionStateNames = Enum.GetNames(typeof(CoreInteractionState)).ToArray();
                 int id = Array.IndexOf(coreInteractionStateNames, -1);
                 int newId = EditorGUI.Popup(position, id, coreInteractionStateNames);
+
+                // Sort the core states in a menu that indicates whether a core state is a near interaction state, 
+                // far interaction state, or both to futher push the mental model of the MRTK interaction model
 
                 if (newId != -1)
                 {
@@ -294,19 +274,5 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 }
             }
         }
-
-
-        //private void RenderTextInputField()
-        //{
-        //    using (new EditorGUILayout.VerticalScope())
-        //    {
-        //        string text = EditorGUILayout.TextField(new GUIContent("new state:"), newStateName);
-
-        //        newStateName = text;
-
-        //        Debug.Log(newStateName);
-        //    }
-        //}
-
     }
 }

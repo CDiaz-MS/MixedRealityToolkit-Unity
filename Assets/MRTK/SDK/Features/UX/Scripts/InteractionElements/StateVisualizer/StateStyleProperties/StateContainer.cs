@@ -8,11 +8,15 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
-    [CreateAssetMenu(fileName = "StateContainer", menuName = "Mixed Reality Toolkit/State Visualizer/State Container")]
-
-    public class StateContainer : ScriptableObject
+    //[CreateAssetMenu(fileName = "StateContainer", menuName = "Mixed Reality Toolkit/State Visualizer/State Container")]
+    [System.Serializable]
+    public class StateContainer 
     {
-        
+        public StateContainer(string stateName) 
+        {
+            StateName = stateName;
+        }
+
         [SerializeField]
         private string stateName = null;
 
@@ -67,7 +71,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public StateStylePropertyConfiguration AddStateStyleProperty(CoreStyleProperty styleProperty, GameObject target = null)
         {
 
-            StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)CreateInstance(styleProperty + "StateStylePropertyConfiguration");
+            StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)ScriptableObject.CreateInstance(styleProperty + "StateStylePropertyConfiguration");
             stateStylePropertyInstance.StateName = StateName;
             stateStylePropertyInstance.name = styleProperty + StateName;
 
@@ -90,7 +94,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         {
             if (coreStyleProperties.Contains(styleProperty))
             {
-                StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)CreateInstance(styleProperty + "StateStylePropertyConfiguration");
+                StateStylePropertyConfiguration stateStylePropertyInstance = (StateStylePropertyConfiguration)ScriptableObject.CreateInstance(styleProperty + "StateStylePropertyConfiguration");
                 stateStylePropertyInstance.StateName = StateName;
                 stateStylePropertyInstance.name = styleProperty + StateName;
 
@@ -102,7 +106,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 {
                     stateStylePropertyInstance.Target = target;
                 }
-       
+
                 StateStyleProperties.Add(stateStylePropertyInstance);
 
                 return stateStylePropertyInstance;

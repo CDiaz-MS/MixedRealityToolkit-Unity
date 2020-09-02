@@ -3,6 +3,7 @@
 
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System;
+using System.Data;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -22,24 +23,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         private static GUIContent AddStyleButtonLabel;
         private static GUIContent RemoveStyleButtonLabel;
 
-        private StateContainer instance;
+        //private StateContainer instance;
 
         private void OnEnable()
         {
-            instance = target as StateContainer;
-
-            //stateName = serializedObject.FindProperty("stateName");
-
-            //Target = serializedObject.FindProperty("target");
-
-            //stateStyleProperties = serializedObject.FindProperty("stateStyleProperties");
+            //instance = (StateContainer)target;
 
             AddStyleButtonLabel = new GUIContent(InspectorUIUtility.Plus, "Add State Style Property");
             RemoveStyleButtonLabel = new GUIContent(InspectorUIUtility.Minus, "Add State Style Property");
-
         }
-
-
 
         public override void OnInspectorGUI()
         {
@@ -110,7 +102,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                                     // Draw a - button to remove a state style property from a single state 
                                     if (InspectorUIUtility.SmallButton(RemoveStyleButtonLabel))
                                     {
-                                        instance.StateStyleProperties.Remove(configuration);
+                                        //instance.StateStyleProperties.Remove(configuration);
                                         break;
                                     }
                                 }
@@ -168,7 +160,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     {
                         string selectedProperty = stateStyleNames[newId];
 
-                        stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty);
+                        //stateStyleProperty.objectReferenceValue = instance.AddStateStyleProperty(selectedProperty);
 
                         if (stateStyleProperty.objectReferenceValue.IsNull())
                         {
@@ -177,7 +169,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                     }
                 }
             }
-
         }
 
         private void AddStateStyleProperty()
@@ -191,7 +182,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             configuration.name = "New Style Property";
             //configuration.Target = instance.ta
 
-            instance.StateStyleProperties.Add(configuration);
+            //instance.StateStyleProperties.Add(configuration);
         }
 
     }

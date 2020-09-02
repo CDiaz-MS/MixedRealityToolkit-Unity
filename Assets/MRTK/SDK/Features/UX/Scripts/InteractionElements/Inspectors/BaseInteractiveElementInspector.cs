@@ -29,7 +29,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             serializedObject.ApplyModifiedProperties();
         }
 
-
         private void RenderTrackedStatesScriptable()
         {
             // Draw the States scriptable object
@@ -37,18 +36,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             EditorGUILayout.Space();
 
-            if (InspectorUIUtility.FlexButton(new GUIContent("Add State Visualizer")))
-            {
-                if (instance.gameObject.GetComponent<StateVisualizer>() == null)
-                {
-                    instance.gameObject.AddComponent<StateVisualizer>();
-                }
-                else
-                {
-                    Debug.LogError("A State Visualizer component is already attached to this gameobject.");
-                }
-            }
-
+            // Draw a "Add State Visualizer" button
+            //if (InspectorUIUtility.FlexButton(new GUIContent("Add State Visualizer")))
+            //{
+            //    if (instance.gameObject.GetComponent<StateVisualizer>() == null)
+            //    {
+            //        instance.gameObject.AddComponent<StateVisualizer>();
+            //    }
+            //    else
+            //    {
+            //        Debug.LogError("A State Visualizer component is already attached to this gameobject.");
+            //    }
+            //}
         }
 
     }

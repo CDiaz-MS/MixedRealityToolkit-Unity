@@ -28,6 +28,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         // The states being tracked within an Interactive Element 
         private TrackedStates trackedStates => interactiveElement.TrackedStates;
 
+
         // The state manager within the Interactive Element
         private StateManager stateManager = null;
 
@@ -43,13 +44,26 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // Initialize the StateStyleContainers with the states in Tracked States
                 if (StateVisualizerDefinition.StateContainers.Count == 0)
                 {
+                    Debug.Log("Initialize state definition via inspector");
+                    
+                    // If the user has not set an already defined tracked states object, then set it to tracked states in the BaseInteractiveElement
+                    if (StateVisualizerDefinition.TrackedStates == null)
+                    {
+                        StateVisualizerDefinition.TrackedStates = trackedStates;
+                    }
+                    
+
                     // Set the default target object for the state definition
                     StateVisualizerDefinition.DefaultTarget = gameObject;
 
-                    StateVisualizerDefinition.InitializeStateContainers(trackedStates, gameObject);
+                    //UpdateStateVisualizerDefinitionStates();
 
-                    //AddStateStylePropertyToAState<MaterialStateStylePropertyConfiguration>("Focus");
-                    //AddStateStylePropertyToAState<TransformOffsetStateStylePropertyConfiguration>("Focus");                   
+                    //StateVisualizerDefinition.StateContainers.ForEach((x) => Debug.Log(x.name));
+
+                    StateVisualizerDefinition.InitializeStateContainers(gameObject);
+
+                    AddStateStylePropertyToAState(CoreStyleProperty.Material, "Focus");
+                    AddStateStylePropertyToAState(CoreStyleProperty.TransformOffset, "Focus");                   
                 }
             }
         }
@@ -61,9 +75,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// </summary>
         public void UpdateStateVisualizerDefinitionStates()
         {
-            StateVisualizerDefinition.UpdateStateStyleContainers(trackedStates);
+            StateVisualizerDefinition.UpdateStateStyleContainers();
         }
-
 
         public StateStylePropertyConfiguration AddStateStylePropertyToAState(CoreStyleProperty styleProperty, string stateName, GameObject target = null)
         {
@@ -145,7 +158,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
         private void InitializeStyleProperties()
-        {
+        { 
             foreach (StateContainer container in StateVisualizerDefinition.StateContainers)
             {
                 foreach (StateStylePropertyConfiguration stylePropertyConfig in container.StateStyleProperties)
@@ -185,8 +198,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             stateManager.OnStateDeactivated.AddListener(
                 (stateTurnedOff, currentStateOn) =>
                 {
-                    Debug.Log("StateTurnedOff: " + stateTurnedOff.Name);
-                    Debug.Log("CurrentStateOn: " + currentStateOn.Name);
+                    //Debug.Log("StateTurnedOff: " + stateTurnedOff.Name);
+                    //Debug.Log("CurrentStateOn: " + currentStateOn.Name);
                 });
             
         }
@@ -203,17 +216,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             if (StateVisualizerDefinition == null)
             {
                 StateVisualizerDefinition = ScriptableObject.CreateInstance<StateVisualizerDefinition>();
+                
+                StateVisualizerDefinition.TrackedStates = trackedStates;
 
                 // Set the default target object for the state definition
                 StateVisualizerDefinition.DefaultTarget = gameObject;
 
-                StateVisualizerDefinition.InitializeStateContainers(trackedStates, gameObject);
+                StateVisualizerDefinition.InitializeStateContainers(gameObject);
             }
-        }
-
-        private void Update()
-        {
-           
         }
     }
 }

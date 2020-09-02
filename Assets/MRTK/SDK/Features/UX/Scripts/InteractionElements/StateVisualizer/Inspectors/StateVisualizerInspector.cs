@@ -4,6 +4,7 @@
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
@@ -36,14 +37,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         private void RenderStateVisualizerDefinition()
         {
-            // The StateVisualizerDefinition has its own custom inspector
-            InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
+            EditorGUILayout.Space();
 
-            // If the states in Tracked states are modified then update the states drawn in the state visualizer to match.
-            if (InspectorUIUtility.FlexButton(new GUIContent("Update State Visualizer Definition States")))
-            {
-                instance.UpdateStateVisualizerDefinitionStates();
-            }
+            //InspectorUIUtility.DrawScriptableFoldout<StateVisualizerDefinition>(stateVisualizerDefinition, "State Visualizer Definition", true);
+
         }
     }
 }

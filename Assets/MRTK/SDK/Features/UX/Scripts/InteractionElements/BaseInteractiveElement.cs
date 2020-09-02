@@ -9,21 +9,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     public abstract class BaseInteractiveElement :
         MonoBehaviour,
-        IMixedRealityFocusChangedHandler,
         IMixedRealityFocusHandler
     {
-        /// <summary>
-        /// Pointers that are focusing the interactable
-        /// </summary>
-        public List<IMixedRealityPointer> FocusingPointers => focusingPointers;
-        protected readonly List<IMixedRealityPointer> focusingPointers = new List<IMixedRealityPointer>();
-
         [SerializeField]
         [Tooltip("ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be \"DefaultInteractableStates\" object")]
         private TrackedStates trackedStates;
 
         /// <summary>
-        /// ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be "DefaultInteractableStates" object
+        /// Scriptable Object that contains the list of states to track.
         /// </summary>
         public TrackedStates TrackedStates
         {
@@ -32,34 +25,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
         /// <summary>
-        /// Entry point for state management 
+        /// Entry point for state management. Contains methods for state setting, gettting and creating.
         /// </summary>
         public StateManager StateManager { get; protected set; }
 
         /// <summary>
-        /// Entry point for event management 
+        /// Entry point for event management. 
         /// </summary>
         public EventReceiverManager EventReceiverManager { get; protected set; }
-
-
-        public bool IsInDefaultState
-        {
-            get
-            {
-                int defaultStateValue = GetState(CoreInteractionState.Default).Value;
-
-                if (defaultStateValue == 0)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-
-        }
-
 
         // Initialize the State Manager and the Event Manager in Awake because 
         // the States Visualizer depends on the initialization of these elements
@@ -69,15 +42,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             InitializeEventReceiverManager();
 
+            // Initially set the default state to on
             SetStateOn(CoreInteractionState.Default);
         }
 
         /// <summary>
-        /// Initializes the StateList in the StateManager with the states defined in the states scriptable object.
+        /// Initializes the StateList in the StateManager with the states defined in the tracked states scriptable object.
         /// </summary>
         private void InitializeStateManager()
         {
-            // Create an instance of the Tracked States scriptable object if this class is initialized via code
+            // Create an instance of the Tracked States scriptable object if this class is initialized via script
             // instead of the inspector 
             if (TrackedStates == null)
             {
@@ -88,58 +62,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         }
 
         /// <summary>
-        /// 
+        /// Initializes the EventReceiverManager and creates the runtime classes for states that contain a valid 
+        /// configuration.
         /// </summary>
         private void InitializeEventReceiverManager()
         {
             EventReceiverManager = new EventReceiverManager(StateManager);
 
-            foreach (InteractionState state in TrackedStates.States)
-            {
-                // The Defalut state does not have an event configuration 
-                if (state.Name != "Default")
-                {
-                    // Initialize Event Configurations for each state if the configuration exists
-                    // This case if for if a component is created via script instead of initialized in the inspector
-                    if (state.EventConfiguration == null )
-                    {
-                        state.EventConfiguration = EventReceiverManager.SetEventConfiguration(state.Name);
-                    }
-
-                    // Initialize runtime event receiver classes for states that have an event configuration 
-                    BaseEventReceiver eventReceiver = EventReceiverManager.InitializeEventReceiver(state.Name);
-
-                    EventReceiverManager.EventReceiverList.Add(eventReceiver);
-                }
-            }
+            // Create runtime classes for each state that has a valid associated event configuration
+            EventReceiverManager.InitializeEventReceivers();
         }
 
         #region Focus
-
-        public void OnBeforeFocusChange(FocusEventData eventData)
-        {
-            // If we went from focus on an object to not focusing on an object, remove it from the list
-            if (eventData.NewFocusedObject == null)
-            {
-                focusingPointers.Remove(eventData.Pointer);
-            }
-            // If the old focused object is a child of this gameobject
-            else if (eventData.OldFocusedObject != null
-                && eventData.OldFocusedObject.transform.IsChildOf(gameObject.transform))
-            {
-                focusingPointers.Remove(eventData.Pointer);
-            }
-            // If we go from no focus to a child of an interactable then add it
-            else if (eventData.NewFocusedObject.transform.IsChildOf(gameObject.transform))
-            {
-                // Technically this gameobject is a child of itself, so this covers both adding
-                // a focused pointer if the pointer is focused on this gameobject or a child 
-                if (!focusingPointers.Contains(eventData.Pointer))
-                {
-                    focusingPointers.Add(eventData.Pointer);
-                }
-            }
-        }
 
         public void OnFocusEnter(FocusEventData eventData)
         {
@@ -147,80 +81,138 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 SetStateOn(CoreInteractionState.Focus);
 
-                // This is for updating manually
-                EventReceiverManager.InvokeStateEvent(eventData);
-
-                //SetStateOff(CoreInteractionState.Default);
+                // Invoke the state event with the Focus Event Data
+                EventReceiverManager.InvokeStateEvent("Focus", eventData);
             }
         }
-
 
         public void OnFocusExit(FocusEventData eventData)
         {
             if (IsStateTracking("Focus"))
             {
-                // ORDER MATTERS, make it not matter
-                //SetStateOn(CoreInteractionState.Default);
-
                 SetStateOff(CoreInteractionState.Focus);
 
-                EventReceiverManager.InvokeStateEvent(eventData);
-
-                
+                // Invoke the state event with the Focus Event Data
+                EventReceiverManager.InvokeStateEvent("Focus", eventData);
             }
         }
-
-        public void OnFocusChanged(FocusEventData eventData) { }
 
         #endregion
 
 
+        #region State Utilities
 
-        #region State Setting Utilities
-
-        public void SetStateOn(string stateName)
-        {
-            StateManager.SetStateOn(stateName);
-        }
-
+        /// <summary>
+        /// Gets and sets a Core Interaction State to On and invokes the OnStateActivated event. Setting a 
+        /// state on changes state value to 1.
+        /// </summary>
+        /// <param name="coreState">The Core Interaction state to set to on</param>
+        /// <returns>The Core Interaction state that was set to on</returns>
         public void SetStateOn(CoreInteractionState coreState)
         {
             StateManager.SetStateOn(coreState);
         }
 
-        public void SetStateOff(string stateName)
+        /// <summary>
+        /// Gets and sets a state to On and invokes the OnStateActivated event. Setting a 
+        /// state on changes the state value to 1.
+        /// </summary>
+        /// <param name="stateName">The name of the state to set to on</param>
+        /// <returns>The state that was set to on</returns>
+        public void SetStateOn(string stateName)
         {
-            StateManager.SetStateOff(stateName);
-        }        
-        
+            StateManager.SetStateOn(stateName);
+        }
+
+        /// <summary>
+        /// Gets and sets a Core Interaction State to Off and invokes the OnStateDeactivated event.  Setting a 
+        /// state off changes the state value to 0.
+        /// </summary>
+        /// <param name="coreState">The Core Interaction state to set to off</param>
+        /// <returns>The Core Interaction state that was set to off</returns>
         public void SetStateOff(CoreInteractionState coreState)
         {
             StateManager.SetStateOff(coreState);
         }
-        #endregion
 
-        #region State Getting Utilities
-
-        public InteractionState GetState(string stateName)
+        /// <summary>
+        /// Gets and sets a state to Off and invokes the OnStateDeactivated event.  Setting a 
+        /// state off changes the state value to 0.
+        /// </summary>
+        /// <param name="stateName">The name of the state to set to off</param>
+        /// <returns>The state that was set to off</returns>
+        public void SetStateOff(string stateName)
         {
-            return StateManager.GetState(stateName);
+             StateManager.SetStateOff(stateName);
         }
 
+        /// <summary>
+        /// Gets a Core Interaction State.
+        /// </summary>
+        /// <param name="coreState">The CoreInteractionState to retrieve</param>
+        /// <returns>The Core Interaction State contained in the Tracked States scriptable object.</returns>
         public InteractionState GetState(CoreInteractionState coreState)
         {
             return StateManager.GetState(coreState);
         }
 
-
-        #endregion
-
-
-        public void ResetAllStates()
+        /// <summary>
+        /// Gets a state by using the state name.
+        /// </summary>
+        /// <param name="stateName">The name of the state to retrieve</param>
+        /// <returns>The state contained in the Tracked States scriptable object.</returns>
+        public InteractionState GetState(string stateName)
         {
-            foreach (InteractionState state in StateManager.States)
-            {
-                StateManager.SetState(state.Name, 0);
-            }
+            return StateManager.GetState(stateName);
+        }
+
+        /// <summary>
+        /// Adds a new Core Interaction State to track.
+        /// </summary>
+        /// <param name="coreState">The Core Interaction State to add</param>
+        /// <returns>The newly added Core Interaction State</returns>
+        public InteractionState AddCoreState(CoreInteractionState state)
+        {
+            return StateManager.AddCoreState(state);
+        }
+
+        /// <summary>
+        /// Creates and adds a new state to track given the new state name.
+        /// </summary>
+        /// <param name="stateName">The name of the state to add</param>
+        /// <returns>The new state added</returns>
+        public InteractionState AddNewState(string stateName)
+        {
+            return StateManager.AddNewState(stateName);
+        }
+
+        /// <summary>
+        /// Removes a Core Interaction State. The state will no longer be tracked if it is removed.
+        /// </summary>
+        /// <param name="coreState">The Core Interaction State to remove</param>
+        public void RemoveCoreState(CoreInteractionState state)
+        {
+            StateManager.RemoveCoreState(state);
+        }
+
+        /// <summary>
+        /// Removes a state. The state will no longer be tracked if it is removed.
+        /// </summary>
+        /// <param name="stateName">The name of the state to remove</param>
+        public void RemoveState(string stateName)
+        {
+            StateManager.RemoveState(stateName);
+        }
+
+        /// <summary>
+        /// Create and add a new state given the state name and the associated existing event configuration.
+        /// </summary>
+        /// <param name="stateName">The name of the state to create</param>
+        /// <param name="eventConfiguration">The existing event configuration for the new state</param>
+        /// <returns>The new state added</returns>
+        public void AddNewStateWithEventConfiguration(string stateName, BaseInteractionEventConfiguration eventConfiguration)
+        {
+            StateManager.AddNewStateWithEventConfiguration(stateName, eventConfiguration);
         }
 
         public bool IsStateTracking(string stateName)
@@ -233,36 +225,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
            return true;
         }
 
-        public InteractionState AddCoreState(CoreInteractionState state)
-        {
-            return StateManager.AddCoreState(state);
-        }
-
-        public InteractionState AddNewState(string stateName)
-        {
-            return StateManager.AddNewState(stateName);
-        }
-
-        public void RemoveCoreState(CoreInteractionState state)
-        {
-            StateManager.RemoveCoreState(state);
-        }
-
-        public void RemoveState(string stateName)
-        {
-            StateManager.RemoveState(stateName);
-        }
-
-        public void AddNewStateWithEventConfiguration(string stateName, BaseInteractionEventConfiguration eventConfiguration)
-        {
-            StateManager.AddNewStateWithEventConfiguration(stateName, eventConfiguration);
-        }
-
-        private void Update()
-        {
-
-
-        }
-
+        #endregion
     }
 }
