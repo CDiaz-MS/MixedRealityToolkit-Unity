@@ -13,7 +13,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
     /// </summary>
     public abstract class BaseInteractiveElement :
         MonoBehaviour,
-        IMixedRealityFocusHandler
+        IMixedRealityFocusHandler,
+        IMixedRealityTouchHandler
     {
         [SerializeField]
         [Tooltip("ScriptableObject to reference for basic state logic to follow when interacting and transitioning between states. Should generally be \"DefaultInteractableStates\" object")]
@@ -63,6 +64,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             }
 
             StateManager = new StateManager(TrackedStates);
+
+            // Add a Near Interaction Touchable to the object if touch is a tracked state
+            if (IsStateTracking("Touch") && !isNearInteractionTouchableAttached())
+            {
+                gameObject.AddComponent<NearInteractionTouchable>();
+            }
         }
 
         /// <summary>
@@ -103,6 +110,53 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         #endregion
 
+        #region Touch
+
+        public void OnTouchStarted(HandTrackingInputEventData eventData)
+        {
+            if (IsStateTracking("Touch"))
+            {
+                SetStateOn(CoreInteractionState.Touch);
+
+                // Invoke the state event with the HandTrackingInputEventData
+                EventReceiverManager.InvokeStateEvent("Touch", eventData);
+            }
+        }
+
+        public void OnTouchCompleted(HandTrackingInputEventData eventData)
+        {
+            if (IsStateTracking("Touch"))
+            {
+                SetStateOff(CoreInteractionState.Touch);
+
+                // Invoke the state event with the HandTrackingInputEventData
+                EventReceiverManager.InvokeStateEvent("Touch", eventData);
+            }
+        }
+
+        public void OnTouchUpdated(HandTrackingInputEventData eventData)
+        {
+            if (IsStateTracking("Touch"))
+            {
+                // Invoke the state event with the HandTrackingInputEventData
+                EventReceiverManager.InvokeStateEvent("Touch", eventData);
+            }
+        }
+
+
+        private bool isNearInteractionTouchableAttached()
+        {
+            if (gameObject.GetComponent<NearInteractionTouchable>() == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        #endregion
 
         #region State Utilities
 

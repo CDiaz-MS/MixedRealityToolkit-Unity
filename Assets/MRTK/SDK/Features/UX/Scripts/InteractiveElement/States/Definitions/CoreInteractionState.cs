@@ -19,7 +19,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         Focus,
 
         /// <summary>
-        /// Represents the Touch state.  THIS STATE DOES NOT HAVE LOGIC DEFINED YET.
+        /// Represents the Touch state.
         /// </summary>
         Touch,
 
@@ -29,10 +29,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         Click,
 
         /// <summary>
-        /// 
+        /// Represents the Toggle state.  
         /// </summary>
         Toggle,
 
-        // Add more core states as the state logic is defined: Click, Grab, Speech Keyword, Pressed
+        /// <summary>
+        /// Represents the Press state.  
+        /// </summary>
+        Press
     }
 }
