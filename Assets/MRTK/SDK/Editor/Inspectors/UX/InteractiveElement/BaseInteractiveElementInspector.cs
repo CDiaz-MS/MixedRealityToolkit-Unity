@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
-    [CanEditMultipleObjects]
     [CustomEditor(typeof(BaseInteractiveElement))]
     public class BaseInteractiveElementInspector : UnityEditor.Editor
     {
@@ -34,6 +33,16 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             // Draw the States scriptable object
             InspectorUIUtility.DrawScriptableFoldout<TrackedStates>(trackedStates, "Tracked States", true);
+
+            
+            //// If the touch state is being tracked, then make sure a near interaction touchable is added to the object
+            //if (instance.TrackedStates.IsStateTracked("Touch"))
+            //{
+            //    if (instance.gameObject.GetComponent<NearInteractionTouchable>() == null)
+            //    {
+            //        instance.gameObject.AddComponent<NearInteractionTouchable>();
+            //    } 
+            //}
 
             EditorGUILayout.Space();
         }
