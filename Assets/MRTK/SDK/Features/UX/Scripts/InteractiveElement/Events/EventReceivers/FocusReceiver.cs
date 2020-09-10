@@ -8,18 +8,19 @@ using UnityEngine.EventSystems;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// The internal event receiver for the events defined in the Focus Interaction Event Configuration
+    /// The internal event receiver for the events defined in the Focus Interaction Event Configuration.
     /// </summary>
     internal class FocusReceiver : BaseEventReceiver
     {
-        public FocusReceiver(FocusInteractionEventConfiguration focusEventConfiguration) : base(focusEventConfiguration, "FocusReceiver") 
+        /// <inheritdoc />
+        public FocusReceiver(FocusEvents focusEventConfiguration) : base(focusEventConfiguration, "FocusReceiver") 
         {
             EventConfiguration = focusEventConfiguration;
 
             focusEventConfig = focusEventConfiguration;
         }
 
-        private readonly FocusInteractionEventConfiguration focusEventConfig;
+        private readonly FocusEvents focusEventConfig;
 
         private FocusInteractionEvent onFocusOn => focusEventConfig.OnFocusOn;
 
@@ -46,6 +47,5 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             hadFocus = hasFocus;
         }
-
     }
 }

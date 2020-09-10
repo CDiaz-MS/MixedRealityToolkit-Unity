@@ -10,11 +10,15 @@ using UnityEngine.EventSystems;
 namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 {
     /// <summary>
-    /// Class for managing the events states within an Interaction Element.
+    /// Manages the events contained in states within an Interaction Element.
     /// </summary>
     public class EventReceiverManager
     {
-        public EventReceiverManager(StateManager interactiveStateManager)
+        /// <summary>
+        /// Constructor for the event receiver manager. 
+        /// </summary>
+        /// <param name="interactiveStateManager">The state manager for this event receiver manager</param>
+        internal EventReceiverManager(StateManager interactiveStateManager)
         {
             stateManager = interactiveStateManager;
         }
@@ -37,26 +41,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 // Initialize Event Configurations for each state if the configuration exists
                 if (IsEventConfigurationValid(state.Name))
                 {
-                    // This case if for if a component is created via script instead of initialized in the inspector
+                    // If an interactive element component is created via script instead of initialized in the inspector,
+                    // an instance of the event config scriptable needs to be created
                     if (state.EventConfiguration == null)
                     {
-                        state.EventConfiguration = SetEventConfiguration(state.Name);
+                        state.EventConfiguration = CreateEventConfigurationInstance(state.Name);
                     }
 
                     // Initialize runtime event receiver classes for states that have an event configuration 
-                    BaseEventReceiver eventReceiver = InitializeEventReceiver(state.Name);
-
-                    EventReceivers.Add(eventReceiver);
-                }             
+                    InitializeEventReceiver(state.Name);
+                }
             }
         }
 
         /// <summary>
-        /// Invoke a state event with its associated event data.
+        /// Invoke a state event with optional event data.
         /// </summary>
         /// <param name="stateName">The name of the state</param>
         /// <param name="eventData">The event data for the state event</param>
-        public void InvokeStateEvent(string stateName, BaseEventData eventData)
+        public void InvokeStateEvent(string stateName, BaseEventData eventData = null)
         {
             BaseEventReceiver receiver = EventReceivers.Find((eventReceiver) => eventReceiver.Name.StartsWith(stateName));
 
@@ -73,25 +76,49 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         /// <returns>The Interaction Event Configuration of the state</returns>
         public BaseInteractionEventConfiguration GetEventConfiguration(string stateName)
         {
-            // Find the event receiver that has the state name in it and return the configuration
-            BaseEventReceiver eventReceiver = EventReceivers.Find((receiver) => receiver.Name.StartsWith(stateName));
+            InteractionState state = stateManager.GetState(stateName);
 
-            if (eventReceiver == null)
+            if (state == null)
             {
                 Debug.LogError($"An event configuration for the {stateName} state does not exist");
             }
 
-            return eventReceiver.EventConfiguration;
+            var eventConfig = state.EventConfiguration;
+
+            return eventConfig;
+        }
+
+        /// <summary>
+        /// Sets the event configuration for a given state. This method checks if the state has a valid associated event configuration, creates
+        /// an instance of the event configuration scriptable object, and initializes the matching runtime class. 
+        /// </summary>
+        /// <param name="state">This state's event configuration will be set</param>
+        /// <returns>The set event configuration for the state.</returns>
+        public BaseInteractionEventConfiguration SetEventConfiguration(InteractionState state)
+        {
+            var eventConfiguration = CreateEventConfigurationInstance(state.Name);
+
+            if (eventConfiguration != null)
+            {
+                state.EventConfiguration = eventConfiguration;
+                InitializeEventReceiver(state.Name);
+            }
+            else
+            {
+                Debug.Log($"The event configuration for the {state.Name} was not set because the {state.Name}InteractionEventConfiguration file does not exist.");
+            }
+
+            return eventConfiguration;
         }
 
         // Create an instance of an event configuration scriptable object for a state
-        private BaseInteractionEventConfiguration SetEventConfiguration(string stateName)
+        private BaseInteractionEventConfiguration CreateEventConfigurationInstance(string stateName)
         {
-           if (IsEventConfigurationValid(stateName))
-           {
+            if (IsEventConfigurationValid(stateName))
+            {
                 var eventConfiguration = (BaseInteractionEventConfiguration)ScriptableObject.CreateInstance(stateName + "InteractionEventConfiguration");
                 return eventConfiguration;
-           }
+            }
             else
             {
                 return null;
@@ -105,6 +132,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 BaseEventReceiver receiver = stateManager.GetState(stateName).EventConfiguration.InitializeRuntimeEventReceiver();
 
+                EventReceivers.Add(receiver);
+
                 return receiver;
             }
 
@@ -114,15 +143,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         // Check if a state has an existing and valid event configuration
         private bool IsEventConfigurationValid(string stateName)
         {
+            // Check if there is an existing subclass that starts with the state name
             var eventConfigurationTypes = TypeCacheUtility.GetSubClasses<BaseInteractionEventConfiguration>();
-            var eventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName));
-
-            if (eventConfigType.IsNull())
-            {
-                return false;
-            }
-
-            return true;
+            bool isValidEventConfigType = eventConfigurationTypes.Find(t => t.Name.StartsWith(stateName)) != null;
+            
+            return isValidEventConfigType;
         }
     }
 }

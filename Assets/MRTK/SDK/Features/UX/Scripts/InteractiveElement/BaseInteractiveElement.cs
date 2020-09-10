@@ -35,17 +35,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
         public StateManager StateManager { get; protected set; }
 
         /// <summary>
-        /// Entry point for event management. 
+        /// Manages the associated state events contained in a state. 
         /// </summary>
-        public EventReceiverManager EventReceiverManager { get; protected set; }
+        public EventReceiverManager EventReceiverManager => StateManager.EventReceiverManager;
 
-        // Initialize the State Manager and the Event Manager in Awake because 
-        // the States Visualizer depends on the initialization of these elements
+        // Initialize the State Manager in Awake because the State Visualizer depends on the initialization of these elements
         private void Awake()
         {
             InitializeStateManager();
-
-            InitializeEventReceiverManager();
 
             // Initially set the default state to on
             SetStateOn(CoreInteractionState.Default);
@@ -63,6 +60,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
                 TrackedStates = ScriptableObject.CreateInstance<TrackedStates>();
             }
 
+<<<<<<< HEAD
             StateManager = new StateManager(TrackedStates);
 
             // Add a Near Interaction Touchable to the object if touch is a tracked state
@@ -82,6 +80,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
             // Create runtime classes for each state that has a valid associated event configuration
             EventReceiverManager.InitializeEventReceivers();
+=======
+            StateManager = new StateManager(TrackedStates, this);
+>>>>>>> 0ae28f2acff7b98c98cc85631643265159df5f0e
         }
 
         #region Focus
@@ -110,6 +111,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
 
         #endregion
 
+<<<<<<< HEAD
         #region Touch
 
         public void OnTouchStarted(HandTrackingInputEventData eventData)
@@ -154,6 +156,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Interaction
             {
                 return true;
             }
+=======
+        #region Event Utilities
+
+        public T GetStateEvents<T>(string stateName) where T : BaseInteractionEventConfiguration
+        {
+            return EventReceiverManager.GetEventConfiguration(stateName) as T;
+>>>>>>> 0ae28f2acff7b98c98cc85631643265159df5f0e
         }
 
         #endregion
