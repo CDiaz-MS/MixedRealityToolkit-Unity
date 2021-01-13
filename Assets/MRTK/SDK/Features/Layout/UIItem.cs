@@ -10,8 +10,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     [ExecuteAlways]
     public class UIItem : MonoBehaviour
     {
-        private Transform parentTransform;
-
         [SerializeField]
         private bool maintainScale = true;
 
@@ -36,16 +34,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        //private Vector3 startScale = new Vector3(0.01f, 0.01f, 0.01f);
-
         private Vector3 startParentScale;
-        private Vector3 startParentParentScale;
+        private Transform parentTransform;
 
         private void Start()
         {
             ScaleToLock = transform.localScale;
-
-            //startScale = transform.localScale;
 
             startParentScale = transform.parent.lossyScale;
 
@@ -73,53 +67,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             var currentParentLossyScale = transform.parent.lossyScale;
 
-            //Debug.Log("Current parent local scale: " + currentParentLossyScale);
+            // Get differences relative to the parent
+            float differenceX = currentParentLossyScale.x / startParentScale.x;
+            float differenceY = currentParentLossyScale.y / startParentScale.y;
+            float differenceZ = currentParentLossyScale.z / startParentScale.z;
 
-            // Get the relative difference to the original scale
-            var diffX = currentParentLossyScale.x / startParentScale.x;
+            // Invert differences
+            var diffVector = new Vector3(1 / differenceX, 1 / differenceY, 1 / differenceZ);
 
-            //Debug.Log("diffX: " + currentParentLossyScale.x + " / " + startParentScale.x + " = " + diffX);
-
-
-            var diffY = currentParentLossyScale.y / startParentScale.y;
-
-            //Debug.Log("diffY: " + currentParentLossyScale.y + " / " + startParentScale.y + " = " + diffY);
-
-
-            var diffZ = currentParentLossyScale.z / startParentScale.z;
-
-            //Debug.Log("diffZ: " + currentParentLossyScale.z + " / " + startParentScale.z + " = " + diffZ);
-
-            // This inverts the scale differences
-            var diffVector = new Vector3(1 / diffX, 1 / diffY, 1 / diffZ);
-
-            //Debug.Log("diff Vector: " + diffVector);
-
-
-            // Apply the inverted differences to the original scale
             transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
-
-
-            //Debug.Log("Result: " + transform.localScale);
-
         }
-
-        //public void MaintainScaleObjectRoot()
-        //{
-        //    var currentParentParentScale = transform.parent.transform.parent.localScale;
-
-        //    // Get the relative difference to the original scale
-        //    var diffX = currentParentParentScale.x / startParentParentScale.x;
-        //    var diffY = currentParentParentScale.y / startParentParentScale.y;
-        //    var diffZ = currentParentParentScale.z / startParentParentScale.z;
-
-        //    // This inverts the scale differences
-        //    var diffVector = new Vector3(1 / diffX, 1 / diffY, 1 / diffZ);
-
-        //    // Apply the inverted differences to the original scale
-        //    transform.localScale = Vector3.Scale(startScale, diffVector);
-
-        //}
-
     }
 }
