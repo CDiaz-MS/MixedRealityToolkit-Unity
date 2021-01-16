@@ -8,17 +8,17 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
     [ExecuteAlways]
-    public class UIItem : MonoBehaviour
+    public class MaintainScale : MonoBehaviour
     {
         [SerializeField]
-        private bool maintainScale = true;
+        private bool lockCurrentScale = true;
 
-        public bool MaintainScale
+        public bool LockCurrentScale
         {
-            get => maintainScale;
+            get => lockCurrentScale;
             set
             {
-                maintainScale = value;
+                lockCurrentScale = value;
             }
         }
 
@@ -48,9 +48,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private void Update()
         {
-            if (MaintainScale)
+            if (LockCurrentScale)
             {
-                MaintainScaleObject();
+                AdjustScale();
             }
             else
             {
@@ -63,7 +63,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        public void MaintainScaleObject()
+        public void AdjustScale()
         {
             var currentParentLossyScale = transform.parent.lossyScale;
 
