@@ -24,7 +24,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty fillToParentX;
         private SerializedProperty fillToParentY;
         private SerializedProperty fillToParentZ;
-        private SerializedProperty backPlate;
         private SerializedProperty anchorPositionOverrideEnabled;
         private SerializedProperty drawCornerPoints;
         private SerializedProperty drawFacePoints;
@@ -70,8 +69,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             fillToParentY = serializedObject.FindProperty("fillToParentY");
             fillToParentZ = serializedObject.FindProperty("fillToParentZ");
 
-            backPlate = serializedObject.FindProperty("backPlate");
-
             anchorPositionOverrideEnabled = serializedObject.FindProperty("anchorPositionOverrideEnabled");
 
             drawCornerPoints = serializedObject.FindProperty("drawCornerPoints");
@@ -82,24 +79,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         public override void OnInspectorGUI()
         {
-            // Get Icons
-            foreach (var key in dictionaryKeys)
-            {
-                Texture icon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + key + ".png");
-
-                if (!icons.Contains(icon))
-                {
-                    icons.Add(icon);
-                }
-            }
-
-            xAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "XAxisDistribute" + ".png");
-            yAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "YAxisDistribute" + ".png");
-            zAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "ZAxisDistribute" + ".png");
-
-            fillParentXIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentX" + ".png");
-            fillParentYIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentY" + ".png");
-            fillParentZIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentZ" + ".png");
+            GetIcons();
 
             serializedObject.Update();
 
@@ -122,13 +102,31 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             EditorGUILayout.Space();
 
-            DrawBackPlateSection();
-
-            EditorGUILayout.Space();
-
             DrawDebuggingSection();
 
             serializedObject.ApplyModifiedProperties();
+        }
+
+        private void GetIcons()
+        {
+            // Get Icons
+            foreach (var key in dictionaryKeys)
+            {
+                Texture icon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + key + ".png");
+
+                if (!icons.Contains(icon))
+                {
+                    icons.Add(icon);
+                }
+            }
+
+            xAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "XAxisDistribute" + ".png");
+            yAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "YAxisDistribute" + ".png");
+            zAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "ZAxisDistribute" + ".png");
+
+            fillParentXIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentX" + ".png");
+            fillParentYIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentY" + ".png");
+            fillParentZIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentZ" + ".png");
         }
 
         private void DrawAnchorSizeSection()
@@ -167,14 +165,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                     if (GUILayout.Button(fillToParentXContent, GUILayout.MaxHeight(50)))
                     {
-                        if (fillToParentX.boolValue)
-                        {
-                            fillToParentX.boolValue = false;
-                        }
-                        else
-                        {
-                            fillToParentX.boolValue = true;
-                        }
+                        fillToParentX.boolValue = !fillToParentX.boolValue;
                     }
 
                     GUI.color = previousGUIColor;
@@ -187,14 +178,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                     if (GUILayout.Button(fillToParentYContent, GUILayout.MaxHeight(50)))
                     {
-                        if (fillToParentY.boolValue)
-                        {
-                            fillToParentY.boolValue = false;
-                        }
-                        else
-                        {
-                            fillToParentY.boolValue = true;
-                        }
+                        fillToParentY.boolValue = !fillToParentY.boolValue;
                     }
 
                     GUI.color = previousGUIColor;
@@ -207,14 +191,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                     if (GUILayout.Button(fillToParentZContent, GUILayout.MaxHeight(50)))
                     {
-                        if (fillToParentZ.boolValue)
-                        {
-                            fillToParentZ.boolValue = false;
-                        }
-                        else
-                        {
-                            fillToParentZ.boolValue = true;
-                        }
+                        fillToParentZ.boolValue = !fillToParentZ.boolValue;
                     }
 
                     GUI.color = previousGUIColor;
@@ -370,16 +347,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     GUI.color = previousGUIColor;
                 }
             }
-        }
-
-        private void DrawBackPlateSection()
-        {
-            InspectorUIUtility.DrawTitle("Volume Back Plate");
-
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Back Plate Object", "Back Plate Object", MixedRealityStylesUtility.BoldFoldoutStyle, false))
-            {
-                EditorGUILayout.PropertyField(backPlate);
-            }  
         }
 
         private void DrawDebuggingSection()
