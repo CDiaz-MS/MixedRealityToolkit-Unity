@@ -1,8 +1,9 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Layout;
-using System.Collections;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -65,7 +66,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                 curvePositions[j - 1] = lineStart;
 
-                Gizmos.DrawSphere(lineStart, 0.01f);
+                Gizmos.DrawSphere(lineStart, 0.005f);
 
                 Gizmos.DrawLine(lineStart, lineEnd);
 
@@ -75,7 +76,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             Gizmos.color = Color.cyan;
             foreach (var point in curvePositions)
             {
-                Gizmos.DrawSphere(point, 0.01f);
+                Gizmos.DrawSphere(point, 0.005f);
             }
         }
 
@@ -89,11 +90,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return Vector3.Lerp(Vector3.Lerp(p0, p2, t), Vector3.Lerp(p1, p2, t), t);
         }
 
-        void Start()
+        protected override void Start()
         {
+            base.Start();
+
+
             CurvePoints[0] = new UIVolumePoint("Left");
             CurvePoints[1] = new UIVolumePoint("Back");
             CurvePoints[2] = new UIVolumePoint("Right");
+
+            CurvePoints[1].Point = transform.position + (Vector3.forward * (transform.localScale.z / 2));
         }
 
         private Vector3 GetCurvePoint(string name)
@@ -117,10 +123,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             if (!BackPointOverride)
             {
-                CurvePoints[1].Point = GetFacePoint(FacePoint.Back);
+                
             }
 
             CurvePoints[0].Point = GetCornerMidPoint(CornerPoint.LeftTopForward, CornerPoint.LeftBottomForward);
+            
             CurvePoints[2].Point = GetCornerMidPoint(CornerPoint.RightTopForward, CornerPoint.RightBottomForward);
         }
 
