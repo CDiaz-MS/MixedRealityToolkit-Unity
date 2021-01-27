@@ -1,10 +1,9 @@
-﻿using Microsoft.MixedReality.Toolkit.Utilities;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
@@ -128,12 +127,21 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
-        private GameObject backPlate;
+        private List<ChildVolumeItem> childVolumeItems = new List<ChildVolumeItem>();
 
-        public GameObject BackPlate
+        public List<ChildVolumeItem> ChildVolumeItems
         {
-            get => backPlate;
-            set => backPlate = value;
+            get => childVolumeItems;
+            private set => childVolumeItems = value;
+        }
+
+        [SerializeField]
+        private GameObject backPlateObject;
+
+        public GameObject BackPlateObject
+        {
+            get => backPlateObject;
+            set => backPlateObject = value;
         }
 
         private bool useColliderBounds => GetComponent<Collider>() != null;
@@ -148,6 +156,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public bool IsRootUIVolume => (transform == rootTransform);
 
         public Vector3 VolumeCenter => transform.position;
+
+        private int currentChildCount;
 
         #region Gizmos
         protected virtual void OnDrawGizmos()
@@ -191,6 +201,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             InitializePoints();
         }
+
+        protected virtual void Start() { }
 
         protected virtual void Update()
         {
@@ -244,8 +256,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
                 else
                 {
-                    transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, UIVolumeParentTransform.localScale.x);
-
+                    transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, UIVolumeParentTransform.localScale.z);
                 }
             }
 
@@ -256,6 +267,57 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             UpdateCornerPoints();
             UpdateFacePoints();
+
+            PopulateChildObjects();
+            MaintainScaleChildItems();
+            
+            currentChildCount = transform.childCount;
+        }
+
+        #endregion
+
+        #region Maintain Scale 
+        private void PopulateChildObjects()
+        {
+            if (currentChildCount != transform.childCount)
+            {
+                if (currentChildCount < transform.childCount)
+                {
+                    for (int i = 0; i < transform.childCount; i++)
+                    {
+                        var volumeTransform = ChildVolumeItems.Find((volume) => volume.Transform == transform.GetChild(i).transform);
+                        if (volumeTransform == null)
+                        {
+                            ChildVolumeItems.Add(new ChildVolumeItem(transform.GetChild(i)));
+                        }
+                    }
+                }
+                else
+                {
+                    List<Transform> directChildren = new List<Transform>();
+
+                    for (int i = 0; i < transform.childCount; i++)
+                    {
+                        directChildren.Add(transform.GetChild(i));
+                    }
+
+                    foreach (var volume in ChildVolumeItems.ToList())
+                    {
+                        if (!directChildren.Contains(volume.Transform))
+                        {
+                            ChildVolumeItems.Remove(volume);
+                        }
+                    }
+                }
+            }
+        }
+
+        private void MaintainScaleChildItems()
+        {
+            foreach(var childVolumeItem in ChildVolumeItems)
+            {
+                childVolumeItem.OnParentScaleChanged();
+            }
         }
 
         #endregion
@@ -280,6 +342,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             float xOffset = useColliderBounds ? transform.GetColliderBounds().extents.x : transform.localScale.x * 0.5f;
             float yOffset = useColliderBounds ? transform.GetColliderBounds().extents.y : transform.localScale.y * 0.5f;
             float zOffset = useColliderBounds ? transform.GetColliderBounds().extents.z : transform.localScale.z * 0.5f;
+
+            return new Vector3(xOffset, yOffset, zOffset);
+        }
+
+        private Vector3 CalculateVolumeSizeOffsetParent()
+        {
+            bool isParentColliderContainer = UIVolumeParentTransform.GetComponent<Collider>() != null;
+
+            float xOffset = isParentColliderContainer ? UIVolumeParentTransform.GetColliderBounds().extents.x : UIVolumeParentTransform.localScale.x * 0.5f;
+            float yOffset = isParentColliderContainer ? UIVolumeParentTransform.GetColliderBounds().extents.y : UIVolumeParentTransform.localScale.y * 0.5f;
+            float zOffset = isParentColliderContainer ? UIVolumeParentTransform.GetColliderBounds().extents.z : UIVolumeParentTransform.localScale.z * 0.5f;
 
             return new Vector3(xOffset, yOffset, zOffset);
         }
@@ -309,7 +382,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 float positionX = transform.position.x;
                 float positionY = transform.position.y;
                 float positionZ = transform.position.z;
-
 
                 if (UIVolumeFaces[i].PointName == "Left")
                 {
@@ -366,13 +438,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         #endregion
 
-
         public void ChangeAnchorLocation(AnchorLocation anchorLocation)
         {
-            float positionXOffset = (UIVolumeParentTransform.localScale.x / 2);
-            float positionYOffset = (UIVolumeParentTransform.localScale.y / 2);
-            float positionZOffset = (UIVolumeParentTransform.localScale.z / 2);
-
+            Vector3 volumeSizeOffsetParent = CalculateVolumeSizeOffsetParent();
             Vector3 volumeSizeOffset = CalculateVolumeSizeOffset();
 
             float positionX;
@@ -384,7 +452,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             // Y Position
             if (anchorParsed[0] == "Top")
             {
-                positionY = UIVolumeParentTransform.position.y + (positionYOffset) + -(volumeSizeOffset.y);
+                positionY = UIVolumeParentTransform.position.y + (volumeSizeOffsetParent.y) + -(volumeSizeOffset.y);
             }
             else if (anchorParsed[0] == "Center")
             {
@@ -392,13 +460,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
             else
             {
-                positionY = UIVolumeParentTransform.position.y + -(positionYOffset) + (volumeSizeOffset.y);
+                positionY = UIVolumeParentTransform.position.y + -(volumeSizeOffsetParent.y) + (volumeSizeOffset.y);
             }
 
             // X Position
             if (anchorParsed[1] == "Left")
             {
-                positionX = UIVolumeParentTransform.position.x + -(positionXOffset) + (volumeSizeOffset.x);
+                positionX = UIVolumeParentTransform.position.x + -(volumeSizeOffsetParent.x) + (volumeSizeOffset.x);
             }
             else if (anchorParsed[1] == "Center")
             {
@@ -406,13 +474,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
             else
             {
-                positionX = UIVolumeParentTransform.position.x + (positionXOffset) + -(volumeSizeOffset.x);
+                positionX = UIVolumeParentTransform.position.x + (volumeSizeOffsetParent.x) + -(volumeSizeOffset.x);
             }
 
             // Z Position
             if (anchorParsed[2] == "Forward")
             {
-                positionZ = UIVolumeParentTransform.position.z + -(positionZOffset) + (volumeSizeOffset.z);
+                positionZ = UIVolumeParentTransform.position.z + -(volumeSizeOffsetParent.z) + (volumeSizeOffset.z);
             }
             else if (anchorParsed[2] == "Center")
             {
@@ -420,7 +488,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
             else
             {
-                positionZ = UIVolumeParentTransform.position.z + (positionZOffset) + -(volumeSizeOffset.z);
+                positionZ = UIVolumeParentTransform.position.z + (volumeSizeOffsetParent.z) + -(volumeSizeOffset.z);
             }
 
             transform.position = new Vector3(positionX, positionY, positionZ);
@@ -436,7 +504,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                 for (int i = 0; i < gameObject.transform.childCount; i++)
                 {
-                    items.Add(transform.GetChild(i));
+                    if (transform.GetChild(i).gameObject.activeSelf)
+                    {
+                        items.Add(transform.GetChild(i));
+                    }
+                }
+
+                if (BackPlateObject != null)
+                {
+                    items.Remove(BackPlateObject.transform);
                 }
 
                 float placementIncrement;

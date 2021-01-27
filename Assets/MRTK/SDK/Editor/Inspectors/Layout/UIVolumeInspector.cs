@@ -27,6 +27,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty anchorPositionOverrideEnabled;
         private SerializedProperty drawCornerPoints;
         private SerializedProperty drawFacePoints;
+        private SerializedProperty childVolumeItems;
+        private SerializedProperty backPlateObject;
 
         private Texture xAxisDistributeIcon;
         private Texture yAxisDistributeIcon;
@@ -73,6 +75,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             drawCornerPoints = serializedObject.FindProperty("drawCornerPoints");
             drawFacePoints = serializedObject.FindProperty("drawFacePoints");
+            childVolumeItems = serializedObject.FindProperty("childVolumeItems");
+            backPlateObject = serializedObject.FindProperty("backPlateObject");
 
             dictionaryKeys = depthLevelDictionary.Keys.ToArray();
         }
@@ -96,6 +100,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             else
             {
                 InspectorUIUtility.DrawWarning("This UIVolume is the root transform");
+
+                EditorGUILayout.PropertyField(anchorPositionOverrideEnabled);
+
+                DrawBackPlateSection();
             }
 
             DrawDistributeButtons();
@@ -103,6 +111,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUILayout.Space();
 
             DrawDebuggingSection();
+
+            DrawChildTransformSection();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -252,6 +262,83 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             GUI.enabled = true;
         }
 
+        private void DrawChildTransformSection()
+        {
+            InspectorUIUtility.DrawTitle("Child Transforms");
+
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Child Volume Transforms", "Child Volume Transforms", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+            {
+                EditorGUILayout.Space();
+
+                for (int i = 0; i < childVolumeItems.arraySize; i++)
+                {
+                    SerializedProperty childVolumeItem = childVolumeItems.GetArrayElementAtIndex(i);
+                    SerializedProperty transform = childVolumeItem.FindPropertyRelative("transform");
+                    SerializedProperty maintainScale = childVolumeItem.FindPropertyRelative("maintainScale");
+                    SerializedProperty scaleToLock = childVolumeItem.FindPropertyRelative("scaleToLock");
+
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        Color previousGUIColor = GUI.color;
+
+                        if (maintainScale.boolValue)
+                        {
+                            GUI.color = Color.cyan;
+                        }
+
+                        if (IsMaintainScaleValid(transform))
+                        {
+                            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                            {
+                                Transform transformRef = transform.objectReferenceValue as Transform;
+
+                                GUI.enabled = false;
+                                EditorGUILayout.PropertyField(transform);
+                                EditorGUILayout.PropertyField(scaleToLock);
+                                GUI.enabled = true;
+
+                                EditorGUILayout.PropertyField(maintainScale);
+                            }
+                        }
+
+                        EditorGUILayout.Space();
+
+                        GUI.color = previousGUIColor;
+                    }
+                }
+            }
+        }
+
+        private bool IsMaintainScaleValid(SerializedProperty transform)
+        {
+            Transform transformRef = transform.objectReferenceValue as Transform;
+
+            if (transformRef.gameObject.GetComponent<UIVolume>() != null)
+            {
+                if (transformRef.gameObject.GetComponent<TextMesh>() != null || transformRef.gameObject.GetComponent<Collider>() != null)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return true;
+            }
+        }
+
+        private void DrawBackPlateSection()
+        {
+            if (instance.IsRootUIVolume)
+            {
+                InspectorUIUtility.DrawTitle("Root Back Plate");
+
+                EditorGUILayout.PropertyField(backPlateObject);
+            }
+        }
 
         private void DrawDistributeButtons()
         {
