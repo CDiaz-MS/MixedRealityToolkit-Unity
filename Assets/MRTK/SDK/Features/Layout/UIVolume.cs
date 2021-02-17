@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Animations;
@@ -27,6 +28,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        private VolumeSizeOrigin volumeSizeOrigin;
+
+        public VolumeSizeOrigin VolumeSizeOrigin
+        {
+            get => volumeSizeOrigin;
+            private set => volumeSizeOrigin = value;
+        }
+
+        [SerializeField]
         private UIVolumePoint[] uiVolumeCorners = new UIVolumePoint[8];
 
         public UIVolumePoint[] UIVolumeCorners
@@ -42,18 +52,29 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => uiVolumeFaces;
         }
 
+        #region Distribute Properties
+
+        // X Axis
         [SerializeField]
         private bool xAxisDynamicDistribute = false;
 
         public bool XAxisDynamicDistribute
         {
             get => xAxisDynamicDistribute;
-            set
-            {
-                xAxisDynamicDistribute = value;
-            }
+            set => xAxisDynamicDistribute = value;
         }
 
+        [SerializeField]
+        private float leftMargin = 0;
+
+        // X Axis
+        public float LeftMargin
+        {
+            get => leftMargin;
+            set => leftMargin = value;
+        }
+
+        // Y Axis
         [SerializeField]
         private bool yAxisDynamicDistribute = false;
 
@@ -64,6 +85,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        private float topMargin = 0;
+
+        public float TopMargin
+        {
+            get => topMargin;
+            set => topMargin = value;
+        }
+
+        [SerializeField]
         private bool zAxisDynamicDistribute = false;
 
         public bool ZAxisDynamicDistribute
@@ -71,6 +101,28 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => zAxisDynamicDistribute;
             set => zAxisDynamicDistribute = value;
         }
+
+        [SerializeField]
+        private float forwardMargin = 0;
+
+        public float ForwardMargin
+        {
+            get => forwardMargin;
+            set => forwardMargin = value;
+        }
+
+        [SerializeField]
+        private float backMargin = 0;
+
+        public float BackMargin
+        {
+            get => backMargin;
+            set => backMargin = value;
+        }
+
+        #endregion
+
+        #region Volume Size Properties
 
         [SerializeField]
         private bool fillToParentY = false;
@@ -98,6 +150,35 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => fillToParentZ;
             set => fillToParentZ = value;
         }
+
+        [SerializeField]
+        private float volumeSizeScaleFactorX = 1;
+
+        public float VolumeSizeScaleFactorX
+        {
+            get => volumeSizeScaleFactorX;
+            set => volumeSizeScaleFactorX = value;
+        }
+
+        [SerializeField]
+        private float volumeSizeScaleFactorY = 1;
+
+        public float VolumeSizeScaleFactorY
+        {
+            get => volumeSizeScaleFactorY;
+            set => volumeSizeScaleFactorY = value;
+        }
+
+        [SerializeField]
+        private float volumeSizeScaleFactorZ = 1;
+
+        public float VolumeSizeScaleFactorZ
+        {
+            get => volumeSizeScaleFactorZ;
+            set => volumeSizeScaleFactorZ = value;
+        }
+
+        #endregion
 
         [SerializeField]
         private bool drawCornerPoints = false;
@@ -144,8 +225,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => backPlateObject = value;
         }
 
-        private bool useColliderBounds => GetComponent<Collider>() != null;
-
         protected string[] cornerNames = Enum.GetNames(typeof(CornerPoint)).ToArray();
         protected string[] faceNames = Enum.GetNames(typeof(FacePoint)).ToArray();
 
@@ -164,16 +243,41 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Gizmos.color = IsRootUIVolume ? Color.green : Color.cyan;
 
-            if (useColliderBounds)
-            {
-                Gizmos.DrawWireCube(gameObject.transform.position, gameObject.transform.GetColliderBounds().size);
+            DrawVolumeContainer();
 
+            DrawCornerAndFacePoints();
+
+            DrawMargins();
+        }
+
+        private void DrawVolumeContainer()
+        {
+            if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+            {
+                Gizmos.DrawWireCube(gameObject.transform.position, GetVolumeSize());
+
+            }
+            else if (VolumeSizeOrigin == VolumeSizeOrigin.TextMeshPro)
+            {
+                RectTransform rectTransfrom = transform as RectTransform;
+
+                TextMeshPro textPro = gameObject.GetComponent<TextMeshPro>();
+
+                float marginOffsetXPosition = gameObject.transform.position.x - ((textPro.margin.z * 0.5f) * rectTransfrom.lossyScale.x);
+                float marginOffsetYPosition = gameObject.transform.position.y - ((textPro.margin.y * 0.5f) * rectTransfrom.lossyScale.y);
+
+                Vector3 volumeOriginPosition = new Vector3(marginOffsetXPosition, marginOffsetYPosition, gameObject.transform.position.z);
+
+                Gizmos.DrawWireCube(volumeOriginPosition, GetVolumeSize());
             }
             else
             {
-                Gizmos.DrawWireCube(gameObject.transform.position, gameObject.transform.localScale);
+                Gizmos.DrawWireCube(gameObject.transform.position, GetVolumeSize());
             }
+        }
 
+        private void DrawCornerAndFacePoints()
+        {
             if (DrawCornerPoints)
             {
                 Gizmos.color = Color.magenta;
@@ -193,6 +297,51 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
+        private void DrawMargins()
+        {
+            Gizmos.color = Color.yellow;
+
+            // Left Margin
+            Vector3 leftMarginStartPoint = GetFacePoint(FacePoint.Left);
+            float volumeWidth = Vector3.Distance(GetFacePoint(FacePoint.Left), GetFacePoint(FacePoint.Right));
+            Gizmos.DrawLine(leftMarginStartPoint, leftMarginStartPoint + (Vector3.right * (LeftMargin * volumeWidth)));
+
+            // Top Margin
+            Vector3 topMarginStartPoint = GetFacePoint(FacePoint.Top);
+            float volumeHeight = Vector3.Distance(GetFacePoint(FacePoint.Top), GetFacePoint(FacePoint.Bottom));
+            Gizmos.DrawLine(topMarginStartPoint, topMarginStartPoint + (Vector3.down * (TopMargin * volumeHeight)));
+
+            // Forward Margin
+            Vector3 forwardMarginStartPoint = GetFacePoint(FacePoint.Forward);
+            float volumeDepth = Vector3.Distance(GetFacePoint(FacePoint.Forward), GetFacePoint(FacePoint.Back));
+            Gizmos.DrawLine(forwardMarginStartPoint, forwardMarginStartPoint + (Vector3.forward * (ForwardMargin * volumeDepth)));
+        }
+
+        private void DrawDebugTextMeshProContainer()
+        {
+            if (VolumeSizeOrigin == VolumeSizeOrigin.TextMeshPro)
+            {
+                RectTransform rectTransfrom = transform as RectTransform;
+
+                TextMeshPro textPro = gameObject.GetComponent<TextMeshPro>();
+
+                float xOffset = rectTransfrom.lossyScale.x;
+                float widthOffset = rectTransfrom.rect.width * 0.5f;
+                float scaleWithOffset = xOffset * widthOffset;
+                float marginRightOffset = -textPro.margin.z * xOffset;
+                float finalRightOffset = scaleWithOffset + marginRightOffset;
+
+                float marginLeftOffset = -textPro.margin.x * xOffset;
+                float finalLeftOffset = scaleWithOffset + marginLeftOffset;
+
+                Vector3 right = rectTransfrom.position + (Vector3.right * finalRightOffset);
+                Vector3 left = rectTransfrom.position + (Vector3.left * finalLeftOffset);
+
+                Gizmos.DrawSphere(right, 0.05f);
+                Gizmos.DrawSphere(left, 0.05f);
+            }
+        }
+
         #endregion
 
         #region MonoBehaviour Methods
@@ -206,59 +355,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         protected virtual void Update()
         {
+            SetVolumeSizeOrigin();
+
             UpdateCornerPoints();
             UpdateFacePoints();
 
-            if (XAxisDynamicDistribute)
-            {
-                Distribute(Axis.X);
-            }
+            UpdateDistribution();
 
-            if (YAxisDynamicDistribute)
-            {
-                Distribute(Axis.Y);
-            }
-
-            if (ZAxisDynamicDistribute)
-            {
-                Distribute(Axis.Z);
-            }
-
-            if (FillToParentX)
-            {
-                if (useColliderBounds)
-                {
-                    transform.localScale = new Vector3(1, transform.localScale.y, transform.localScale.z);
-                }
-                else
-                {
-                    transform.localScale = new Vector3(UIVolumeParentTransform.localScale.x, transform.localScale.y, transform.localScale.z);
-                }
-            }
-
-            if (FillToParentY)
-            {
-                if (useColliderBounds)
-                {
-                    transform.localScale = new Vector3(transform.localScale.x, 1, transform.localScale.z);
-                }
-                else
-                {
-                    transform.localScale = new Vector3(transform.localScale.x, UIVolumeParentTransform.localScale.y, transform.localScale.z);
-                }
-            }
-
-            if (FillToParentZ)
-            {
-                if (useColliderBounds)
-                {
-                    transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, 1);
-                }
-                else
-                {
-                    transform.localScale = new Vector3(transform.localScale.x, transform.localScale.y, UIVolumeParentTransform.localScale.z);
-                }
-            }
+            UpdateVolumeSizeMatch();
 
             if (anchorPositionOverrideEnabled && !IsRootUIVolume)
             {
@@ -276,7 +380,97 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         #endregion
 
+        private void UpdateVolumeSizeMatch()
+        {
+            if (FillToParentX)
+            {
+                SetMatchParentVolumeSize(Axis.X);
+            }
+
+            if (FillToParentY)
+            {
+                SetMatchParentVolumeSize(Axis.Y);
+            }
+
+            if (FillToParentZ)
+            {
+                SetMatchParentVolumeSize(Axis.Z);
+            }
+        }
+
+        private void SetMatchParentVolumeSize(Axis axis, bool includeScaleFactor = true)
+        {
+            Vector3 newScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
+
+            if (axis == Axis.X)
+            {
+                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+                {
+                    newScale.x = includeScaleFactor ? (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x) * volumeSizeScaleFactorX : (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x);
+                
+                    if (gameObject.name.Contains("Flexible"))
+                    {
+                        newScale.x *= 32;
+                    }
+                }
+                else
+                {
+                    newScale.x = includeScaleFactor ? UIVolumeParentTransform.localScale.x * volumeSizeScaleFactorX : UIVolumeParentTransform.localScale.x;
+                }
+            }
+
+            if (axis == Axis.Y)
+            {
+                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+                {
+                    newScale.y = includeScaleFactor ? (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y) * volumeSizeScaleFactorY : (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y);
+
+                    if (gameObject.name.Contains("Flexible"))
+                    {
+                        newScale.y *= 32;
+                    }
+                }
+                else
+                {
+                    newScale.y = includeScaleFactor ? UIVolumeParentTransform.localScale.y * volumeSizeScaleFactorY : UIVolumeParentTransform.localScale.y;
+                }
+            }
+
+            if (axis == Axis.Z)
+            {
+                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+                {
+                    newScale.z = includeScaleFactor ? (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z) * volumeSizeScaleFactorZ : (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z);
+
+                    if (gameObject.name.Contains("Flexible"))
+                    {
+                        newScale.z *= 16;
+                    }
+                }
+                else
+                {
+                    newScale.z = includeScaleFactor ? UIVolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : UIVolumeParentTransform.localScale.z;
+                }
+            }
+
+            transform.localScale = newScale;
+        }
+
+        public void EqualizeVolumeSizeToParent()
+        {
+            var axisValues = Enum.GetValues(typeof(Axis));
+
+            foreach (Axis axis in axisValues)
+            {
+                if (axis != Axis.None)
+                {
+                    SetMatchParentVolumeSize(axis, false);
+                }
+            }
+        }
+
         #region Maintain Scale 
+
         private void PopulateChildObjects()
         {
             if (currentChildCount != transform.childCount)
@@ -314,9 +508,21 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private void MaintainScaleChildItems()
         {
+            int i = 0;
+
             foreach(var childVolumeItem in ChildVolumeItems)
             {
-                childVolumeItem.OnParentScaleChanged();
+                // If the transform has switched to a rect transform, make sure to update it
+                if (childVolumeItem.Transform == null)
+                {
+                    childVolumeItem.Transform = transform.GetChild(i);
+                }
+
+                VolumeSizeOrigin childVolumeSizeOrigin = childVolumeItem.IsUIVolume() ? childVolumeItem.Transform.GetComponent<UIVolume>().VolumeSizeOrigin : VolumeSizeOrigin.None;
+
+                childVolumeItem.OnParentScaleChanged(childVolumeSizeOrigin);
+
+                i++;
             }
         }
 
@@ -339,11 +545,39 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private Vector3 CalculateVolumeSizeOffset()
         {
-            float xOffset = useColliderBounds ? transform.GetColliderBounds().extents.x : transform.localScale.x * 0.5f;
-            float yOffset = useColliderBounds ? transform.GetColliderBounds().extents.y : transform.localScale.y * 0.5f;
-            float zOffset = useColliderBounds ? transform.GetColliderBounds().extents.z : transform.localScale.z * 0.5f;
+            Vector3 volumeSizeOffset = new Vector3(0, 0, 0);
 
-            return new Vector3(xOffset, yOffset, zOffset);
+            if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+            {
+                volumeSizeOffset.x = transform.GetColliderBounds().extents.x;
+                volumeSizeOffset.y = transform.GetColliderBounds().extents.y;
+                volumeSizeOffset.z = transform.GetColliderBounds().extents.z;
+
+            }
+            else if (VolumeSizeOrigin == VolumeSizeOrigin.TextMeshPro)
+            {
+                // A text mesh pro object uses a rect transform 
+                RectTransform rectTransfrom = transform as RectTransform;
+                TextMeshPro textPro = gameObject.GetComponent<TextMeshPro>();
+
+                float xScaleOffset = rectTransfrom.lossyScale.x ;
+                float widthOffset = rectTransfrom.rect.width * 0.5f;
+                float xScaleWidthOffset = xScaleOffset * widthOffset;
+                float marginRightOffset = -textPro.margin.z * xScaleOffset;
+                volumeSizeOffset.x = xScaleWidthOffset;
+
+                float yScaleOffset = rectTransfrom.lossyScale.y;
+                float heightOffset = rectTransfrom.rect.height * 0.5f;
+                volumeSizeOffset.y = yScaleOffset * heightOffset;
+            }
+            else
+            {
+                volumeSizeOffset.x = transform.localScale.x * 0.5f;
+                volumeSizeOffset.y = transform.localScale.y * 0.5f;
+                volumeSizeOffset.z = transform.localScale.z * 0.5f;
+            }
+
+            return volumeSizeOffset;
         }
 
         private Vector3 CalculateVolumeSizeOffsetParent()
@@ -518,31 +752,32 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 float placementIncrement;
                 float startPlacement;
 
+                // Offset the first item to appear in the container
                 Bounds bounds = items[0].transform.GetColliderBounds();
 
                 if (axis == Axis.X)
                 {
-                    float width = transform.localScale.x;
+                    float width = Vector3.Distance(GetFacePoint(FacePoint.Left), GetFacePoint(FacePoint.Right));
 
                     placementIncrement = width / items.Count;
 
-                    startPlacement = GetFacePoint(FacePoint.Left).x + bounds.extents.x;
+                    startPlacement = GetFacePoint(FacePoint.Left).x + bounds.extents.x + (LeftMargin * width);
                 }
                 else if (axis == Axis.Y)
                 {
-                    float height = transform.localScale.y;
+                    float height = Vector3.Distance(GetFacePoint(FacePoint.Top), GetFacePoint(FacePoint.Bottom));
 
                     placementIncrement = height / items.Count;
 
-                    startPlacement = GetFacePoint(FacePoint.Bottom).y + bounds.extents.y;
+                    startPlacement = GetFacePoint(FacePoint.Top).y - bounds.extents.y - (TopMargin * height);
                 }
                 else // Z
                 {
-                    float depth = transform.localScale.z;
+                    float depth = Vector3.Distance(GetFacePoint(FacePoint.Forward), GetFacePoint(FacePoint.Back));
 
                     placementIncrement = depth / items.Count;
 
-                    startPlacement = GetFacePoint(FacePoint.Forward).z + bounds.extents.z;
+                    startPlacement = GetFacePoint(FacePoint.Forward).z + bounds.extents.z + (ForwardMargin * depth);
                 }
 
                 foreach (var item in items)
@@ -555,11 +790,123 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                     item.position = newPosition;
 
-                    startPlacement += placementIncrement;
+                    if (axis == Axis.Y)
+                    {
+                        startPlacement -= placementIncrement;
+                    }
+                    else
+                    {
+                        startPlacement += placementIncrement;
+                    }
                 }
             }
         }
 
+        private void UpdateDistribution()
+        {
+            if (XAxisDynamicDistribute)
+            {
+                Distribute(Axis.X);
+            }
+
+            if (YAxisDynamicDistribute)
+            {
+                Distribute(Axis.Y);
+            }
+
+            if (ZAxisDynamicDistribute)
+            {
+                Distribute(Axis.Z);
+            }
+        }
+
         #endregion
+
+        #region Volume Size Origin
+
+        private void SetVolumeSizeOrigin()
+        {
+            if (GetComponent<Collider>() != null)
+            {
+                VolumeSizeOrigin = VolumeSizeOrigin.ColliderBounds;
+            }
+            else if (GetComponent<TextMeshPro>() != null)
+            {
+                VolumeSizeOrigin = VolumeSizeOrigin.TextMeshPro;
+            }
+            else
+            {
+                VolumeSizeOrigin = VolumeSizeOrigin.LocalScale;
+            }
+        }
+
+        public Vector3 GetVolumeSize()
+        {
+            if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+            {
+                return gameObject.transform.GetColliderBounds().size;
+            }
+            else if (VolumeSizeOrigin == VolumeSizeOrigin.TextMeshPro)
+            {
+                RectTransform rectTransfrom = transform as RectTransform;
+
+                TextMeshPro textPro = gameObject.GetComponent<TextMeshPro>();
+
+                float xOffset = rectTransfrom.lossyScale.x;
+                float widthOffset = rectTransfrom.rect.width;
+                float scaleWithOffset = xOffset * widthOffset;
+                float marginOffset = -textPro.margin.z * xOffset;
+                float finalOffsetX = scaleWithOffset + marginOffset;
+
+                float yOffset = rectTransfrom.lossyScale.y;
+                float heightOffset = rectTransfrom.rect.height;
+                float scaleHeightOffset = yOffset * heightOffset;
+                float marginOffsetY = -textPro.margin.y * yOffset;
+                float finalOffsetY = scaleHeightOffset + marginOffsetY;
+
+                Vector3 volumeSize = new Vector3(finalOffsetX, finalOffsetY, 0);
+
+                return volumeSize;
+            }
+            else
+            {
+                return gameObject.transform.localScale;
+            }
+        }
+
+        #endregion
+
+        private void PrintMatrix()
+        {
+            Matrix4x4 localToWoldMatrix = transform.localToWorldMatrix;
+
+            Debug.Log("======== Local to World Matrix ==========");
+
+            Debug.Log(localToWoldMatrix.GetRow(0).ToString("F6"));
+            Debug.Log(localToWoldMatrix.GetRow(1).ToString("F6"));
+            Debug.Log(localToWoldMatrix.GetRow(2).ToString("F6"));
+            Debug.Log(localToWoldMatrix.GetRow(3).ToString("F6"));
+
+            Debug.Log("==================");
+
+            Debug.Log("Local Scale: " + transform.localScale.ToString("F6"));
+            Debug.Log("Lossy Scale: " + transform.lossyScale.ToString("F6"));
+
+            if (transform.parent != null)
+            {
+                Debug.Log("Parent Lossy Scale: " + transform.parent.lossyScale.ToString("F6"));
+            }
+           
+            Matrix4x4 worldToLocalMatrix = transform.worldToLocalMatrix;
+
+            Debug.Log("======== World to Local Matrix ==========");
+
+            Debug.Log(worldToLocalMatrix.GetRow(0).ToString("F6"));
+            Debug.Log(worldToLocalMatrix.GetRow(1).ToString("F6"));
+            Debug.Log(worldToLocalMatrix.GetRow(2).ToString("F6"));
+            Debug.Log(worldToLocalMatrix.GetRow(3).ToString("F6"));
+
+            Debug.Log("==================");
+        }
     }
 }

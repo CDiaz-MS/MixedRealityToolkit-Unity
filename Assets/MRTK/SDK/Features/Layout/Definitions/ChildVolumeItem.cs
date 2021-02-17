@@ -52,7 +52,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             startParentSize = GetParentContainerSize();
         }
 
-        private void AdjustScale()
+        private void AdjustScale(VolumeSizeOrigin volumeSizeOrigin)
         {
             if (Transform != null)
             {
@@ -64,26 +64,33 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 float differenceZ = currentParentContainerSize.z / startParentSize.z;
 
                 // Invert differences
-                var diffVector = new Vector3(1 / differenceX, 1 / differenceY, 1 / differenceZ);
+                Vector3 diffVector = new Vector3(1 / differenceX, 1 / differenceY, 1 / differenceZ);
 
-                Transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
+                // If the volume origin size is local scale, then it is an empty container
+                if (volumeSizeOrigin != VolumeSizeOrigin.LocalScale)
+                {
+                    Transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
+                }
             }
         }
 
-        public void OnParentScaleChanged()
+        public void OnParentScaleChanged(VolumeSizeOrigin volumeSizeOrigin)
         {
             if (MaintainScale)
             {
-                AdjustScale();
+                AdjustScale(volumeSizeOrigin);
             }
             else
             {
-                if (Transform.parent.hasChanged)
+                if (Transform != null)
                 {
-                    startParentSize = GetParentContainerSize();
-                }
+                    if (Transform.parent.hasChanged)
+                    {
+                        startParentSize = GetParentContainerSize();
+                    }
 
-                ScaleToLock = Transform.localScale;
+                    ScaleToLock = Transform.localScale;
+                }
             }
         }
 
@@ -97,6 +104,28 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 return Transform.parent.lossyScale;
             }
+        }
+
+        private Vector3 GetContainerSize()
+        {
+            if (IsUIVolume())
+            {
+                return Transform.GetComponent<UIVolume>().GetVolumeSize();
+            }
+            else
+            {
+                return Transform.localScale;
+            }
+        }
+
+        public bool IsUIVolume()
+        {
+            return Transform.GetComponent<UIVolume>() != null;
+        }
+
+        public bool IsParentUIVolume()
+        {
+            return Transform.parent.GetComponent<UIVolume>() != null;
         }
     }
 }
