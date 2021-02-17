@@ -48,6 +48,69 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private Texture fillParentYIcon;
         private Texture fillParentZIcon;
 
+        // Size Presets 
+
+        private Vector3[] buttonSizePresetsRow1 = new Vector3[4]
+        {   
+            new Vector3(0.024f, 0.024f, 0.008f), // buttonSizePreset24x24x8
+            new Vector3(0.032f, 0.032f, 0.008f), // buttonSizePreset32x32x8
+            new Vector3(0.064f, 0.064f, 0.008f), // buttonSizePreset64x64x8
+            new Vector3(0.072f, 0.032f, 0.008f), // buttonSizePreset72x32x8
+        };
+
+        private Vector3[] buttonSizePresetsRow2 = new Vector3[4]
+        {
+            new Vector3(0.096f, 0.032f, 0.008f), // buttonSizePreset96x32x8
+            new Vector3(0.128f, 0.032f, 0.008f), // buttonSizePreset128x32x8
+            new Vector3(0.128f, 0.036f, 0.008f), // buttonSizePreset128x36x8
+            new Vector3(0.160f, 0.032f, 0.008f)  // buttonSizePreset160x32x8
+        };
+
+        private Vector3[] buttonGroupPresets = new Vector3[4]
+        {
+            new Vector3(0.190f, 0.032f, 0.008f), // buttonGroupSizePreset192x32x8
+            new Vector3(0.160f, 0.032f, 0.008f), // buttonGroupSizePreset160x32x8
+            new Vector3(0.032f, 0.096f, 0.008f), // buttonGroupSizePreset32x96x8
+            new Vector3(0.024f, 0.072f, 0.008f) // buttonGroupSizePreset24x72x8
+        };        
+        
+        private Vector3[] actionBarPresets = new Vector3[2]
+        {
+            new Vector3(0.192f, 0.032f, 0.008f), // actionBarSizePreset192x32x8
+            new Vector3(0.256f, 0.032f, 0.008f) // actionBarSizePreset256x32x8
+        };
+
+        private Vector3[] dialogPresetsRow1 = new Vector3[4]
+        {
+            new Vector3(0.168f, 0.168f, 0.008f), // dialogMenuSizePreset168x168x8
+            new Vector3(0.168f, 0.140f, 0.008f), // dialogMenuSizePreset168x140x8
+            new Vector3(0.168f, 0.076f, 0.008f), // dialogMenuSizePreset168x76x8
+            new Vector3(0.168f, 0.088f, 0.008f), // dialogMenuSizePreset168x88x8
+        };
+
+        private Vector3[] dialogPresetsRow2 = new Vector3[4]
+        {
+            new Vector3(0.168f, 0.112f, 0.008f), // dialogMenuSizePreset168x112x8
+            new Vector3(0.168f, 0.136f, 0.008f), // dialogMenuSizePreset168x136x8
+            new Vector3(0.168f, 0.152f, 0.008f), // dialogMenuSizePreset168x152x8
+            new Vector3(0.140f, 0.168f, 0.008f) // dialogMenuSizePreset140x168x8
+        };
+
+        private Vector3[] listMenuPresets = new Vector3[4]
+        {
+            new Vector3(0.168f, 0.168f, 0.008f), // listMenuSizePreset168x168x8
+            new Vector3(0.168f, 0.200f, 0.008f), // listMenuSizePreset168x200x8
+            new Vector3(0.168f, 0.234f, 0.008f), // listMenuSizePreset168x234x8
+            new Vector3(0.168f, 0.232f, 0.008f) // listMenuSizePreset168x232x8
+        };
+
+        private Vector3[] menuListPresets = new Vector3[3]
+        {
+            new Vector3(0.104f, 0.104f, 0.008f), // menuListSizePreset104x104x8
+            new Vector3(0.104f, 0.168f, 0.008f), // menuListSizePreset104x168x8
+            new Vector3(0.080f, 0.128f, 0.008f) // menuListSizePreset80x128x8
+        };
+
         private List<Texture> icons = new List<Texture>();
 
         private Dictionary<string, int> depthLevelDictionary = new Dictionary<string, int>()
@@ -123,6 +186,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 DrawBackPlateSection();
             }
+
+            DrawCommonContainerSizeSection();
 
             DrawDistributeButtons();
 
@@ -542,6 +607,71 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 return "Back";
             }
+        }
+
+        private void DrawCommonContainerSizeSection()
+        {
+            if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.LocalScale)
+            {
+                InspectorUIUtility.DrawTitle("Volume Size Presets");
+
+                if (InspectorUIUtility.DrawSectionFoldoutWithKey("Volume Size Presets", "Volume Size Presets", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+                {
+                    using (new EditorGUI.IndentLevelScope())
+                    {
+                        DrawSizePresetSection("Button Size Presets", buttonSizePresetsRow1, buttonSizePresetsRow2);
+                        DrawSizePresetSection("Button Group Presets", buttonGroupPresets);
+                        DrawSizePresetSection("Action Bar Presets", actionBarPresets);
+                        DrawSizePresetSection("Dialog Size Presets", dialogPresetsRow1, dialogPresetsRow2);
+                        DrawSizePresetSection("List Menu Presets", listMenuPresets);
+                        DrawSizePresetSection("Menu List Presets", menuListPresets);
+                    }
+                }
+            }
+        }
+
+        private void DrawSizePresetSection(string title, Vector3[] list1, Vector3[] list2 = null)
+        {
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey(title, title, MixedRealityStylesUtility.BoldFoldoutStyle, false))
+            {
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUILayout.Space();
+
+                    DrawSizePresetRow(list1);
+
+                    if (list2 != null)
+                    {
+                        DrawSizePresetRow(list2);
+                    }
+
+                    EditorGUILayout.Space();
+                }
+            }
+        }
+
+        private void DrawSizePresetRow(Vector3[] sizePresets)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                foreach (Vector3 sizePreset in sizePresets)
+                {
+                    if (GUILayout.Button(GenerateMMLabel(sizePreset), GUILayout.MinHeight(30)))
+                    {
+                        instance.transform.localScale = sizePreset;
+                    }
+                }
+            }
+        }
+
+        private string GenerateMMLabel(Vector3 sizePreset)
+        {
+            // Convert to millimeters
+            string xValue = (sizePreset.x * 1000).ToString();
+            string yValue = (sizePreset.y * 1000).ToString();
+            string zValue = (sizePreset.z * 1000).ToString();
+
+            return xValue + "mm x " + yValue + "mm x " + zValue + "mm";
         }
     }
 }
