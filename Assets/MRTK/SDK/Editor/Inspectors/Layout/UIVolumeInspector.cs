@@ -9,9 +9,11 @@ using System.IO;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using UnityEngine.Animations;
 
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
+    [CanEditMultipleObjects]
     [CustomEditor(typeof(UIVolume))]
     public class UIVolumeInspector : UnityEditor.Editor
     {
@@ -25,6 +27,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty leftMargin;
         private SerializedProperty topMargin;
         private SerializedProperty forwardMargin;
+        private SerializedProperty distributeContainerFillX;
+        private SerializedProperty distributeContainerFillY;
+        private SerializedProperty distributeContainerFillZ;
 
         private SerializedProperty fillToParentX;
         private SerializedProperty fillToParentY;
@@ -33,7 +38,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty volumeSizeScaleFactorY;
         private SerializedProperty volumeSizeScaleFactorZ;
 
-        private SerializedProperty anchorPositionOverrideEnabled;
+        private SerializedProperty useAnchorPositioning;
         private SerializedProperty drawCornerPoints;
         private SerializedProperty drawFacePoints;
         private SerializedProperty childVolumeItems;
@@ -42,8 +47,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private Texture xAxisDistributeIcon;
         private Texture yAxisDistributeIcon;
-        private Texture zAxisDistributeIcon;        
-        
+        private Texture zAxisDistributeIcon;
+
+        private Texture xAxisDistributeFillXIcon;
+        private Texture xAxisDistributeFillYIcon;
+        private Texture xAxisDistributeFillZIcon;
+
         private Texture fillParentXIcon;
         private Texture fillParentYIcon;
         private Texture fillParentZIcon;
@@ -142,6 +151,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             leftMargin = serializedObject.FindProperty("leftMargin");
             topMargin = serializedObject.FindProperty("topMargin");
             forwardMargin = serializedObject.FindProperty("forwardMargin");
+            distributeContainerFillX = serializedObject.FindProperty("distributeContainerFillX");
+            distributeContainerFillY = serializedObject.FindProperty("distributeContainerFillY");
+            distributeContainerFillZ = serializedObject.FindProperty("distributeContainerFillZ");
 
             fillToParentX = serializedObject.FindProperty("fillToParentX");
             fillToParentY = serializedObject.FindProperty("fillToParentY");
@@ -151,7 +163,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             volumeSizeScaleFactorY = serializedObject.FindProperty("volumeSizeScaleFactorY");
             volumeSizeScaleFactorZ = serializedObject.FindProperty("volumeSizeScaleFactorZ");
 
-            anchorPositionOverrideEnabled = serializedObject.FindProperty("anchorPositionOverrideEnabled");
+            useAnchorPositioning = serializedObject.FindProperty("useAnchorPositioning");
 
             drawCornerPoints = serializedObject.FindProperty("drawCornerPoints");
             drawFacePoints = serializedObject.FindProperty("drawFacePoints");
@@ -217,6 +229,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             yAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "YAxisDistribute" + ".png");
             zAxisDistributeIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "ZAxisDistribute" + ".png");
 
+            xAxisDistributeFillXIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "XAxisDistributeFillX" + ".png");
+            xAxisDistributeFillYIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "XAxisDistributeFillY" + ".png");
+            xAxisDistributeFillZIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "XAxisDistributeFillZ" + ".png");
+
             fillParentXIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentX" + ".png");
             fillParentYIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentY" + ".png");
             fillParentZIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentZ" + ".png");
@@ -235,26 +251,26 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             using (new EditorGUILayout.HorizontalScope())
             {
-                if (anchorPositionOverrideEnabled.boolValue)
+                if (useAnchorPositioning.boolValue)
                 {
                     GUI.color = Color.cyan;
                 }
 
                 if (GUILayout.Button("Use Anchor Positioning"))
                 {
-                    anchorPositionOverrideEnabled.boolValue = true;
+                    useAnchorPositioning.boolValue = true;
                 }
 
                 GUI.color = previousGUIColor;
 
-                if (!anchorPositionOverrideEnabled.boolValue)
+                if (!useAnchorPositioning.boolValue)
                 {
                     GUI.color = Color.cyan;
                 }
 
                 if (GUILayout.Button("Use Free Positioning"))
                 {
-                    anchorPositionOverrideEnabled.boolValue = false;
+                    useAnchorPositioning.boolValue = false;
                 }
 
                 GUI.color = previousGUIColor;
@@ -339,7 +355,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 int index = 0;
 
                 // Only disable buttons for anchors if anchorPositionOverrideEnabled is true
-                EditorGUI.BeginDisabledGroup(anchorPositionOverrideEnabled.boolValue == false);
+                EditorGUI.BeginDisabledGroup(useAnchorPositioning.boolValue == false);
 
                 for (int i = 0; i < 3; i++)
                 {
@@ -398,26 +414,29 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     {
                         Color previousGUIColor = GUI.color;
 
-                        if (maintainScale.boolValue)
+                        if (childVolumeItem != null)
                         {
-                            GUI.color = Color.cyan;
+                            if (maintainScale.boolValue)
+                            {
+                                GUI.color = Color.cyan;
+                            }
+
+                            using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                            {
+                                Transform transformRef = transform.objectReferenceValue as Transform;
+
+                                GUI.enabled = false;
+                                EditorGUILayout.PropertyField(transform);
+                                EditorGUILayout.PropertyField(scaleToLock);
+                                GUI.enabled = true;
+
+                                EditorGUILayout.PropertyField(maintainScale);
+                            }
+
+                            EditorGUILayout.Space();
+
+                            GUI.color = previousGUIColor;
                         }
-
-                        using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
-                        {
-                            Transform transformRef = transform.objectReferenceValue as Transform;
-
-                            GUI.enabled = false;
-                            EditorGUILayout.PropertyField(transform);
-                            EditorGUILayout.PropertyField(scaleToLock);
-                            GUI.enabled = true;
-
-                            EditorGUILayout.PropertyField(maintainScale);
-                        }
-
-                        EditorGUILayout.Space();
-
-                        GUI.color = previousGUIColor;
                     }
                 }
             }
@@ -453,6 +472,32 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 image = zAxisDistributeIcon
             };
 
+            var xAxisDistributeFillXButtonContent = new GUIContent()
+            {
+                text = " X Axis Container Fill X",
+                image = xAxisDistributeFillXIcon
+            };
+
+            var xAxisDistributeFillYButtonContent = new GUIContent()
+            {
+                text = " X Axis Container Fill Y",
+                image = xAxisDistributeFillYIcon
+            };
+
+            var xAxisDistributeFillZButtonContent = new GUIContent()
+            {
+                text = " X Axis Container Fill Z",
+            };
+
+            var yAxisDistributeFillXButtonContent = new GUIContent(){ text = " Y Axis Container Fill X",};
+            var yAxisDistributeFillYButtonContent = new GUIContent(){ text = " Y Axis Container Fill Y",};
+            var yAxisDistributeFillZButtonContent = new GUIContent(){ text = " Y Axis Container Fill Z",};
+
+            var zAxisDistributeFillXButtonContent = new GUIContent() { text = " Z Axis Container Fill X", };
+            var zAxisDistributeFillYButtonContent = new GUIContent() { text = " Z Axis Container Fill Y", };
+            var zAxisDistributeFillZButtonContent = new GUIContent() { text = " Z Axis Container Fill Z", };
+
+
             InspectorUIUtility.DrawTitle("Distribute Child Transforms");
 
             Color previousGUIColor = GUI.color;
@@ -467,7 +512,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                         GUI.color = Color.cyan;
                     }
 
-                    if (GUILayout.Button(xAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(150)))
+                    if (GUILayout.Button(xAxisDistributeButtonContent, GUILayout.MinHeight(50), GUILayout.MinWidth(190)))
                     {
                         if (xAxisDynamicDistribute.boolValue)
                         {
@@ -486,8 +531,13 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     using (new EditorGUILayout.VerticalScope())
                     {
                         EditorGUILayout.LabelField($"Left Margin Percentage");
-                        leftMargin.floatValue = EditorGUILayout.Slider("", leftMargin.floatValue, 0, 1);
+                        leftMargin.floatValue = EditorGUILayout.Slider("", leftMargin.floatValue, 0, 1); 
                     }
+                }
+
+                if (xAxisDynamicDistribute.boolValue)
+                {
+                    DrawDistributeContainerFill(Axis.X, xAxisDistributeFillXButtonContent, xAxisDistributeFillYButtonContent, xAxisDistributeFillZButtonContent, distributeContainerFillX);
                 }
 
                 using (new EditorGUILayout.HorizontalScope())
@@ -520,6 +570,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     }
                 }
 
+                if (yAxisDynamicDistribute.boolValue)
+                {
+                    DrawDistributeContainerFill(Axis.Y, yAxisDistributeFillXButtonContent, yAxisDistributeFillYButtonContent, yAxisDistributeFillZButtonContent, distributeContainerFillY);
+                }
+
                 using (new EditorGUILayout.HorizontalScope())
                 {
                     // Z Axis Distribution 
@@ -550,8 +605,52 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                         forwardMargin.floatValue = EditorGUILayout.Slider("", forwardMargin.floatValue, 0, 1);
                     }
                 }
-                
+
+                if (zAxisDynamicDistribute.boolValue)
+                {
+                    DrawDistributeContainerFill(Axis.Z, zAxisDistributeFillXButtonContent, zAxisDistributeFillYButtonContent, zAxisDistributeFillZButtonContent, distributeContainerFillZ);
+                }
             }
+        }
+
+        private void DrawDistributeContainerFill(Axis axis, GUIContent button1, GUIContent button2, GUIContent button3, SerializedProperty distributeFillContainer)
+        {
+            SerializedProperty containerFillX = distributeFillContainer.FindPropertyRelative("containerFillX");
+            SerializedProperty containerFillY = distributeFillContainer.FindPropertyRelative("containerFillY");
+            SerializedProperty containerFillZ = distributeFillContainer.FindPropertyRelative("containerFillZ");
+
+            using (new EditorGUI.IndentLevelScope())
+            {
+                if (InspectorUIUtility.DrawSectionFoldoutWithKey($"{axis} Axis Distribute Container Fill", $"{axis} Axis Distribute Container Fill", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        DrawColorToggleButton(containerFillX, button1, 50, 190);
+                        DrawColorToggleButton(containerFillY, button2, 50, 190);
+                        DrawColorToggleButton(containerFillZ, button3, 50, 150);
+                    }
+
+                    EditorGUILayout.Space();
+                }
+            }
+        }
+
+        private void DrawColorToggleButton(SerializedProperty boolProperty, GUIContent buttonContent, int minHeight, int minWidth)
+        {
+            Color previousGUIColor = GUI.color;
+
+            // X Axis Distribution 
+            if (boolProperty.boolValue)
+            {
+                GUI.color = Color.cyan;
+            }
+
+            if (GUILayout.Button(buttonContent, GUILayout.MinHeight(minHeight), GUILayout.MinWidth(minWidth)))
+            {
+                boolProperty.boolValue = !boolProperty.boolValue;
+            }
+
+            GUI.color = previousGUIColor;
         }
 
         private void DrawDebuggingSection()
