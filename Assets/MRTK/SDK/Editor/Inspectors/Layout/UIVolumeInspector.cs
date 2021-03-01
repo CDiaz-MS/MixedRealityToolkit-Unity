@@ -182,7 +182,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             if (!instance.IsRootUIVolume)
             {
-                DrawAnchorPositionOverride();
+                DrawUseAnchorPositioning();
 
                 DrawAnchorButtons();
 
@@ -243,7 +243,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUILayout.PropertyField(volumeSizeOrigin);
         }
 
-        private void DrawAnchorPositionOverride()
+        private void DrawUseAnchorPositioning()
         {
             InspectorUIUtility.DrawTitle("Volume Position");
 

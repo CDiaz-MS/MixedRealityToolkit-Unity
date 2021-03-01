@@ -844,7 +844,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 Distribute(Axis.X);
             }
-
+            
             if (YAxisDynamicDistribute)
             {
                 Distribute(Axis.Y);
@@ -864,171 +864,39 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     UIVolume itemUIVolume = item.gameObject.GetComponent<UIVolume>();
 
-                    // X Axis
                     if (distributeAxis == Axis.X)
                     {
-                        if (distributeContainerFillX.ContainerFillX)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorX = distributeContainerFillX.CalculateScaleFactor(childItems.Count);
-
-                            if (!itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = false;
-                            }
-                        }
-
-                        if (distributeContainerFillX.ContainerFillY)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorY = 1;
-
-                            if (!itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = false;
-                            }
-                        }
-
-                        if (distributeContainerFillX.ContainerFillZ)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorZ = 1;
-
-                            if (!itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = false;
-                            }
-                        }
+                        distributeContainerFillX.UpdateDistributeContainerFillAxis(distributeAxis, itemUIVolume, childItems.Count);
                     }
 
-
-                    // Y Axis
                     if (distributeAxis == Axis.Y)
                     {
-                        if (distributeContainerFillY.ContainerFillX)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorX = 1;
-
-                            if (!itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = false;
-                            }
-                        }
-
-                        if (distributeContainerFillY.ContainerFillY)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorY = distributeContainerFillX.CalculateScaleFactor(childItems.Count);
-                            
-                            if (!itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = false;
-                            }
-                        }
-
-                        if (distributeContainerFillY.ContainerFillZ)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorZ = 1;
-
-                            if (!itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = false;
-                            }
-                        }
+                        distributeContainerFillY.UpdateDistributeContainerFillAxis(distributeAxis, itemUIVolume, childItems.Count);
                     }
 
                     if (distributeAxis == Axis.Z)
                     {
-                        if (distributeContainerFillZ.ContainerFillX)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorX = 1;
-
-                            if (!itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentX)
-                            {
-                                itemUIVolume.FillToParentX = false;
-                            }
-                        }
-
-                        if (distributeContainerFillZ.ContainerFillY)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorY = 1;
-
-                            if (!itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentY)
-                            {
-                                itemUIVolume.FillToParentY = false;
-                            }
-                        }
-
-                        if (distributeContainerFillZ.ContainerFillZ)
-                        {
-                            itemUIVolume.VolumeSizeScaleFactorZ = distributeContainerFillX.CalculateScaleFactor(childItems.Count);
-
-                            if (!itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = true;
-                            }
-                        }
-                        else
-                        {
-                            if (itemUIVolume.FillToParentZ)
-                            {
-                                itemUIVolume.FillToParentZ = false;
-                            }
-                        }
+                        distributeContainerFillY.UpdateDistributeContainerFillAxis(distributeAxis, itemUIVolume, childItems.Count);
                     }
                 }
+            }
+        }
+
+        internal void ResetContainerFillProperties(Axis axis)
+        {
+            if (axis == Axis.X)
+            {
+                distributeContainerFillX.ResetContainerFillProperties(this);
+            }
+
+            if (axis == Axis.Y)
+            {
+                distributeContainerFillY.ResetContainerFillProperties(this);
+            }
+
+            if (axis == Axis.Z)
+            {
+                distributeContainerFillZ.ResetContainerFillProperties(this);
             }
         }
 

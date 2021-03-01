@@ -55,5 +55,85 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             return Mathf.Pow(childCount, -1);
         }
+
+        public void ResetContainerFillProperties(UIVolume itemUIVolume)
+        {
+            ContainerFillX = false;
+            ContainerFillY = false;
+            ContainerFillZ = false;
+
+            EnsureFillPropertyConfiguration(itemUIVolume);
+        }
+
+        public void UpdateDistributeContainerFillAxis(Axis axis, UIVolume itemUIVolume, int childItems)
+        {
+            if (ContainerFillX)
+            {
+                itemUIVolume.VolumeSizeScaleFactorX = axis == Axis.X ? CalculateScaleFactor(childItems) : 1;
+            }
+
+            if (ContainerFillY)
+            {
+                itemUIVolume.VolumeSizeScaleFactorY = axis == Axis.Y ? CalculateScaleFactor(childItems) : 1;
+            }
+
+            if (ContainerFillZ)
+            {
+                itemUIVolume.VolumeSizeScaleFactorZ = axis == Axis.Z ? CalculateScaleFactor(childItems) : 1;
+            }
+
+            EnsureFillPropertyConfiguration(itemUIVolume);
+        }
+
+        private void EnsureFillPropertyConfiguration(UIVolume itemUIVolume)
+        {
+            // X Axis
+            if (ContainerFillX)
+            {
+                if (!itemUIVolume.FillToParentX)
+                {
+                    itemUIVolume.FillToParentX = true;
+                }
+            }
+            else
+            {
+                if (itemUIVolume.FillToParentX)
+                {
+                    itemUIVolume.FillToParentX = false;
+                }
+            }
+
+            // Y Axis 
+            if (ContainerFillY)
+            {
+                if (!itemUIVolume.FillToParentY)
+                {
+                    itemUIVolume.FillToParentY = true;
+                }
+            }
+            else
+            {
+                if (itemUIVolume.FillToParentY)
+                {
+                    itemUIVolume.FillToParentY = false;
+                }
+            }
+
+            // Z Axis 
+            if (ContainerFillZ)
+            {
+                if (!itemUIVolume.FillToParentZ)
+                {
+                    itemUIVolume.FillToParentZ = true;
+                }
+            }
+            else
+            {
+                if (itemUIVolume.FillToParentZ)
+                {
+                    itemUIVolume.FillToParentZ = false;
+                }
+            }
+        }
     }
 }
