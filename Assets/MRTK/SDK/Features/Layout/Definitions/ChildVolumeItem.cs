@@ -36,10 +36,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Vector3 ScaleToLock
         {
             get => scaleToLock;
-            set
-            {
-                scaleToLock = value;
-            }
+            set => scaleToLock = value;
         }
 
         [SerializeField]

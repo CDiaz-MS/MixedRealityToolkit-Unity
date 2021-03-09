@@ -17,7 +17,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
 
-        protected override void Update()
+        public override void Update()
         {
             base.Update();   
 

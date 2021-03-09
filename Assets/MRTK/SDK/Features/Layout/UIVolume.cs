@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEditor;
@@ -22,10 +23,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public AnchorLocation AnchorLocation
         {
             get => anchorLocation;
-            set
-            {
-                anchorLocation = value;
-            }
+            set => anchorLocation = value;
         }
 
         [SerializeField]
@@ -381,7 +379,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         protected virtual void Start() { }
 
-        protected virtual void Update()
+        public virtual void Update()
         {
             SetVolumeSizeOrigin();
 
@@ -436,14 +434,27 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     newScale.x = includeScaleFactor ? (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x) * volumeSizeScaleFactorX : (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x);
                 
+                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
+                    // Check if the prefab is a flexible button
                     if (gameObject.name.Contains("Flexible"))
                     {
                         newScale.x *= 32;
                     }
                 }
-                else
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
                     newScale.x = includeScaleFactor ? UIVolumeParentTransform.localScale.x * volumeSizeScaleFactorX : UIVolumeParentTransform.localScale.x;
+                }
+                else // Text Mesh Pro
+                {
+                    RectTransform rectTransform = transform as RectTransform;
+
+                    float parentChildVolumeRatio = GetTextVolumeRatio(axis);
+
+                    if (parentChildVolumeRatio != 0)
+                    {
+                        rectTransform.sizeDelta = new Vector2((rectTransform.sizeDelta.x * parentChildVolumeRatio) * volumeSizeScaleFactorX, rectTransform.sizeDelta.y);
+                    }
                 }
             }
 
@@ -458,9 +469,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         newScale.y *= 32;
                     }
                 }
-                else
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
                     newScale.y = includeScaleFactor ? UIVolumeParentTransform.localScale.y * volumeSizeScaleFactorY : UIVolumeParentTransform.localScale.y;
+                }
+                else // Text Mesh Pro
+                {
+                    RectTransform rectTransform = transform as RectTransform;
+
+                    float parentChildVolumeRatio = GetTextVolumeRatio(axis);
+
+                    if (parentChildVolumeRatio != 0)
+                    {
+                        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, (rectTransform.sizeDelta.y * parentChildVolumeRatio) * volumeSizeScaleFactorY);
+                    }
                 }
             }
 
@@ -475,7 +497,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         newScale.z *= 16;
                     }
                 }
-                else
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
                     newScale.z = includeScaleFactor ? UIVolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : UIVolumeParentTransform.localScale.z;
                 }
@@ -495,6 +517,35 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     SetMatchParentVolumeSize(axis, false);
                 }
             }
+        }
+
+        private float GetTextVolumeRatio(Axis axis)
+        {
+            RectTransform rectTransform = transform as RectTransform;
+
+            float rectSize;
+
+            if (axis == Axis.X)
+            {
+                rectSize = rectTransform.rect.width;
+            }
+            else if (axis == Axis.Y)
+            {
+                rectSize = rectTransform.rect.height;
+            }
+            else
+            {
+                // Z axis scaling is not supported for rect transforms
+                return 0;
+            }
+
+            float childVolumeAxisDistance = GetAxisDistance(axis);
+
+            float parentVolumeAxisDistance = UIVolumeParentTransform.GetComponent<UIVolume>().GetAxisDistance(axis);
+
+            float parentChildVolumeRatio = parentVolumeAxisDistance / childVolumeAxisDistance;
+
+            return parentChildVolumeRatio;
         }
 
         #region Maintain Scale 
@@ -687,6 +738,22 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Vector3 GetCornerMidPoint(CornerPoint p1, CornerPoint p2)
         {
             return (GetCornerPoint(p1) + GetCornerPoint(p2)) * 0.5f;
+        }
+
+        public float GetAxisDistance(Axis axis)
+        {
+            if (axis == Axis.X)
+            {
+                return Vector3.Distance(GetFacePoint(FacePoint.Left), GetFacePoint(FacePoint.Right));
+            }
+            else if (axis == Axis.Y)
+            {
+                return Vector3.Distance(GetFacePoint(FacePoint.Top), GetFacePoint(FacePoint.Bottom));
+            }
+            else
+            {
+                return Vector3.Distance(GetFacePoint(FacePoint.Forward), GetFacePoint(FacePoint.Back));
+            }
         }
 
         private string[] NameParse(string name)

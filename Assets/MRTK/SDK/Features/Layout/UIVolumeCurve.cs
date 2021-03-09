@@ -107,7 +107,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return ArrayUtility.Find(CurvePoints, (point) => point.PointName == name).Point;
         }
 
-        protected override void Update()
+        public override void Update()
         {
             base.Update();
 

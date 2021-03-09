@@ -1,4 +1,7 @@
-﻿using System.Collections;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -301,22 +304,23 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 image = fillParentZIcon
             };
 
-            // Only disable buttons for anchors if anchorPositionOverrideEnabled is true
-            EditorGUI.BeginDisabledGroup(volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.TextMeshPro);
-
             using (new EditorGUILayout.VerticalScope())
             {
                 DrawVolumeSizeAxisSection(fillToParentX, volumeSizeScaleFactorX, "X", fillToParentXContent);
                 DrawVolumeSizeAxisSection(fillToParentY, volumeSizeScaleFactorY, "Y", fillToParentYContent);
+
+                // Disable Match Z size for text mesh pro volume
+                EditorGUI.BeginDisabledGroup(volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.TextMeshPro);
+
                 DrawVolumeSizeAxisSection(fillToParentZ, volumeSizeScaleFactorZ, "Z", fillToParentZContent);
+
+                EditorGUI.EndDisabledGroup();
             }
 
             if (GUILayout.Button("Equalize Volume Size to Parent"))
             {
                 instance.EqualizeVolumeSizeToParent();
-            }
-
-            EditorGUI.EndDisabledGroup();
+            } 
         }
 
         private void DrawVolumeSizeAxisSection(SerializedProperty axisFillProperty, SerializedProperty axisScaleFactor, string axis, GUIContent icon)

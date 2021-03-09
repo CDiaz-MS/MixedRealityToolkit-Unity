@@ -1035,10 +1035,25 @@ MonoBehaviour:
     point: {x: 0, y: 0, z: 0.008}
   xAxisDynamicDistribute: 0
   leftMargin: 0
+  distributeContainerFillX:
+    distributeAxis: 1
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   yAxisDynamicDistribute: 0
   topMargin: 0
+  distributeContainerFillY:
+    distributeAxis: 2
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   zAxisDynamicDistribute: 0
   forwardMargin: 0
+  distributeContainerFillZ:
+    distributeAxis: 4
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   backMargin: 0
   fillToParentY: 0
   fillToParentX: 0
@@ -1048,7 +1063,7 @@ MonoBehaviour:
   volumeSizeScaleFactorZ: 1
   drawCornerPoints: 0
   drawFacePoints: 0
-  anchorPositionOverrideEnabled: 0
+  useAnchorPositioning: 0
   childVolumeItems:
   - transform: {fileID: 3689983794136030734}
     maintainScale: 0
@@ -1296,10 +1311,25 @@ MonoBehaviour:
     point: {x: 0, y: 0, z: 0.0024975606}
   xAxisDynamicDistribute: 0
   leftMargin: 0
+  distributeContainerFillX:
+    distributeAxis: 1
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   yAxisDynamicDistribute: 1
   topMargin: 0.433
+  distributeContainerFillY:
+    distributeAxis: 2
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   zAxisDynamicDistribute: 0
   forwardMargin: 0
+  distributeContainerFillZ:
+    distributeAxis: 4
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
   backMargin: 0
   fillToParentY: 0
   fillToParentX: 0
@@ -1309,7 +1339,7 @@ MonoBehaviour:
   volumeSizeScaleFactorZ: 1
   drawCornerPoints: 0
   drawFacePoints: 0
-  anchorPositionOverrideEnabled: 1
+  useAnchorPositioning: 1
   childVolumeItems:
   - transform: {fileID: 3689983794049262727}
     maintainScale: 1

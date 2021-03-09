@@ -1,4 +1,7 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Layout;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.MixedReality.Toolkit.UI.Layout;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Collections;
 using System.Collections.Generic;
