@@ -438,7 +438,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     // Check if the prefab is a flexible button
                     if (gameObject.name.Contains("Flexible"))
                     {
-                        newScale.x *= 32;
+                        newScale.x *= 31.25f;
                     }
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
@@ -464,9 +464,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     newScale.y = includeScaleFactor ? (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y) * volumeSizeScaleFactorY : (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y);
 
+                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
+                    // Check if the prefab is a flexible button
                     if (gameObject.name.Contains("Flexible"))
                     {
-                        newScale.y *= 32;
+                        newScale.y *= 31.25f;
                     }
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
@@ -492,9 +494,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     newScale.z = includeScaleFactor ? (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z) * volumeSizeScaleFactorZ : (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z);
 
+                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
+                    // Check if the prefab is a flexible button
                     if (gameObject.name.Contains("Flexible"))
                     {
-                        newScale.z *= 16;
+                        newScale.z *= 62.5f;
                     }
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
