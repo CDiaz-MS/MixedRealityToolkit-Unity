@@ -551,7 +551,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     {
                         GUI.color = Color.cyan;
                     }
-                    if (GUILayout.Button(yAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(150)))
+                    if (GUILayout.Button(yAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(190)))
                     {
                         if (yAxisDynamicDistribute.boolValue)
                         {
@@ -587,7 +587,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                         GUI.color = Color.cyan;
                     }
 
-                    if (GUILayout.Button(zAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(150)))
+                    if (GUILayout.Button(zAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(190)))
                     {
                         if (zAxisDynamicDistribute.boolValue)
                         {
