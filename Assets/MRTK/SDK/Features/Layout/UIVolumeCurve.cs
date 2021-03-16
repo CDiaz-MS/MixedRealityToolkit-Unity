@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -104,7 +105,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private Vector3 GetCurvePoint(string name)
         {
-            return ArrayUtility.Find(CurvePoints, (point) => point.PointName == name).Point;
+            return Array.Find(CurvePoints, (point) => point.PointName == name).Point;
         }
 
         public override void Update()
