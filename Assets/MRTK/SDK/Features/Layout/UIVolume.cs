@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Text.RegularExpressions;
 using TMPro;
 using UnityEditor;
-using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.Animations;
 
@@ -24,6 +22,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             get => anchorLocation;
             set => anchorLocation = value;
+        }
+
+        [SerializeField]
+        private VolumeItemSmoothing anchorPositionSmoothing = new VolumeItemSmoothing();
+
+        public VolumeItemSmoothing AnchorPositionSmoothing
+        {
+            get => anchorPositionSmoothing;
+            set => anchorPositionSmoothing = value;
         }
 
         [SerializeField]
@@ -144,6 +151,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             get => backMargin;
             set => backMargin = value;
+        }
+
+        [SerializeField]
+        private VolumeItemSmoothing distributeSmoothing = new VolumeItemSmoothing();
+
+        public VolumeItemSmoothing DistributeSmoothing
+        {
+            get => distributeSmoothing;
+            set => distributeSmoothing = value;
         }
 
         #endregion
@@ -309,7 +325,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 Gizmos.color = Color.magenta;
                 foreach (var point in UIVolumeCorners)
                 {
-                    Gizmos.DrawSphere(point.Point, 0.02f);
+                    Gizmos.DrawSphere(point.Point, 0.01f);
                 }
             }
 
@@ -318,7 +334,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 Gizmos.color = Color.yellow;
                 foreach (var point in UIVolumeFaces)
                 {
-                    Gizmos.DrawSphere(point.Point, 0.02f);
+                    Gizmos.DrawSphere(point.Point, 0.01f);
                 }
             }
         }
@@ -609,6 +625,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
+        public void SetMaintainScale(bool maintainScale, GameObject target)
+        {
+            UIVolume parentUIVolume = UIVolumeParentTransform.GetComponent<UIVolume>();
+
+            parentUIVolume.PopulateChildObjects();
+
+            if (parentUIVolume != null)
+            {
+                ChildVolumeItem childVolumeItem = parentUIVolume.ChildVolumeItems.Find((item) => item.Transform.gameObject == target);
+                childVolumeItem.MaintainScale = maintainScale;
+            }
+        }
+
         #endregion
 
         #region Corner and Face Point Calculations
@@ -731,12 +760,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public Vector3 GetFacePoint(FacePoint name)
         {
-            return ArrayUtility.Find(UIVolumeFaces, (point) => point.PointName == name.ToString()).Point;
+            return Array.Find(UIVolumeFaces, (point) => point.PointName == name.ToString()).Point;
         }
 
         public Vector3 GetCornerPoint(CornerPoint name)
         {
-            return ArrayUtility.Find(UIVolumeCorners, (point) => point.PointName == name.ToString()).Point;
+            return Array.Find(UIVolumeCorners, (point) => point.PointName == name.ToString()).Point;
         }
 
         public Vector3 GetCornerMidPoint(CornerPoint p1, CornerPoint p2)
@@ -824,7 +853,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 positionZ = UIVolumeParentTransform.position.z + (volumeSizeOffsetParent.z) + -(volumeSizeOffset.z);
             }
 
-            transform.position = new Vector3(positionX, positionY, positionZ);
+            Vector3 newPosition = new Vector3(positionX, positionY, positionZ);
+
+            transform.position = AnchorPositionSmoothing.Smoothing ? Vector3.Lerp(transform.position, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
         }
 
         #region Axis Distribution
@@ -893,7 +924,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                     Vector3 newPosition = new Vector3(newPositionX, newPositionY, newPositionZ);
 
-                    item.position = newPosition;
+                    item.position = DistributeSmoothing.Smoothing ? Vector3.Lerp(item.position, newPosition, DistributeSmoothing.LerpTime * Time.deltaTime) : newPosition;
 
                     if (axis == Axis.Y)
                     {

@@ -23,6 +23,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private UIVolume instance;
 
         private SerializedProperty anchorLocation;
+        private SerializedProperty anchorPositionSmoothing;
 
         private SerializedProperty xAxisDynamicDistribute;
         private SerializedProperty yAxisDynamicDistribute;
@@ -33,6 +34,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty distributeContainerFillX;
         private SerializedProperty distributeContainerFillY;
         private SerializedProperty distributeContainerFillZ;
+        private SerializedProperty distributeSmoothing;
 
         private SerializedProperty fillToParentX;
         private SerializedProperty fillToParentY;
@@ -147,6 +149,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             instance = target as UIVolume;
 
             anchorLocation = serializedObject.FindProperty("anchorLocation");
+            anchorPositionSmoothing = serializedObject.FindProperty("anchorPositionSmoothing");
 
             xAxisDynamicDistribute = serializedObject.FindProperty("xAxisDynamicDistribute");
             yAxisDynamicDistribute = serializedObject.FindProperty("yAxisDynamicDistribute");
@@ -157,6 +160,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             distributeContainerFillX = serializedObject.FindProperty("distributeContainerFillX");
             distributeContainerFillY = serializedObject.FindProperty("distributeContainerFillY");
             distributeContainerFillZ = serializedObject.FindProperty("distributeContainerFillZ");
+            distributeSmoothing = serializedObject.FindProperty("distributeSmoothing");
 
             fillToParentX = serializedObject.FindProperty("fillToParentX");
             fillToParentY = serializedObject.FindProperty("fillToParentY");
@@ -397,6 +401,40 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
 
             GUI.enabled = true;
+
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Anchor Position Smoothing", "Anchor Position Smoothing", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+            {
+                SerializedProperty smoothing = anchorPositionSmoothing.FindPropertyRelative("smoothing");
+                SerializedProperty lerpTime = anchorPositionSmoothing.FindPropertyRelative("lerpTime");
+
+                DrawHorizontalToggleSlider(smoothing, "Use Anchor Position Smoothing", lerpTime, "Lerp Time", 5);
+            }
+        }
+
+        private void DrawHorizontalToggleSlider(SerializedProperty boolProperty, string boolTitle, SerializedProperty floatProperty, string floatTitle, float sliderMax)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                Color previousGUIColor = GUI.color;
+
+                if (boolProperty.boolValue)
+                {
+                    GUI.color = Color.cyan;
+                }
+
+                if (GUILayout.Button(boolTitle, GUILayout.MinHeight(40)))
+                {
+                    boolProperty.boolValue = !boolProperty.boolValue;
+                }
+
+                GUI.color = previousGUIColor;
+
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    EditorGUILayout.LabelField(floatTitle);
+                    floatProperty.floatValue = EditorGUILayout.Slider("", floatProperty.floatValue, 0, sliderMax);
+                }
+            }
         }
 
         private void DrawChildTransformSection()
@@ -614,6 +652,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 {
                     DrawDistributeContainerFill(Axis.Z, zAxisDistributeFillXButtonContent, zAxisDistributeFillYButtonContent, zAxisDistributeFillZButtonContent, distributeContainerFillZ);
                 }
+            }
+
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Distribute Smoothing", "Distribute Smoothing", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+            {
+                SerializedProperty smoothing = distributeSmoothing.FindPropertyRelative("smoothing");
+                SerializedProperty lerpTime = distributeSmoothing.FindPropertyRelative("lerpTime");
+
+                DrawHorizontalToggleSlider(smoothing, "Use Distribute Smoothing", lerpTime, "Lerp Time", 5);
             }
         }
 
