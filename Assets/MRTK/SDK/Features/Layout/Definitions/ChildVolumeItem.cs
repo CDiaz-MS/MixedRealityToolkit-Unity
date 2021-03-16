@@ -47,6 +47,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             Transform = transform;
 
             startParentSize = GetParentContainerSize();
+
+            ScaleToLock = Transform.localScale;
         }
 
         private void AdjustScale(VolumeSizeOrigin volumeSizeOrigin)
