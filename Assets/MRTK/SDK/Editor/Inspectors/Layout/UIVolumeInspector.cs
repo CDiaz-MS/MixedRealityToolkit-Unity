@@ -62,6 +62,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private Texture fillParentYIcon;
         private Texture fillParentZIcon;
 
+        private Texture cornerPointsIcon;
+        private Texture facePointsIcon;
+
         // Size Presets 
 
         private Vector3[] buttonSizePresetsRow1 = new Vector3[4]
@@ -243,6 +246,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             fillParentXIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentX" + ".png");
             fillParentYIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentY" + ".png");
             fillParentZIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FillParentZ" + ".png");
+
+            cornerPointsIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "CornerPoints" + ".png");
+            facePointsIcon = AssetDatabase.LoadAssetAtPath<Texture>("Assets/Icons/" + "FacePoints" + ".png");
         }
 
         private void DrawVolumeSizeOrigin()
@@ -707,12 +713,51 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             InspectorUIUtility.DrawTitle("Debugging Settings");
 
+            var cornerPointsContent = new GUIContent()
+            {
+                text = "Display Corner Points",
+                image = cornerPointsIcon
+            };
+
+            var facePointsContent = new GUIContent()
+            {
+                text = " Display Face Points",
+                image = facePointsIcon
+            };
+
             if (InspectorUIUtility.DrawSectionFoldoutWithKey("Debugging Setting", "Debugging Setting", MixedRealityStylesUtility.BoldFoldoutStyle, false))
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
-                    EditorGUILayout.PropertyField(drawCornerPoints);
-                    EditorGUILayout.PropertyField(drawFacePoints);
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        DrawColorToggleButton(drawCornerPoints, cornerPointsContent, 40, 190);
+                        DrawColorToggleButton(drawFacePoints, facePointsContent, 40, 190);
+                    }
+
+                    EditorGUILayout.Space();
+
+                    EditorGUI.BeginDisabledGroup(true);
+                    EditorGUILayout.Vector3Field("Lossy Scale", instance.transform.lossyScale);
+                    EditorGUILayout.Vector3Field("Local Scale", instance.transform.localScale);
+                    EditorGUILayout.Vector3Field("Size in cm", instance.transform.lossyScale * 100);
+                    EditorGUILayout.Vector3Field("Volume Size Axis Distances", new Vector3(instance.GetAxisDistance(Axis.X), instance.GetAxisDistance(Axis.Y), instance.GetAxisDistance(Axis.Z)));
+                    
+                    if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.TextMeshPro)
+                    {
+                        RectTransform rect = instance.transform as RectTransform;
+
+                        EditorGUILayout.Vector3Field("Lossy * Rect Width/Height", new Vector3(instance.transform.lossyScale.x * rect.rect.width, instance.transform.lossyScale.y * rect.rect.height, 0));
+                    }
+
+                    if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.ColliderBounds)
+                    {
+                        Vector3 colliderBounds = instance.transform.GetColliderBounds().size;
+
+                        EditorGUILayout.Vector3Field("Collider Bounds Size", colliderBounds);
+                    }
+
+                    EditorGUI.EndDisabledGroup();
                 } 
             }
         }
