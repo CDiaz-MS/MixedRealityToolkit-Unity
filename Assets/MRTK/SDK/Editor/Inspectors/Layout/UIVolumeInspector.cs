@@ -22,6 +22,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
     {
         private UIVolume instance;
 
+        private SerializedProperty volumeID;
+        private SerializedProperty volumeSize;
+
         private SerializedProperty anchorLocation;
         private SerializedProperty anchorPositionSmoothing;
 
@@ -151,6 +154,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             instance = target as UIVolume;
 
+            volumeID = serializedObject.FindProperty("volumeID");
+            volumeSize = serializedObject.FindProperty("volumeSize");
+
             anchorLocation = serializedObject.FindProperty("anchorLocation");
             anchorPositionSmoothing = serializedObject.FindProperty("anchorPositionSmoothing");
 
@@ -211,8 +217,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             DrawCommonContainerSizeSection();
 
-            DrawDistributeButtons();
-
+            if (instance.transform.childCount != 0)
+            {
+                DrawDistributeButtons();
+            }
+            
             EditorGUILayout.Space();
 
             DrawDebuggingSection();
@@ -443,6 +452,23 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
         }
 
+
+        private void SetMaintainScaleAll(bool isMaintainScaleEnabled)
+        {
+            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Child Volume Transforms", "Child Volume Transforms", MixedRealityStylesUtility.BoldFoldoutStyle, false))
+            {
+                EditorGUILayout.Space();
+
+                for (int i = 0; i < childVolumeItems.arraySize; i++)
+                {
+                    SerializedProperty childVolumeItem = childVolumeItems.GetArrayElementAtIndex(i);
+                    SerializedProperty maintainScale = childVolumeItem.FindPropertyRelative("maintainScale");
+
+                    maintainScale.boolValue = isMaintainScaleEnabled;
+                }
+            }
+        }
+
         private void DrawChildTransformSection()
         {
             InspectorUIUtility.DrawTitle("Child Transforms");
@@ -451,12 +477,18 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 EditorGUILayout.Space();
 
+                if (GUILayout.Button("Set Maintain Scale All"))
+                {
+                    SetMaintainScaleAll(true);
+                }
+
                 for (int i = 0; i < childVolumeItems.arraySize; i++)
                 {
                     SerializedProperty childVolumeItem = childVolumeItems.GetArrayElementAtIndex(i);
                     SerializedProperty transform = childVolumeItem.FindPropertyRelative("transform");
                     SerializedProperty maintainScale = childVolumeItem.FindPropertyRelative("maintainScale");
                     SerializedProperty scaleToLock = childVolumeItem.FindPropertyRelative("scaleToLock");
+                    SerializedProperty uiVolume = childVolumeItem.FindPropertyRelative("uIVolume");
 
                     using (new EditorGUI.IndentLevelScope())
                     {
@@ -476,6 +508,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                                 GUI.enabled = false;
                                 EditorGUILayout.PropertyField(transform);
                                 EditorGUILayout.PropertyField(scaleToLock);
+
+                                if (uiVolume != null)
+                                {
+                                    EditorGUILayout.PropertyField(uiVolume);
+                                }
+                                
                                 GUI.enabled = true;
 
                                 EditorGUILayout.PropertyField(maintainScale);
@@ -738,6 +776,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     EditorGUILayout.Space();
 
                     EditorGUI.BeginDisabledGroup(true);
+
+                    EditorGUILayout.PropertyField(volumeID);
+
+                    EditorGUILayout.Space();
+                    EditorGUILayout.PropertyField(volumeSize);
+                    EditorGUILayout.PropertyField(volumeSizeOrigin);
+                    EditorGUILayout.Space();
+
                     EditorGUILayout.Vector3Field("Lossy Scale", instance.transform.lossyScale);
                     EditorGUILayout.Vector3Field("Local Scale", instance.transform.localScale);
                     EditorGUILayout.Vector3Field("Size in cm", instance.transform.lossyScale * 100);
@@ -782,7 +828,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             int index = Array.IndexOf(anchorLocations, locationName + depthLevelName);
 
-            instance.ChangeAnchorLocation((AnchorLocation)index);
+            instance.UpdateAnchorLocation((AnchorLocation)index);
 
             return (AnchorLocation)index;
         }
