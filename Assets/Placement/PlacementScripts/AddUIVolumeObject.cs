@@ -34,6 +34,8 @@ public class AddUIVolumeObject : MonoBehaviour
             GameObject cube = Instantiate(prefab, transform.parent);
 
             cube.transform.localPosition = position;
+
+
         });
     }
 }
