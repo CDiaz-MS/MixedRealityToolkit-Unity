@@ -12,6 +12,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class ChildVolumeItem
     {
         [SerializeField]
+        private UIVolume uIVolume;
+
+        public UIVolume UIVolume
+        {
+            get => uIVolume;
+            internal set => uIVolume = value;
+        }
+
+        [SerializeField]
         private Transform transform;
 
         public Transform Transform
@@ -68,7 +77,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 // If the volume origin size is local scale, then it is an empty container
                 if (volumeSizeOrigin != VolumeSizeOrigin.LocalScale)
                 {
-                    Transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
+                    if (diffVector.IsValidVector())
+                    {
+                        Transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
+                    }
                 }
             }
         }
@@ -91,6 +103,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     ScaleToLock = Transform.localScale;
                 }
             }
+
+            if (UIVolume == null && Transform.GetComponent<UIVolume>() != null)
+            {
+                UIVolume = Transform.GetComponent<UIVolume>();
+            }
         }
 
         private Vector3 GetParentContainerSize()
@@ -102,18 +119,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             else
             {
                 return Transform.parent.lossyScale;
-            }
-        }
-
-        private Vector3 GetContainerSize()
-        {
-            if (IsUIVolume())
-            {
-                return Transform.GetComponent<UIVolume>().GetVolumeSize();
-            }
-            else
-            {
-                return Transform.localScale;
             }
         }
 

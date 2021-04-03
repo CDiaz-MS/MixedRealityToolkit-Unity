@@ -67,6 +67,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public void UpdateDistributeContainerFillAxis(Axis axis, UIVolume itemUIVolume, int childItems)
         {
+            if (ContainerFillX || ContainerFillX || ContainerFillX)
+            {
+                itemUIVolume.SetMaintainScale(false, itemUIVolume.gameObject);
+            }
+
             if (ContainerFillX)
             {
                 itemUIVolume.VolumeSizeScaleFactorX = axis == Axis.X ? CalculateScaleFactor(childItems) : 1;
