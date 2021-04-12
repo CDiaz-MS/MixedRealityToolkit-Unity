@@ -609,27 +609,26 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 float placementIncrement = GetAxisDistance(axis) / itemsToDistribute.Count;
                 float startPlacement;
 
-                // Offset the first item to appear in the container
-                Bounds bounds = itemsToDistribute[0].Transform.GetColliderBounds();
+                Vector3 volumeSizeOffset = itemsToDistribute[0].UIVolume != null ? itemsToDistribute[0].UIVolume.CalculateVolumeSizeOffset() : itemsToDistribute[0].Transform.GetColliderBounds().extents;
 
                 Vector3 volumeAxisDistance = GetAxisDistances();
 
                 if (axis == Axis.X)
                 {
-                    startPlacement = GetFacePoint(FacePoint.Left).x + bounds.extents.x + (LeftMargin * volumeAxisDistance.x);
+                    startPlacement = GetFacePoint(FacePoint.Left).x + volumeSizeOffset.x + (LeftMargin * volumeAxisDistance.x);
                 }
                 else if (axis == Axis.Y)
                 {
-                    startPlacement = GetFacePoint(FacePoint.Top).y - bounds.extents.y - (TopMargin * volumeAxisDistance.y);
+                    startPlacement = GetFacePoint(FacePoint.Top).y - volumeSizeOffset.y - (TopMargin * volumeAxisDistance.y);
                 }
                 else // Z
                 {
-                    startPlacement = GetFacePoint(FacePoint.Forward).z + bounds.extents.z + (ForwardMargin * volumeAxisDistance.z);
+                    startPlacement = GetFacePoint(FacePoint.Forward).z + volumeSizeOffset.z + (ForwardMargin * volumeAxisDistance.z);
                 }
 
                 foreach (var item in itemsToDistribute)
                 {
-                    //  Anchor positioning cannot be acitve for distribution placement
+                    //  Anchor positioning cannot be active for distribution placement
                     if (item.UIVolume != null)
                     {
                         item.UIVolume.UseAnchorPositioning = false;
