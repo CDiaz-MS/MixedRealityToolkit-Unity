@@ -240,6 +240,25 @@ namespace Microsoft.MixedReality.Toolkit
             positions[BCK] = transform.TransformPoint(center + Vector3.back * extents.z);
         }
 
+        public static void GetFacePositions(this Bounds bounds, ref Vector3[] positions)
+        {
+            Vector3 center = bounds.center;
+            Vector3 extents = bounds.extents;
+
+            const int numPoints = 6;
+            if (positions == null || positions.Length != numPoints)
+            {
+                positions = new Vector3[numPoints];
+            }
+
+            positions[TOP] = center + Vector3.up * extents.y;
+            positions[BOT] = center + Vector3.down * extents.y;
+            positions[LFT] = center + Vector3.left * extents.x;
+            positions[RHT] = center + Vector3.right * extents.x;
+            positions[FWD] = center + Vector3.forward * extents.z;
+            positions[BCK] = center + Vector3.back * extents.z;
+        }
+
         /// <summary>
         /// Gets all the corner points and mid points from Renderer's Bounds
         /// </summary>
