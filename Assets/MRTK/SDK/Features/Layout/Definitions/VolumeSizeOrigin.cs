@@ -9,7 +9,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     {
         None = 0,
         LocalScale,
+        LossyScale,
         ColliderBounds,
-        TextMeshPro
+        RendererBounds,
+        Custom
     }
 }

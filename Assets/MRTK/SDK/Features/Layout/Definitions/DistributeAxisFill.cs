@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Animations;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
@@ -10,9 +12,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class DistributeAxisFill
     {
         [SerializeField]
-        private Axis distributeAxis;
+        private VolumeAxis distributeAxis;
 
-        public Axis DistributeAxis
+        public VolumeAxis DistributeAxis
         {
             get => distributeAxis;
             internal set => distributeAxis = value;
@@ -46,7 +48,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => containerFillZ = value;
         }
 
-        public DistributeAxisFill(Axis axis)
+        public DistributeAxisFill(VolumeAxis axis)
         {
             distributeAxis = axis;
         }
@@ -65,7 +67,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             EnsureFillPropertyConfiguration(itemUIVolume);
         }
 
-        public void UpdateDistributeContainerFillAxis(Axis axis, UIVolume itemUIVolume, int childItems)
+        public void UpdateDistributeContainerFillAxis(VolumeAxis axis, UIVolume itemUIVolume, int childItems)
         {
             if (ContainerFillX || ContainerFillX || ContainerFillX)
             {
@@ -74,17 +76,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             if (ContainerFillX)
             {
-                itemUIVolume.VolumeSizeScaleFactorX = axis == Axis.X ? CalculateScaleFactor(childItems) : 1;
+                itemUIVolume.VolumeSizeScaleFactorX = axis == VolumeAxis.X ? CalculateScaleFactor(childItems) : 1;
             }
 
             if (ContainerFillY)
             {
-                itemUIVolume.VolumeSizeScaleFactorY = axis == Axis.Y ? CalculateScaleFactor(childItems) : 1;
+                itemUIVolume.VolumeSizeScaleFactorY = axis == VolumeAxis.Y ? CalculateScaleFactor(childItems) : 1;
             }
 
             if (ContainerFillZ)
             {
-                itemUIVolume.VolumeSizeScaleFactorZ = axis == Axis.Z ? CalculateScaleFactor(childItems) : 1;
+                itemUIVolume.VolumeSizeScaleFactorZ = axis == VolumeAxis.Z ? CalculateScaleFactor(childItems) : 1;
             }
 
             EnsureFillPropertyConfiguration(itemUIVolume);
