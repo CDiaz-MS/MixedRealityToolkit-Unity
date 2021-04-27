@@ -5,34 +5,33 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityEngine.Animations;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
     public class UIVolumeFlex : UIVolume
     {
         [SerializeField]
-        private Axis primaryAxis = Axis.X;
+        private VolumeAxis primaryAxis = VolumeAxis.X;
 
-        public Axis PrimaryAxis
+        public VolumeAxis PrimaryAxis
         {
             get => primaryAxis;
             set => primaryAxis = value;
         }
 
         [SerializeField]
-        private Axis secondaryAxis = Axis.Y;
+        private VolumeAxis secondaryAxis = VolumeAxis.Y;
 
-        public Axis SecondaryAxis
+        public VolumeAxis SecondaryAxis
         {
             get => secondaryAxis;
             set => secondaryAxis = value;
         }
 
         [SerializeField]
-        private Axis tertiaryAxis = Axis.Z;
+        private VolumeAxis tertiaryAxis = VolumeAxis.Z;
 
-        public Axis TertiaryAxis
+        public VolumeAxis TertiaryAxis
         {
             get => tertiaryAxis;
             set => tertiaryAxis = value;
@@ -104,31 +103,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => maxXContainerDistance = value;
         }
 
-        //public enum Align
-        //{
-        //    Start,
-        //    Center,
-        //    End
-        //}
-
-        //public enum FlowDirection
-        //{
-        //    None,
-        //    Horizontal, // X
-        //    Vertical, // Y
-        //    Depth, // Z
-        //    HorizontalReverse, // -X
-        //    VerticalReverse, // -Y
-        //    DepthReverse // Z
-        //}
-
-        //public enum WrapDirection
-        //{
-        //    Forward,
-        //    Reverse,
-        //    None
-        //}
-
         protected override void OnDrawGizmos()
         {
             base.OnDrawGizmos();
@@ -167,25 +141,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             float xDistance = GetCurrentXDistance();
 
-            float yOffset = DirectChildUIVolumes[0].GetAxisDistance(UnityEngine.Animations.Axis.Y) + YOffsetMargin;
+            float yOffset = DirectChildUIVolumes[0].GetAxisDistance(VolumeAxis.Y) + YOffsetMargin;
 
-            float currentContainerWidth = GetAxisDistance(Axis.X);
+            float currentContainerWidth = GetAxisDistance(VolumeAxis.X);
 
-            float remainingSpace = GetRemainingSpace(Axis.X, GetChildUIVolumes());
+            float remainingSpace = GetRemainingSpace(VolumeAxis.X, GetChildUIVolumes());
 
             if (remainingSpace >= MinimumXRemainingSpace && remainingSpace <= MaximumXRemainingSpace)
             {
-                Distribute(Axis.X);
+                Distribute(VolumeAxis.X);
             }
             else if (remainingSpace <= MinimumXRemainingSpace)
             {
                 List<UIVolume> transformsRow1 = DirectChildUIVolumes.Take(DirectChildUIVolumes.Count / 2).ToList();
 
-                RowDistribution(Axis.X, transformsRow1);
+                RowDistribution(VolumeAxis.X, transformsRow1);
 
                 List<UIVolume> transformsRow2 = DirectChildUIVolumes.Skip(DirectChildUIVolumes.Count / 2).Take(DirectChildUIVolumes.Count / 2).ToList();
 
-                RowDistribution(Axis.X, transformsRow2, true);
+                RowDistribution(VolumeAxis.X, transformsRow2, true);
             }
         }
 
@@ -227,7 +201,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        public void RowDistribution(Axis axis, List<UIVolume> childrenToDistribute, bool YSpace = false)
+        public void RowDistribution(VolumeAxis axis, List<UIVolume> childrenToDistribute, bool YSpace = false)
         {
             Vector3 allChildSize = GetAxisSurfaceArea(childrenToDistribute);
 
@@ -238,18 +212,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             float axisPriorityDistance = GetAxisDistance(axis);
             float remainingSpace;
 
-            if (axis == Axis.X)
+            if (axis == VolumeAxis.X)
             {
                 startPosition = GetFacePoint(FacePoint.Left) + (Vector3.right * bounds.extents.x);
 
-                if (SecondaryAxis == Axis.Y && YSpace)
+                if (SecondaryAxis == VolumeAxis.Y && YSpace)
                 {
                     startPosition.y -= YOffsetMargin;
                 }
                 
                 remainingSpace = axisPriorityDistance - allChildSize.x;
             }
-            else if (axis == Axis.Y)
+            else if (axis == VolumeAxis.Y)
             {
                 startPosition = GetFacePoint(FacePoint.Top) + (Vector3.up * bounds.extents.y);
                 remainingSpace = axisPriorityDistance - allChildSize.y;
@@ -278,11 +252,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         : newPosition;
                 }
 
-                if (axis == Axis.X)
+                if (axis == VolumeAxis.X)
                 {
                     startPosition.x += increment;
                 }
-                else if (axis == Axis.Y)
+                else if (axis == VolumeAxis.Y)
                 {
                     startPosition.y += increment;
                 }
@@ -305,7 +279,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     Debug.LogError($"{childVolume.UIVolumeParentTransform.gameObject} does not have {gameObject.name} as the parent");
                 }
 
-                Vector3 volumeSize = new Vector3(childVolume.GetAxisDistance(Axis.X), childVolume.GetAxisDistance(Axis.Y), childVolume.GetAxisDistance(Axis.Z));
+                Vector3 volumeSize = new Vector3(childVolume.GetAxisDistance(VolumeAxis.X), childVolume.GetAxisDistance(VolumeAxis.Y), childVolume.GetAxisDistance(VolumeAxis.Z));
 
                 axisSizes.Add(volumeSize);
             }
@@ -320,20 +294,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return allChildSize;
         }
         
-
-        public float GetRemainingSpace(Axis axis, List<UIVolume> uiVolume)
+        public float GetRemainingSpace(VolumeAxis axis, List<UIVolume> uiVolume)
         {
-            if (axis == Axis.X)
+            if (axis == VolumeAxis.X)
             {
-                return GetAxisDistance(Axis.X) - GetAxisSurfaceArea(uiVolume).x;
+                return GetAxisDistance(VolumeAxis.X) - GetAxisSurfaceArea(uiVolume).x;
             }
-            else if(axis == Axis.Y)
+            else if(axis == VolumeAxis.Y)
             {
-                return GetAxisDistance(Axis.Y) - GetAxisSurfaceArea(uiVolume).y;
+                return GetAxisDistance(VolumeAxis.Y) - GetAxisSurfaceArea(uiVolume).y;
             }
             else
             {
-                return GetAxisDistance(Axis.Z) - GetAxisSurfaceArea(uiVolume).z;
+                return GetAxisDistance(VolumeAxis.Z) - GetAxisSurfaceArea(uiVolume).z;
             }
         }
     }

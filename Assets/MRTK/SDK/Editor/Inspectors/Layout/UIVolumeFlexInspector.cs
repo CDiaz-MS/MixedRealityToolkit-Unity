@@ -78,9 +78,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             DrawContainerDistances();
 
             DrawRemainingSpace();
-
         }
-
 
         private void DrawAxisPriority()
         {
@@ -93,7 +91,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUILayout.Space();
         }
 
-
         private void DrawRemainingSpace()
         {
             EditorGUILayout.Space();
@@ -104,7 +101,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 if (GUILayout.Button("Set Space X as minimum"))
                 {
-                    minimumXRemainingSpace.floatValue = instanceFlex.GetRemainingSpace(UnityEngine.Animations.Axis.X, instanceFlex.DirectChildUIVolumes);
+                    minimumXRemainingSpace.floatValue = instanceFlex.GetRemainingSpace(VolumeAxis.X, instanceFlex.DirectChildUIVolumes);
                 }
             }
 
@@ -114,19 +111,16 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 if (GUILayout.Button("Set Space X as maximum"))
                 {
-                    maximumXRemainingSpace.floatValue = instanceFlex.GetRemainingSpace(UnityEngine.Animations.Axis.X, instanceFlex.DirectChildUIVolumes);
+                    maximumXRemainingSpace.floatValue = instanceFlex.GetRemainingSpace(VolumeAxis.X, instanceFlex.DirectChildUIVolumes);
                 }
             }
 
-
             EditorGUI.BeginDisabledGroup(true);
 
-            EditorGUILayout.FloatField("Remaining Space Between", instanceFlex.GetRemainingSpace(UnityEngine.Animations.Axis.X, instanceFlex.DirectChildUIVolumes));
+            EditorGUILayout.FloatField("Remaining Space Between", instanceFlex.GetRemainingSpace(VolumeAxis.X, instanceFlex.DirectChildUIVolumes));
 
             EditorGUI.EndDisabledGroup();
         }
-
-
 
         private void DrawBetweenDistances()
         {
@@ -150,7 +144,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 }
             }
 
-
             EditorGUI.BeginDisabledGroup(true);
 
             EditorGUILayout.FloatField("Current X Distance Between", instanceFlex.GetCurrentXDistance());
@@ -158,16 +151,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUI.EndDisabledGroup();
         }
 
-
-
-
         private void YSlider()
         {
             yOffsetMargin.floatValue = EditorGUILayout.Slider("Y Offset", yOffsetMargin.floatValue, 0, 1);
-
         }
-
-
+        
         private void DrawContainerDistances()
         {
             // X axis 
@@ -177,7 +165,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 if (GUILayout.Button("Set Current X as minimum"))
                 {
-                    minXContainerDistance.floatValue = instanceFlex.GetAxisDistance(UnityEngine.Animations.Axis.X);
+                    minXContainerDistance.floatValue = instanceFlex.GetAxisDistance(VolumeAxis.X);
                 }
             }
 
@@ -187,7 +175,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 if (GUILayout.Button("Set Current X as maximum"))
                 {
-                    maxXContainerDistance.floatValue = instanceFlex.GetAxisDistance(UnityEngine.Animations.Axis.X);
+                    maxXContainerDistance.floatValue = instanceFlex.GetAxisDistance(VolumeAxis.X);
                 }
             }
         }
