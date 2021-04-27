@@ -1,0 +1,146 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2669483255226194629
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2669483255226194631}
+  - component: {fileID: 2669483255226194630}
+  m_Layer: 0
+  m_Name: Table Volume
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2669483255226194631
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2669483255226194629}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.211, z: 0.005}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2669483255226194630
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2669483255226194629}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4c3806130accbd40bb6c932a2a1b67d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  volumeID: 36920
+  volumeSizeOrigin: 5
+  volumeBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0.5, y: 0.21, z: 0.17}
+  marginBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  paddingBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  uiVolumeCorners:
+  - PointName: LeftBottomForward
+    point: {x: -0.5, y: -0.21, z: -0.17}
+  - PointName: LeftBottomBack
+    point: {x: -0.5, y: -0.21, z: 0.17}
+  - PointName: LeftTopForward
+    point: {x: -0.5, y: 0.21, z: -0.17}
+  - PointName: LeftTopBack
+    point: {x: -0.5, y: 0.21, z: 0.17}
+  - PointName: RightBottomForward
+    point: {x: 0.5, y: -0.21, z: -0.17}
+  - PointName: RightBottomBack
+    point: {x: 0.5, y: -0.21, z: 0.17}
+  - PointName: RightTopForward
+    point: {x: 0.5, y: 0.21, z: -0.17}
+  - PointName: RightTopBack
+    point: {x: 0.5, y: 0.21, z: 0.17}
+  uiVolumeFaces:
+  - PointName: Top
+    point: {x: 0, y: 0.21, z: 0}
+  - PointName: Bottom
+    point: {x: 0, y: -0.21, z: 0}
+  - PointName: Left
+    point: {x: -0.5, y: 0, z: 0}
+  - PointName: Right
+    point: {x: 0.5, y: 0, z: 0}
+  - PointName: Back
+    point: {x: 0, y: 0, z: 0.17}
+  - PointName: Forward
+    point: {x: 0, y: 0, z: -0.17}
+  drawCornerPoints: 1
+  drawFacePoints: 1
+  volumeMesh: {fileID: 0}
+  childVolumeItems: []
+  OnChildCountChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnVolumeSizeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  anchorLocation: 0
+  anchorPositionSmoothing:
+    smoothing: 0
+    lerpTime: 3
+  useCustomStartPosition: 0
+  distributionStartPosition: {x: 0, y: 0, z: 0}
+  xAxisDynamicDistribute: 0
+  leftMargin: 0
+  distributeContainerFillX:
+    distributeAxis: 1
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
+  yAxisDynamicDistribute: 0
+  topMargin: 0
+  distributeContainerFillY:
+    distributeAxis: 2
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
+  zAxisDynamicDistribute: 0
+  forwardMargin: 0
+  distributeContainerFillZ:
+    distributeAxis: 4
+    containerFillX: 0
+    containerFillY: 0
+    containerFillZ: 0
+  backMargin: 0
+  distributeSmoothing:
+    smoothing: 0
+    lerpTime: 3
+  fillToParentY: 0
+  fillToParentX: 0
+  fillToParentZ: 0
+  volumeSizeScaleFactorX: 1
+  volumeSizeScaleFactorY: 1
+  volumeSizeScaleFactorZ: 1
+  useAnchorPositioning: 1
+  backPlateObject: {fileID: 0}
+  rows: 1
+  cols: 1
+  depth: 1
+  matchRowsToChildren: 0
+  matchColsToChildren: 1
+  matchDepthToChildren: 0
+  disableObjectsWithoutGridPosition: 0
+  drawGrid: 0
+  primaryFlowAxis: 0
+  secondaryFlowAxis: 2
+  tertiaryFlowAxis: 4
