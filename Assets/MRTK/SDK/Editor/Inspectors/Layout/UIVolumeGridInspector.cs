@@ -34,6 +34,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private SerializedProperty minWidth;
 
+        private SerializedProperty allowCustomPositionSet;
+
         public override void OnEnable()
         {
             base.OnEnable();
@@ -59,6 +61,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             includeInactiveTransforms = serializedObject.FindProperty("includeInactiveTransforms");
 
             minWidth = serializedObject.FindProperty("minWidth");
+            allowCustomPositionSet = serializedObject.FindProperty("allowCustomPositionSet");
         }
 
         public override void OnInspectorGUI()
@@ -77,6 +80,13 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         }
 
 
+        public override void OnSceneGUI()
+        {
+            base.OnSceneGUI();
+
+            //instanceGrid.SyncObjectPositionsToGridPositions();
+        }
+
         private void DrawFlowSection()
         {
             InspectorUIUtility.DrawTitle("Flow Settings");
@@ -88,7 +98,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawAxisAlignment()
         {
-            EditorGUILayout.PropertyField(axisAlignment);
+            EditorGUILayout.PropertyField(allowCustomPositionSet);
+
+            InspectorUIUtility.DrawTitle("Display Grid");
+
+            EditorGUILayout.PropertyField(drawGrid);
 
         }
 
@@ -108,19 +122,19 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             EditorGUI.EndDisabledGroup();
 
+            EditorGUILayout.PropertyField(axisAlignment);
+
             EditorGUILayout.PropertyField(matchRowsToChildren);
             EditorGUILayout.PropertyField(matchColsToChildren);
             EditorGUILayout.PropertyField(matchDepthToChildren);
 
-            EditorGUILayout.PropertyField(drawGrid);
+            
             EditorGUILayout.PropertyField(disableObjectsWithoutGridPosition);
             EditorGUILayout.PropertyField(includeInactiveTransforms);
 
             EditorGUILayout.PropertyField(minWidth);
 
         }
-
-
 
     }
 }

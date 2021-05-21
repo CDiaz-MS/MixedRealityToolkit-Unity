@@ -12,6 +12,7 @@ using System.IO;
 using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using UnityEditor.IMGUI.Controls;
 
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
@@ -24,24 +25,17 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty volumeID;
         private SerializedProperty volumeSize;
         private SerializedProperty volumeBounds;
+
         private SerializedProperty marginBounds;
-        private SerializedProperty paddingBounds;
+        private SerializedProperty marginLeftAndRightMM;
+        private SerializedProperty marginTopAndBottomMM;
+        private SerializedProperty marginForwardAndBackMM;
+        private SerializedProperty editMargin;
 
-        private SerializedProperty anchorLocation;
         private SerializedProperty anchorPositionSmoothing;
-
-        private SerializedProperty distributionStartPosition;
-        private SerializedProperty useCustomStartPosition;
-        private SerializedProperty xAxisDynamicDistribute;
-        private SerializedProperty yAxisDynamicDistribute;
-        private SerializedProperty zAxisDynamicDistribute;
-        private SerializedProperty leftMargin;
-        private SerializedProperty topMargin;
-        private SerializedProperty forwardMargin;
-        private SerializedProperty distributeContainerFillX;
-        private SerializedProperty distributeContainerFillY;
-        private SerializedProperty distributeContainerFillZ;
-        private SerializedProperty distributeSmoothing;
+        private SerializedProperty xAnchorPosition;
+        private SerializedProperty yAnchorPosition;
+        private SerializedProperty zAnchorPosition;
 
         private SerializedProperty fillToParentX;
         private SerializedProperty fillToParentY;
@@ -72,9 +66,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private Texture cornerPointsIcon;
         private Texture facePointsIcon;
 
-
-
         private SerializedProperty size;
+
+        private BoxBoundsHandle volumeBoundsHandle = new BoxBoundsHandle();
+        private BoxBoundsHandle marginBoundsHandle = new BoxBoundsHandle();
 
         // Size Presets 
 
@@ -156,82 +151,118 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private string[] dictionaryKeys; 
 
-        private string[] anchorLocations = Enum.GetNames(typeof(AnchorLocation)).ToArray();
-
-
-        public void OnSceneGUI()
+        public virtual void OnSceneGUI()
         {
-            //var color = new Color(1, 0.8f, 0.4f, 1);
-            //Handles.color = color;
-
-            //EditorGUI.BeginChangeCheck();
-            //Vector3 position = Handles.PositionHandle(distributionStartPosition.vector3Value, Quaternion.identity);
-            //distributionStartPosition.vector3Value = position;
+            if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.Custom)
+            {
+                DrawHandleBounds(volumeBoundsHandle, Color.magenta, instance.VolumeSize);
+            }
 
 
-
-
-
-            //if (EditorGUI.EndChangeCheck())
-            //{
-            //    //Undo.RecordObject(example, "Change Look At Target Position");
-            //    instance.DistributionStartPosition = distributionStartPosition.vector3Value;
-            //    instance.Distribute(Axis.X);
-            //    Debug.Log("Changed");
-            //    //example.Update();
-            //}
-
-
-            //// display object "value" in scene
-            //GUI.color = color;
-            //Handles.Label(position, "Distribution Start Position");
-
-
-            //Debug.Log(volumeBounds.boundsValue.size);
-
-
-
-            //Handles.color = Color.red;
-
-      
-
-            //Handles.DrawWireCube(volumeBounds.boundsValue.center, volumeBounds.boundsValue.size);
-
+            SerializedProperty marginSize = marginBounds.FindPropertyRelative("size");
+            
+            if (editMargin.boolValue)
+            {
+                DrawHandleBounds(marginBoundsHandle, Color.red, instance.MarginBounds.Size);
+            }
+            
         }
 
+        private void DrawHandleBounds(BoxBoundsHandle handle, Color color, Vector3 size)
+        { 
+            using (new Handles.DrawingScope(color, GetLocalMatrix()))
+            {
+                handle.center = Vector3.zero;
+                handle.size = size;
 
+                DrawHandleDirectionLabels(handle, Color.green);
 
+                EditorGUI.BeginChangeCheck();
+
+                Handles.DrawWireCube(handle.center, handle.size);
+
+                handle.DrawHandle();
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Undo.RecordObject(instance, "Layout Item Size");
+
+                    SetHandleSize(handle);
+                }
+            }
+        }
+
+        private Vector3 SetHandleSize(BoxBoundsHandle handle)
+        {
+            Vector3 newSize = Vector3.zero;
+
+            if (handle == marginBoundsHandle)
+            {
+                newSize.x = handle.size.x < instance.VolumeSize.x ? instance.VolumeSize.x : handle.size.x;
+                newSize.y = handle.size.y < instance.VolumeSize.y ? instance.VolumeSize.y : handle.size.y;
+                newSize.z = handle.size.z < instance.VolumeSize.z ? instance.VolumeSize.z : handle.size.z;
+
+                instance.MarginBounds.Size = newSize;
+            }
+            else
+            {
+                newSize = handle.size;
+
+                instance.VolumeBounds.Size = newSize;
+            }
+
+            return newSize;
+        }
+
+        private void DrawHandleDirectionLabels(BoxBoundsHandle handle, Color textColor)
+        {
+            GUIStyle style = new GUIStyle();
+            style.normal.textColor = textColor;
+
+            Handles.Label(handle.center + ((handle.size.x * 0.5f) * Vector3.right), "Right", style);
+            Handles.Label(handle.center + ((handle.size.x * 0.5f) * Vector3.left), "Left", style);
+            Handles.Label(handle.center + ((handle.size.y * 0.5f) * Vector3.up), "Up", style);
+            Handles.Label(handle.center + ((handle.size.y * 0.5f) * Vector3.down), "Down", style);
+            Handles.Label(handle.center + ((handle.size.z * 0.5f) * Vector3.forward), "Back", style);
+            Handles.Label(handle.center + ((handle.size.z * 0.5f) * Vector3.back), "Forward", style);
+        }
+
+        private Matrix4x4 GetLocalMatrix()
+        {
+            return Matrix4x4.TRS(instance.transform.position, instance.transform.rotation, Vector3.one);
+        }
+
+        private Matrix4x4 GetParentMatrix()
+        {
+            return Matrix4x4.TRS(instance.transform.parent.position, instance.transform.parent.rotation, instance.transform.parent.lossyScale);
+        }
+
+        private Matrix4x4 GetMatrix()
+        {
+            return instance.transform.parent != null ? GetParentMatrix() : GetLocalMatrix();
+        }
+
+       
         public virtual void OnEnable()
         {
             instance = target as UIVolume;
 
             volumeID = serializedObject.FindProperty("volumeID");
 
-
-
-            
-
             volumeBounds = serializedObject.FindProperty("volumeBounds");
+
             marginBounds = serializedObject.FindProperty("marginBounds");
-            paddingBounds = serializedObject.FindProperty("paddingBounds");
+            marginLeftAndRightMM = serializedObject.FindProperty("marginLeftAndRightMM");
+            marginTopAndBottomMM = serializedObject.FindProperty("marginTopAndBottomMM");
+            marginForwardAndBackMM = serializedObject.FindProperty("marginForwardAndBackMM");
+            editMargin = serializedObject.FindProperty("editMargin");
 
             size = volumeBounds.FindPropertyRelative("size");
 
-            anchorLocation = serializedObject.FindProperty("anchorLocation");
             anchorPositionSmoothing = serializedObject.FindProperty("anchorPositionSmoothing");
-
-            distributionStartPosition = serializedObject.FindProperty("distributionStartPosition");
-            useCustomStartPosition = serializedObject.FindProperty("useCustomStartPosition");
-            xAxisDynamicDistribute = serializedObject.FindProperty("xAxisDynamicDistribute");
-            yAxisDynamicDistribute = serializedObject.FindProperty("yAxisDynamicDistribute");
-            zAxisDynamicDistribute = serializedObject.FindProperty("zAxisDynamicDistribute");
-            leftMargin = serializedObject.FindProperty("leftMargin");
-            topMargin = serializedObject.FindProperty("topMargin");
-            forwardMargin = serializedObject.FindProperty("forwardMargin");
-            distributeContainerFillX = serializedObject.FindProperty("distributeContainerFillX");
-            distributeContainerFillY = serializedObject.FindProperty("distributeContainerFillY");
-            distributeContainerFillZ = serializedObject.FindProperty("distributeContainerFillZ");
-            distributeSmoothing = serializedObject.FindProperty("distributeSmoothing");
+            xAnchorPosition = serializedObject.FindProperty("xAnchorPosition");
+            yAnchorPosition = serializedObject.FindProperty("yAnchorPosition");
+            zAnchorPosition = serializedObject.FindProperty("zAnchorPosition");
 
             fillToParentX = serializedObject.FindProperty("fillToParentX");
             fillToParentY = serializedObject.FindProperty("fillToParentY");
@@ -258,13 +289,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             serializedObject.Update();
 
-            DrawVolumeBoundsProperties();
-
-
-
-
-
-
             if (!instance.IsRootUIVolume)
             {
                 DrawUseAnchorPositioning();
@@ -281,15 +305,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 InspectorUIUtility.DrawWarning("This UIVolume is the root transform");
 
-                DrawBackPlateSection();
+                //DrawBackPlateSection();
             }
+
+            DrawVolumeBoundsProperties();
 
             DrawCommonContainerSizeSection();
-
-            if (instance.transform.childCount != 0)
-            {
-                DrawDistributeButtons();
-            }
             
             EditorGUILayout.Space();
 
@@ -336,16 +357,67 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             InspectorUIUtility.DrawTitle("Volume Bounds");
 
             EditorGUILayout.Space();
-            EditorGUILayout.PropertyField(volumeBounds);
-            EditorGUILayout.LabelField("Volume Size: " + instance.VolumeSize.ToString("F6"));
 
-            //EditorGUILayout.Space();
-            //EditorGUILayout.PropertyField(marginBounds);
-            //EditorGUILayout.LabelField("Margin Size: " + instance.MarginBounds.size.ToString("F6"));
+            EditorGUI.BeginDisabledGroup(volumeSizeOrigin.enumValueIndex != (int)VolumeSizeOrigin.Custom);
+        
+            EditorGUILayout.PropertyField(volumeBounds, true);
 
-            //EditorGUILayout.Space();
-            //EditorGUILayout.PropertyField(paddingBounds);
-            //EditorGUILayout.LabelField("Padding Size: " + instance.PaddingBounds.size.ToString("F6"));
+            if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.LossyScale || volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.LocalScale)
+            {
+                EditorGUILayout.HelpBox($"The VolumeSizeOrigin is set to Lossy or Local Scale.  Change the scale of the object to change the size of the volume.  Set the VolumeSizeOrigin to Custom to modify the size of the volume independent from scale.", MessageType.Info);
+            }
+            else if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.RendererBounds)
+            {
+                EditorGUILayout.HelpBox($"The VolumeSizeOrigin is set to Renderer Bounds.  Set the VolumeSizeOrigin to Custom to modify the size of the volume independent from scale.", MessageType.Info);
+            }
+            else if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.ColliderBounds)
+            {
+                EditorGUILayout.HelpBox($"The VolumeSizeOrigin is set to Collider Bounds.  Set the VolumeSizeOrigin to Custom to modify the size of the volume independent from scale.", MessageType.Info);
+            }
+
+            EditorGUI.EndDisabledGroup();            
+            
+            EditorGUILayout.PropertyField(marginBounds);
+            EditorGUILayout.PropertyField(editMargin);
+
+            if (GUILayout.Button("Set Margin to VolumeBounds Size"))
+            {
+                instance.MarginBounds.Size = instance.VolumeBounds.Size;
+                marginBoundsHandle.size = instance.MarginBounds.Size;
+            }
+
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(marginLeftAndRightMM);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(instance, "Undo Margin Left and Right");
+                instance.MarginLeftAndRightMM = marginLeftAndRightMM.floatValue;
+                marginBoundsHandle.size = instance.MarginBounds.Size;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(marginTopAndBottomMM);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(instance, "Undo Margin Top and Bottom");
+                instance.MarginTopAndBottomMM = marginTopAndBottomMM.floatValue;
+            }
+
+            EditorGUI.BeginChangeCheck();
+
+            EditorGUILayout.PropertyField(marginForwardAndBackMM);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(instance, "Undo Margin Forward and Back");
+                instance.MarginForwardAndBackMM = marginForwardAndBackMM.floatValue;
+            }
+            
         }
 
         private void DrawUseAnchorPositioning()
@@ -410,6 +482,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 DrawVolumeSizeAxisSection(fillToParentX, volumeSizeScaleFactorX, "X", fillToParentXContent);
                 DrawVolumeSizeAxisSection(fillToParentY, volumeSizeScaleFactorY, "Y", fillToParentYContent);
+                DrawVolumeSizeAxisSection(fillToParentZ, volumeSizeScaleFactorZ, "Z", fillToParentZContent);
             }
 
             if (GUILayout.Button("Equalize Volume Size to Parent"))
@@ -453,6 +526,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 int index = 0;
 
+                EditorGUILayout.PropertyField(xAnchorPosition);
+                EditorGUILayout.PropertyField(yAnchorPosition);
+                EditorGUILayout.PropertyField(zAnchorPosition);
+
                 // Only disable buttons for anchors if anchorPositionOverrideEnabled is true
                 EditorGUI.BeginDisabledGroup(useAnchorPositioning.boolValue == false);
 
@@ -472,7 +549,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                                 image = icons[index]
                             };
 
-                            if (instance.AnchorLocation.ToString().StartsWith(dictionaryKeys[index]))
+                            string anchorPositionName = GetCurrentAnchorPositionName();
+
+                            if (anchorPositionName.StartsWith(dictionaryKeys[index]))
                             {
                                 GUI.color = Color.cyan;
                             }
@@ -500,6 +579,22 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 DrawHorizontalToggleSlider(smoothing, "Use Anchor Position Smoothing", lerpTime, "Lerp Time", 5);
             }
+        }
+
+        private string GetCurrentAnchorPositionName()
+        {
+            int yPositionEnumValue = yAnchorPosition.enumValueIndex;
+            string yPositionName = ((YAnchorPosition)yPositionEnumValue).ToString();
+
+            int xPositionEnumValue = xAnchorPosition.enumValueIndex;
+            string xPositionName = ((XAnchorPosition)xPositionEnumValue).ToString();
+
+            int zPositionEnumValue = zAnchorPosition.enumValueIndex;
+            string zPositionName = ((ZAnchorPosition)zPositionEnumValue).ToString();
+
+            string anchorPositionName = yPositionName + xPositionName + zPositionName;
+
+            return anchorPositionName;
         }
 
         private void DrawHorizontalToggleSlider(SerializedProperty boolProperty, string boolTitle, SerializedProperty floatProperty, string floatTitle, float sliderMax)
@@ -614,178 +709,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
         }
 
-        private void DrawDistributeButtons()
-        {
-            var xAxisDistributeButtonContent = new GUIContent()
-            {
-                text = " X Axis Distribute",
-                image = xAxisDistributeIcon
-            };
-
-            var yAxisDistributeButtonContent = new GUIContent()
-            {
-                text = " Y Axis Distribute",
-                image = yAxisDistributeIcon
-            };
-
-            var zAxisDistributeButtonContent = new GUIContent()
-            {
-                text = " Z Axis Distribute",
-                image = zAxisDistributeIcon
-            };
-
-            var xAxisDistributeFillXButtonContent = new GUIContent()
-            {
-                text = " X Axis Container Fill X",
-                image = xAxisDistributeFillXIcon
-            };
-
-            var xAxisDistributeFillYButtonContent = new GUIContent()
-            {
-                text = " X Axis Container Fill Y",
-                image = xAxisDistributeFillYIcon
-            };
-
-            var xAxisDistributeFillZButtonContent = new GUIContent()
-            {
-                text = " X Axis Container Fill Z",
-            };
-
-            var yAxisDistributeFillXButtonContent = new GUIContent(){ text = " Y Axis Container Fill X",};
-            var yAxisDistributeFillYButtonContent = new GUIContent(){ text = " Y Axis Container Fill Y",};
-            var yAxisDistributeFillZButtonContent = new GUIContent(){ text = " Y Axis Container Fill Z",};
-
-            var zAxisDistributeFillXButtonContent = new GUIContent() { text = " Z Axis Container Fill X", };
-            var zAxisDistributeFillYButtonContent = new GUIContent() { text = " Z Axis Container Fill Y", };
-            var zAxisDistributeFillZButtonContent = new GUIContent() { text = " Z Axis Container Fill Z", };
-
-
-            InspectorUIUtility.DrawTitle("Distribute Child Transforms");
-
-            Color previousGUIColor = GUI.color;
-
-            using (new EditorGUILayout.VerticalScope())
-            {
-                EditorGUILayout.PropertyField(useCustomStartPosition);
-                EditorGUILayout.PropertyField(distributionStartPosition);
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    // X Axis Distribution 
-                    if (xAxisDynamicDistribute.boolValue)
-                    {
-                        GUI.color = Color.cyan;
-                    }
-
-                    if (GUILayout.Button(xAxisDistributeButtonContent, GUILayout.MinHeight(50), GUILayout.MinWidth(190)))
-                    {
-                        if (xAxisDynamicDistribute.boolValue)
-                        {
-                            xAxisDynamicDistribute.boolValue = false;
-                        }
-                        else
-                        {
-                            xAxisDynamicDistribute.boolValue = true;
-                            yAxisDynamicDistribute.boolValue = false;
-                            zAxisDynamicDistribute.boolValue = false;
-                        }
-                    }
-
-                    GUI.color = previousGUIColor;
-
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField($"Left Margin Percentage");
-                        leftMargin.floatValue = EditorGUILayout.Slider("", leftMargin.floatValue, 0, 1); 
-                    }
-                }
-
-                if (xAxisDynamicDistribute.boolValue)
-                {
-                    DrawDistributeContainerFill(VolumeAxis.X, xAxisDistributeFillXButtonContent, xAxisDistributeFillYButtonContent, xAxisDistributeFillZButtonContent, distributeContainerFillX);
-                }
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    // Y Axis Distribution 
-                    if (yAxisDynamicDistribute.boolValue)
-                    {
-                        GUI.color = Color.cyan;
-                    }
-                    if (GUILayout.Button(yAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(190)))
-                    {
-                        if (yAxisDynamicDistribute.boolValue)
-                        {
-                            yAxisDynamicDistribute.boolValue = false;
-                        }
-                        else
-                        {
-                            yAxisDynamicDistribute.boolValue = true;
-                            xAxisDynamicDistribute.boolValue = false;
-                            zAxisDynamicDistribute.boolValue = false;
-                        }
-                    }
-
-                    GUI.color = previousGUIColor;
-
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField($"Top Margin Percentage");
-                        topMargin.floatValue = EditorGUILayout.Slider("", topMargin.floatValue, 0, 1);
-                    }
-                }
-
-                if (yAxisDynamicDistribute.boolValue)
-                {
-                    DrawDistributeContainerFill(VolumeAxis.Y, yAxisDistributeFillXButtonContent, yAxisDistributeFillYButtonContent, yAxisDistributeFillZButtonContent, distributeContainerFillY);
-                }
-
-                using (new EditorGUILayout.HorizontalScope())
-                {
-                    // Z Axis Distribution 
-                    if (zAxisDynamicDistribute.boolValue)
-                    {
-                        GUI.color = Color.cyan;
-                    }
-
-                    if (GUILayout.Button(zAxisDistributeButtonContent, GUILayout.MinHeight(40), GUILayout.MinWidth(190)))
-                    {
-                        if (zAxisDynamicDistribute.boolValue)
-                        {
-                            zAxisDynamicDistribute.boolValue = false;
-                        }
-                        else
-                        {
-                            zAxisDynamicDistribute.boolValue = true;
-                            xAxisDynamicDistribute.boolValue = false;
-                            yAxisDynamicDistribute.boolValue = false;
-                        }
-                    }
-
-                    GUI.color = previousGUIColor;
-
-                    using (new EditorGUILayout.VerticalScope())
-                    {
-                        EditorGUILayout.LabelField($"Forward Margin Percentage");
-                        forwardMargin.floatValue = EditorGUILayout.Slider("", forwardMargin.floatValue, 0, 1);
-                    }
-                }
-
-                if (zAxisDynamicDistribute.boolValue)
-                {
-                    DrawDistributeContainerFill(VolumeAxis.Z, zAxisDistributeFillXButtonContent, zAxisDistributeFillYButtonContent, zAxisDistributeFillZButtonContent, distributeContainerFillZ);
-                }
-            }
-
-            if (InspectorUIUtility.DrawSectionFoldoutWithKey("Distribute Smoothing", "Distribute Smoothing", MixedRealityStylesUtility.BoldFoldoutStyle, false))
-            {
-                SerializedProperty smoothing = distributeSmoothing.FindPropertyRelative("smoothing");
-                SerializedProperty lerpTime = distributeSmoothing.FindPropertyRelative("lerpTime");
-
-                DrawHorizontalToggleSlider(smoothing, "Use Distribute Smoothing", lerpTime, "Lerp Time", 5);
-            }
-        }
-
         private void DrawDistributeContainerFill(VolumeAxis axis, GUIContent button1, GUIContent button2, GUIContent button3, SerializedProperty distributeFillContainer)
         {
             SerializedProperty containerFillX = distributeFillContainer.FindPropertyRelative("containerFillX");
@@ -859,7 +782,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     EditorGUILayout.PropertyField(volumeID);
 
                     EditorGUILayout.Space();
-                    //EditorGUILayout.PropertyField(volumeSize);
                     EditorGUILayout.PropertyField(volumeSizeOrigin);
                     EditorGUILayout.Space();
 
@@ -882,7 +804,47 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void ChangeDepthLevel(string locationName, int depthLevel)
         {
-            instance.AnchorLocation = GetAnchorLocation(locationName, depthLevel);
+            if (depthLevel == 0)
+            {
+                instance.ZAnchorPosition = ZAnchorPosition.Forward;
+            }
+            if (depthLevel == 1)
+            {
+                instance.ZAnchorPosition = ZAnchorPosition.Center;
+            }
+            if (depthLevel == 2)
+            {
+                instance.ZAnchorPosition = ZAnchorPosition.Back;
+            }
+
+            if (locationName.StartsWith("Top"))
+            {
+                instance.YAnchorPosition = YAnchorPosition.Top;
+            }
+            if (locationName.StartsWith("Center"))
+            {
+                instance.YAnchorPosition = YAnchorPosition.Center;
+            }
+            if (locationName.StartsWith("Bottom"))
+            {
+                instance.YAnchorPosition = YAnchorPosition.Bottom;
+            }
+
+
+            if (locationName.EndsWith("Left"))
+            {
+                instance.XAnchorPosition = XAnchorPosition.Left;
+            }
+            if (locationName.EndsWith("Center"))
+            {
+                instance.XAnchorPosition = XAnchorPosition.Center;
+            }
+            if (locationName.EndsWith("Right"))
+            {
+                instance.XAnchorPosition = XAnchorPosition.Right;
+            }
+
+            instance.UpdateAnchorPosition();
 
             if (depthLevelDictionary[locationName] != 2)
             {
@@ -894,32 +856,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
         }
 
-        private AnchorLocation GetAnchorLocation(string locationName, int depthLevel)
-        {
-            string depthLevelName = GetDepthLevelName(depthLevel);
-
-            int index = Array.IndexOf(anchorLocations, locationName + depthLevelName);
-
-            instance.UpdateAnchorLocation((AnchorLocation)index);
-
-            return (AnchorLocation)index;
-        }
-
-        private string GetDepthLevelName(int depthLevel)
-        {
-            if (depthLevel == 0)
-            {
-                return "Forward";
-            }
-            else if (depthLevel == 1)
-            {
-                return "Center";
-            }
-            else 
-            {
-                return "Back";
-            }
-        }
 
         private void DrawCommonContainerSizeSection()
         {
