@@ -4,43 +4,24 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public enum AnchorLocation 
+    public enum XAnchorPosition
     {
-        TopLeftForward = 0,
-        TopLeftCenter,
-        TopLeftBack,
+        Left = 0,
+        Center,
+        Right
+    }
 
-        TopCenterForward,
-        TopCenterCenter,
-        TopCenterBack,
+    public enum YAnchorPosition
+    {
+        Top = 0,
+        Center,
+        Bottom
+    }
 
-        TopRightForward,
-        TopRightCenter,
-        TopRightBack,
-
-        CenterLeftForward,
-        CenterLeftCenter,
-        CenterLeftBack,
-
-        CenterCenterForward,
-        CenterCenterCenter,
-        CenterCenterBack,
-
-        CenterRightForward,
-        CenterRightCenter,
-        CenterRightBack,
-        
-        BottomLeftForward,
-        BottomLeftCenter,
-        BottomLeftBack,
-
-        BottomCenterForward,
-        BottomCenterCenter,
-        BottomCenterBack,
-
-
-        BottomRightForward,
-        BottomRightCenter,
-        BottomRightBack
+    public enum ZAnchorPosition
+    {
+        Forward = 0,
+        Center,
+        Back
     }
 }

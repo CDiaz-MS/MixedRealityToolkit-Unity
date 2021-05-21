@@ -12,7 +12,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class VolumeGridNode
     {
         public string Name;
-        public Bounds CellBounds;
+        public VolumeBounds CellBounds;
         public GameObject CellGameObject;
         public Transform CellGameObjectTransform;
         public Vector3 Coordinates;

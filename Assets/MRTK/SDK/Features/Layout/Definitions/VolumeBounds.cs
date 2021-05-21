@@ -110,10 +110,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             localFacePositions[0] = Center + (Rotation * (Vector3.up * Extents.y)); // Top
             localFacePositions[1] = Center + (Rotation * (Vector3.down * Extents.y)); // Bottom
-            localFacePositions[2] = Center + (Rotation * (Vector3.left * Extents.x));
-            localFacePositions[3] = Center + (Rotation * (Vector3.right * Extents.x));
-            localFacePositions[4] = Center + (Rotation * (Vector3.forward * Extents.z));
-            localFacePositions[5] = Center + (Rotation * (Vector3.back * Extents.z));
+            localFacePositions[2] = Center + (Rotation * (Vector3.left * Extents.x)); // Left 
+            localFacePositions[3] = Center + (Rotation * (Vector3.right * Extents.x)); // Right
+            localFacePositions[4] = Center + (Rotation * (Vector3.forward * Extents.z)); // Back
+            localFacePositions[5] = Center + (Rotation * (Vector3.back * Extents.z)); // forward
 
             return localFacePositions;
         }
