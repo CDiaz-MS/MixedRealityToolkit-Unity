@@ -3,9 +3,6 @@
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
@@ -14,12 +11,30 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class UIVolume : BaseVolume
     {
         [SerializeField]
-        private AnchorLocation anchorLocation;
+        private XAnchorPosition xAnchorPosition;
 
-        public AnchorLocation AnchorLocation
+        public XAnchorPosition XAnchorPosition
         {
-            get => anchorLocation;
-            set => anchorLocation = value;
+            get => xAnchorPosition;
+            set => xAnchorPosition = value;
+        }
+
+        [SerializeField]
+        private YAnchorPosition yAnchorPosition;
+
+        public YAnchorPosition YAnchorPosition
+        {
+            get => yAnchorPosition;
+            set => yAnchorPosition = value;
+        }
+
+        [SerializeField]
+        private ZAnchorPosition zAnchorPosition;
+
+        public ZAnchorPosition ZAnchorPosition
+        {
+            get => zAnchorPosition;
+            set => zAnchorPosition = value;
         }
 
         [SerializeField]
@@ -30,132 +45,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => anchorPositionSmoothing;
             set => anchorPositionSmoothing = value;
         }
-
-        #region Distribute Properties
-
-        // X Axis
-        [SerializeField]
-        private bool useCustomStartPosition = false;
-
-        public bool UseCustomStartPosition
-        {
-            get => useCustomStartPosition;
-            set => useCustomStartPosition = value;
-        }
-
-        // X Axis
-        [SerializeField]
-        private Vector3 distributionStartPosition;
-
-        public Vector3 DistributionStartPosition
-        {
-            get => distributionStartPosition;
-            set => distributionStartPosition = value;
-        }
-
-        // X Axis
-        [SerializeField]
-        private bool xAxisDynamicDistribute = false;
-
-        public bool XAxisDynamicDistribute
-        {
-            get => xAxisDynamicDistribute;
-            set => xAxisDynamicDistribute = value;
-        }
-
-        [SerializeField]
-        private float leftMargin = 0;
-
-        // X Axis
-        public float LeftMargin
-        {
-            get => leftMargin;
-            set => leftMargin = value;
-        }
-
-        [SerializeField]
-        private DistributeAxisFill distributeContainerFillX = new DistributeAxisFill(VolumeAxis.X);
-
-        public DistributeAxisFill DistributeContainerFillX
-        {
-            get => distributeContainerFillX;
-            set => distributeContainerFillX = value;
-        }
-
-        // Y Axis
-        [SerializeField]
-        private bool yAxisDynamicDistribute = false;
-
-        public bool YAxisDynamicDistribute
-        {
-            get => yAxisDynamicDistribute;
-            set => yAxisDynamicDistribute = value;
-        }
-
-        [SerializeField]
-        private float topMargin = 0;
-
-        public float TopMargin
-        {
-            get => topMargin;
-            set => topMargin = value;
-        }
-
-        [SerializeField]
-        private DistributeAxisFill distributeContainerFillY = new DistributeAxisFill(VolumeAxis.Y);
-
-        public DistributeAxisFill DistributeContainerFillY
-        {
-            get => distributeContainerFillY;
-            set => distributeContainerFillY = value;
-        }
-
-        [SerializeField]
-        private bool zAxisDynamicDistribute = false;
-
-        public bool ZAxisDynamicDistribute
-        {
-            get => zAxisDynamicDistribute;
-            set => zAxisDynamicDistribute = value;
-        }
-
-        [SerializeField]
-        private float forwardMargin = 0;
-
-        public float ForwardMargin
-        {
-            get => forwardMargin;
-            set => forwardMargin = value;
-        }
-
-        [SerializeField]
-        private DistributeAxisFill distributeContainerFillZ = new DistributeAxisFill(VolumeAxis.Z);
-
-        public DistributeAxisFill DistributeContainerFillZ
-        {
-            get => distributeContainerFillZ;
-            set => distributeContainerFillZ = value;
-        }
-
-        [SerializeField]
-        private float backMargin = 0;
-
-        public float BackMargin
-        {
-            get => backMargin;
-            set => backMargin = value;
-        }
-
-        [SerializeField]
-        private VolumeItemSmoothing distributeSmoothing = new VolumeItemSmoothing();
-
-        public VolumeItemSmoothing DistributeSmoothing
-        {
-            get => distributeSmoothing;
-            set => distributeSmoothing = value;
-        }
-
-        #endregion
 
         #region Volume Size Properties
 
@@ -233,8 +122,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => backPlateObject = value;
         }
 
-        public Vector3 VolumeCenter => transform.position;
-
         // Scale animation when switching volumes
         private Coroutine scaleCoroutine;
         private float scaleStartTime;
@@ -252,11 +139,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public void UpdateSizingBehaviors()
         {
-            UpdateDistribution();
-
             UpdateVolumeSizeMatch();
 
-            UpdateAnchorLocation(AnchorLocation);
+            UpdateAnchorPosition();   
         }
 
         #endregion
@@ -296,20 +181,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         newScale.x *= 31.25f;
                     }
                 }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale || VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
                 {
                     newScale.x = includeScaleFactor ? UIVolumeParentTransform.localScale.x * volumeSizeScaleFactorX : UIVolumeParentTransform.localScale.x;
                 }
-                else // Text Mesh Pro
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
                 {
-                    RectTransform rectTransform = transform as RectTransform;
-
-                    float parentChildVolumeRatio = GetTextVolumeRatio(axis);
-
-                    if (parentChildVolumeRatio != 0)
-                    {
-                        rectTransform.sizeDelta = new Vector2((rectTransform.sizeDelta.x * parentChildVolumeRatio) * volumeSizeScaleFactorX, rectTransform.sizeDelta.y);
-                    }
+                    VolumeBounds.Width = includeScaleFactor ? UIVolumeParent.VolumeSize.x * volumeSizeScaleFactorX : UIVolumeParent.VolumeSize.x;
                 }
             }
 
@@ -330,16 +208,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     newScale.y = includeScaleFactor ? UIVolumeParentTransform.localScale.y * volumeSizeScaleFactorY : UIVolumeParentTransform.localScale.y;
                 }
-                else // Text Mesh Pro
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
                 {
-                    RectTransform rectTransform = transform as RectTransform;
-
-                    float parentChildVolumeRatio = GetTextVolumeRatio(axis);
-
-                    if (parentChildVolumeRatio != 0)
-                    {
-                        rectTransform.sizeDelta = new Vector2(rectTransform.sizeDelta.x, (rectTransform.sizeDelta.y * parentChildVolumeRatio) * volumeSizeScaleFactorY);
-                    }
+                    VolumeBounds.Height = includeScaleFactor ? UIVolumeParent.VolumeSize.y * volumeSizeScaleFactorY : UIVolumeParent.VolumeSize.y;
                 }
             }
 
@@ -360,6 +231,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 {
                     newScale.z = includeScaleFactor ? UIVolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : UIVolumeParentTransform.localScale.z;
                 }
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
+                {
+                    VolumeBounds.Depth = includeScaleFactor ? UIVolumeParent.VolumeSize.z * volumeSizeScaleFactorZ : UIVolumeParent.VolumeSize.z;
+                }
             }
 
             transform.localScale = newScale;
@@ -375,248 +250,56 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        private float GetTextVolumeRatio(VolumeAxis axis)
-        {
-            RectTransform rectTransform = transform as RectTransform;
-
-            float rectSize;
-
-            if (axis == VolumeAxis.X)
-            {
-                rectSize = rectTransform.rect.width;
-            }
-            else if (axis == VolumeAxis.Y)
-            {
-                rectSize = rectTransform.rect.height;
-            }
-            else
-            {
-                // Z axis scaling is not supported for rect transforms
-                return 0;
-            }
-
-            float childVolumeAxisDistance = GetAxisDistance(axis);
-
-            float parentVolumeAxisDistance = UIVolumeParentTransform.GetComponent<UIVolume>().GetAxisDistance(axis);
-
-            float parentChildVolumeRatio = parentVolumeAxisDistance / childVolumeAxisDistance;
-
-            return parentChildVolumeRatio;
-        }
-
-        public void UpdateAnchorLocation(AnchorLocation anchorLocation)
+        public void UpdateAnchorPosition()
         {
             if (UseAnchorPositioning && !IsRootUIVolume)
             {
-                Vector3 volumeSizeOffsetParent = UIVolumeParent.GetVolumeSizeOffset();
-                Vector3 volumeSizeOffset = GetVolumeSizeOffset();
-
                 Vector3 newPosition = Vector3.zero;
+                Vector3 marginDifference = GetMarginDifference() * 0.5f;
 
-                string[] anchorParsed = NameParse(anchorLocation.ToString());
-
-                // Y Position
-                if (anchorParsed[0] == "Top")
+                switch (XAnchorPosition)
                 {
-                    newPosition.y = UIVolumeParentTransform.position.y + (volumeSizeOffsetParent.y) + -(volumeSizeOffset.y);
-                }
-                else if (anchorParsed[0] == "Center")
-                {
-                    newPosition.y = UIVolumeParentTransform.position.y;
-                }
-                else
-                {
-                    newPosition.y = UIVolumeParentTransform.position.y + -(volumeSizeOffsetParent.y) + (volumeSizeOffset.y);
+                    case XAnchorPosition.Left:
+                        newPosition = UIVolumeParent.GetFacePoint(FacePoint.Left) + (UIVolumeParent.VolumeBounds.Right * (VolumeBounds.Extents.x + marginDifference.x));
+                        break;
+                    case XAnchorPosition.Center:
+                        newPosition = UIVolumeParent.VolumeCenter;
+                        break;
+                    case XAnchorPosition.Right:
+                        newPosition = UIVolumeParent.GetFacePoint(FacePoint.Right) + (UIVolumeParent.VolumeBounds.Left * (VolumeBounds.Extents.x + marginDifference.x));
+                        break;
                 }
 
-                // X Position
-                if (anchorParsed[1] == "Left")
+                switch (YAnchorPosition)
                 {
-                    newPosition.x = UIVolumeParentTransform.position.x + -(volumeSizeOffsetParent.x) + (volumeSizeOffset.x);
-                }
-                else if (anchorParsed[1] == "Center")
-                {
-                    newPosition.x = UIVolumeParentTransform.position.x;
-                }
-                else
-                {
-                    newPosition.x = UIVolumeParentTransform.position.x + (volumeSizeOffsetParent.x) + -(volumeSizeOffset.x);
+                    case YAnchorPosition.Top:
+                        newPosition += (UIVolumeParent.VolumeBounds.Up * UIVolumeParent.VolumeBounds.Extents.y) + (UIVolumeParent.VolumeBounds.Down * (VolumeBounds.Extents.y + marginDifference.y));
+                        break;
+                    case YAnchorPosition.Center:
+                        break;
+                    case YAnchorPosition.Bottom:
+                        newPosition += (UIVolumeParent.VolumeBounds.Down * UIVolumeParent.VolumeBounds.Extents.y) + (UIVolumeParent.VolumeBounds.Up * (VolumeBounds.Extents.y + marginDifference.y));
+                        break;
                 }
 
-                // Z Position
-                if (anchorParsed[2] == "Forward")
+                switch (ZAnchorPosition)
                 {
-                    newPosition.z = UIVolumeParentTransform.position.z + -(volumeSizeOffsetParent.z) + (volumeSizeOffset.z);
-                }
-                else if (anchorParsed[2] == "Center")
-                {
-                    newPosition.z = UIVolumeParentTransform.position.z;
-                }
-                else
-                {
-                    newPosition.z = UIVolumeParentTransform.position.z + (volumeSizeOffsetParent.z) + -(volumeSizeOffset.z);
+                    case ZAnchorPosition.Forward:
+                        newPosition += (UIVolumeParent.VolumeBounds.Forward * UIVolumeParent.VolumeBounds.Extents.z) + (UIVolumeParent.VolumeBounds.Back * (VolumeBounds.Extents.z + marginDifference.z));
+                        break;
+                    case ZAnchorPosition.Center:
+                        break;
+                    case ZAnchorPosition.Back:
+                        newPosition += (UIVolumeParent.VolumeBounds.Back * UIVolumeParent.VolumeBounds.Extents.z) + (UIVolumeParent.VolumeBounds.Forward * (VolumeBounds.Extents.z + marginDifference.z));
+                        break;
                 }
 
                 if (newPosition.IsValidVector())
                 {
-                    transform.position = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(transform.position, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
+                    VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
                 }
             }
         }
-
-        #region Axis Distribution
-
-        public void Distribute(VolumeAxis axis)
-        {
-            if (gameObject.transform.childCount > 0)
-            {
-                List<ChildVolumeItem> itemsToDistribute = ChildVolumeItems;
-
-                // Remove the back plate from the distribution calculation
-                foreach (var item in itemsToDistribute.ToList())
-                {
-                    if (BackPlateObject != null)
-                    {
-                        if (item.Transform == BackPlateObject.transform)
-                        {
-                            itemsToDistribute.Remove(item);
-                        }
-                    }
-
-                    if (!item.Transform.gameObject.activeSelf)
-                    {
-                        itemsToDistribute.Remove(item);
-                    }
-                }
-
-                float placementIncrement = GetAxisDistance(axis) / itemsToDistribute.Count;
-                float startPlacement;
-
-                Vector3 volumeSizeOffset = itemsToDistribute[0].UIVolume != null ? itemsToDistribute[0].UIVolume.GetVolumeSizeOffset() : itemsToDistribute[0].Transform.GetColliderBounds().extents;
-
-                Vector3 volumeAxisDistance = GetAxisDistances();
-
-                if (!UseCustomStartPosition)
-                {
-                    if (axis == VolumeAxis.X)
-                    {
-                        startPlacement = GetFacePoint(FacePoint.Left).x + volumeSizeOffset.x + (LeftMargin * volumeAxisDistance.x);
-                    }
-                    else if (axis == VolumeAxis.Y)
-                    {
-                        startPlacement = GetFacePoint(FacePoint.Top).y - volumeSizeOffset.y - (TopMargin * volumeAxisDistance.y);
-                    }
-                    else // Z
-                    {
-                        startPlacement = GetFacePoint(FacePoint.Forward).z + volumeSizeOffset.z + (ForwardMargin * volumeAxisDistance.z);
-                    }
-                }
-                else
-                {
-                    startPlacement = DistributionStartPosition.x + volumeSizeOffset.x + (LeftMargin * volumeAxisDistance.x);
-                }
-
-
-                foreach (var item in itemsToDistribute)
-                {
-                    //  Anchor positioning cannot be active for distribution placement
-                    if (item.UIVolume != null)
-                    {
-                        item.UIVolume.UseAnchorPositioning = false;
-                    }
-
-                    float newPositionX = axis == VolumeAxis.X ? startPlacement : transform.position.x;
-                    float newPositionY = axis == VolumeAxis.Y ? startPlacement : transform.position.y;
-                    float newPositionZ = axis == VolumeAxis.Z ? startPlacement : transform.position.z;
-
-                    Vector3 newPosition = new Vector3(newPositionX, newPositionY, newPositionZ);
-
-                    if (newPosition.IsValidVector())
-                    {
-                        item.Transform.position = DistributeSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(item.Transform.position, newPosition, DistributeSmoothing.LerpTime * Time.deltaTime) : newPosition;
-                    }
-
-                    // Reverse the Y Axis, start placement from the top of the container
-                    if (axis == VolumeAxis.Y)
-                    {
-                        startPlacement -= placementIncrement;
-                    }
-                    else
-                    {
-                        startPlacement += placementIncrement;
-                    }
-                }
-
-                UpdateContainerFill(axis, itemsToDistribute);
-
-                UIVolumeParentTransform.GetComponent<UIVolume>().UpdateCornerPoints();
-                UIVolumeParentTransform.GetComponent<UIVolume>().UpdateFacePoints();
-            }
-        }
-
-        private void UpdateDistribution()
-        {
-            if (XAxisDynamicDistribute)
-            {
-                Distribute(VolumeAxis.X);
-            }
-
-            if (YAxisDynamicDistribute)
-            {
-                Distribute(VolumeAxis.Y);
-            }
-
-            if (ZAxisDynamicDistribute)
-            {
-                Distribute(VolumeAxis.Z);
-            }
-
-            UpdatePoints();
-        }
-
-        private void UpdateContainerFill(VolumeAxis distributeAxis, List<ChildVolumeItem> childItems)
-        {
-            foreach (var item in childItems)
-            {
-                if (item.UIVolume != null)
-                {
-                    if (distributeAxis == VolumeAxis.X)
-                    {
-                        distributeContainerFillX.UpdateDistributeContainerFillAxis(distributeAxis, item.UIVolume, childItems.Count);
-                    }
-
-                    if (distributeAxis == VolumeAxis.Y)
-                    {
-                        distributeContainerFillY.UpdateDistributeContainerFillAxis(distributeAxis, item.UIVolume, childItems.Count);
-                    }
-
-                    if (distributeAxis == VolumeAxis.Z)
-                    {
-                        distributeContainerFillY.UpdateDistributeContainerFillAxis(distributeAxis, item.UIVolume, childItems.Count);
-                    }
-                }
-            }
-        }
-
-        internal void ResetContainerFillProperties(VolumeAxis axis)
-        {
-            if (axis == VolumeAxis.X)
-            {
-                distributeContainerFillX.ResetContainerFillProperties(this);
-            }
-
-            if (axis == VolumeAxis.Y)
-            {
-                distributeContainerFillY.ResetContainerFillProperties(this);
-            }
-
-            if (axis == VolumeAxis.Z)
-            {
-                distributeContainerFillZ.ResetContainerFillProperties(this);
-            }
-        }
-
-        #endregion
 
         public void SwitchChildVolumes(UIVolume child, UIVolume targetVolume)
         {
@@ -630,21 +313,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             child.transform.position = Vector3.SmoothDamp(child.transform.position, pos, ref velocity ,10 * Time.deltaTime);
 
-            if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
-            {
-                float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
-                float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
-                float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
+            float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
+            float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
+            float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
 
-                Vector3 diff = new Vector3(diffX, diffY, diffZ);
+            Vector3 diff = new Vector3(diffX, diffY, diffZ);
 
-                Vector3 childScale = child.transform.localScale;
+            Vector3 childScale = child.transform.localScale;
 
-                Vector3 targetScale = Vector3.Scale(childScale, diff);
+            Vector3 targetScale = Vector3.Scale(childScale, diff);
 
-                scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale,targetScale));
-            }
-
+            scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale,targetScale));
+            
             SyncChildObjects();
         }
 
