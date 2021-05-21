@@ -15,14 +15,14 @@ public class AnchorWidgetItem : MonoBehaviour
         set => uiVolume = value;
     }
 
-    [SerializeField]
-    private AnchorLocation anchorLocation;
+    //[SerializeField]
+    //private AnchorLocation anchorLocation;
 
-    public AnchorLocation AnchorLocation
-    {
-        get => anchorLocation;
-        set => anchorLocation = value;
-    }
+    //public AnchorLocation AnchorLocation
+    //{
+    //    get => anchorLocation;
+    //    set => anchorLocation = value;
+    //}
 
     [SerializeField]
     private InteractiveElement interactiveElement;
@@ -70,7 +70,7 @@ public class AnchorWidgetItem : MonoBehaviour
                 UIVolume.UseAnchorPositioning = true;
             }
 
-            UIVolume.AnchorLocation = AnchorLocation;
+            //UIVolume.AnchorLocation = AnchorLocation;
         });
 
         touchEvents.OnTouchCompleted.AddListener((touchData) =>

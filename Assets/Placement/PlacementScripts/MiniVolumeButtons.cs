@@ -15,11 +15,15 @@ public class MiniVolumeButtons : MonoBehaviour
 
     public UIVolume TargetContainer;
 
-    public UIVolume MiniVolume;
+    public UIVolumeGrid MiniVolume;
 
     public UIVolume PianoVolume;
     public UIVolume ManipVolume;
     public UIVolume LunarVolume;
+
+    public UIVolume PianoContainer;
+    public UIVolume ManipContainer;
+    public UIVolume LunarContainer;
 
     void Start()
     {
@@ -31,7 +35,7 @@ public class MiniVolumeButtons : MonoBehaviour
         {
             if (TargetContainer.ContainsVolume(PianoVolume))
             {
-                TargetContainer.SwitchChildVolumes(PianoVolume, MiniVolume);
+                TargetContainer.SwitchChildVolumes(PianoVolume, PianoContainer);
             }
         });
 
@@ -39,7 +43,7 @@ public class MiniVolumeButtons : MonoBehaviour
         {
             if (TargetContainer.ContainsVolume(ManipVolume))
             {
-                TargetContainer.SwitchChildVolumes(ManipVolume, MiniVolume);
+                TargetContainer.SwitchChildVolumes(ManipVolume, ManipContainer);
             }
         });
 
@@ -47,7 +51,7 @@ public class MiniVolumeButtons : MonoBehaviour
         {
             if (TargetContainer.ContainsVolume(LunarVolume))
             {
-                TargetContainer.SwitchChildVolumes(LunarVolume, MiniVolume);
+                TargetContainer.SwitchChildVolumes(LunarVolume, LunarContainer);
             }
         });
 
@@ -57,27 +61,53 @@ public class MiniVolumeButtons : MonoBehaviour
 
         toggleOffPiano.OnToggleOff.AddListener(() =>
         {
-            if (MiniVolume.ContainsVolume(PianoVolume))
+            if (PianoContainer.ContainsVolume(PianoVolume))
             {
-                MiniVolume.SwitchChildVolumes(PianoVolume, TargetContainer);
+                if (CanVolumeFit(0.25f))
+                {
+                    PianoContainer.SwitchChildVolumes(PianoVolume, TargetContainer);
+                }
             }
         });
 
         toggleOffManip.OnToggleOff.AddListener(() =>
         {
-            if (MiniVolume.ContainsVolume(ManipVolume))
+            if (ManipContainer.ContainsVolume(ManipVolume))
             {
-                MiniVolume.SwitchChildVolumes(ManipVolume, TargetContainer);
+                if (CanVolumeFit(0.32f))
+                {
+                    ManipContainer.SwitchChildVolumes(ManipVolume, TargetContainer);
+                }
+              
             }
         });
 
         toggleOffLunar.OnToggleOff.AddListener(() =>
         {
-            if (MiniVolume.ContainsVolume(LunarVolume))
+            if (LunarContainer.ContainsVolume(LunarVolume))
             {
-                MiniVolume.SwitchChildVolumes(LunarVolume, TargetContainer);
+                if (CanVolumeFit(0.16f))
+                {
+                    LunarContainer.SwitchChildVolumes(LunarVolume, TargetContainer);
+                }
             }
         });
 
     }
+
+
+    private bool CanVolumeFit(float space)
+    {
+        float targetWidth = TargetContainer.VolumeSize.x;
+        float occupiedSpaceRatio = (TargetContainer.GetOccupiedSpace(VolumeAxis.X) + space) / targetWidth;
+
+        if (occupiedSpaceRatio < 0.8f)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
 }

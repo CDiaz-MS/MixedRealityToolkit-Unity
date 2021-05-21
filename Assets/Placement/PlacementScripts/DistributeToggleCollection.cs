@@ -40,9 +40,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {
-                    UIVolume.XAxisDynamicDistribute = true;
-                    UIVolume.YAxisDynamicDistribute = false;
-                    UIVolume.ZAxisDynamicDistribute = false;
+                    //UIVolume.XAxisDynamicDistribute = true;
+                    //UIVolume.YAxisDynamicDistribute = false;
+                    //UIVolume.ZAxisDynamicDistribute = false;
 
 
                     // Turn off the other toggles
@@ -54,9 +54,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {                   
-                    UIVolume.YAxisDynamicDistribute = true;
-                    UIVolume.ZAxisDynamicDistribute = false;
-                    UIVolume.XAxisDynamicDistribute = false;
+                    //UIVolume.YAxisDynamicDistribute = true;
+                    //UIVolume.ZAxisDynamicDistribute = false;
+                    //UIVolume.XAxisDynamicDistribute = false;
 
                     InteractiveElementToggleList[0].ForceSetToggleStates(false);
                     InteractiveElementToggleList[2].ForceSetToggleStates(false);
@@ -67,9 +67,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {
-                    UIVolume.ZAxisDynamicDistribute = true;
-                    UIVolume.XAxisDynamicDistribute = false;
-                    UIVolume.YAxisDynamicDistribute = false;
+                    //UIVolume.ZAxisDynamicDistribute = true;
+                    //UIVolume.XAxisDynamicDistribute = false;
+                    //UIVolume.YAxisDynamicDistribute = false;
 
                     InteractiveElementToggleList[0].ForceSetToggleStates(false);
                     InteractiveElementToggleList[1].ForceSetToggleStates(false);
