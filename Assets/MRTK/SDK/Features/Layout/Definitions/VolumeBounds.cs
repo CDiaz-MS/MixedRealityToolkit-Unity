@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
 using UnityEngine;
 
 
@@ -61,10 +62,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public Vector3 Extents
         {
-            get
-            {
-                return new Vector3(Width * 0.5f, Height * 0.5f, Depth * 0.5f);
-            }
+            get => Size * 0.5f;
         }
 
         public Vector3 Up
@@ -104,6 +102,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             HostTransform = boundsHostTransform;
         }
 
+        /// <summary>
+        /// Calculates the face point positions of the VolumeBounds in world space based on volume size
+        /// and the host transform's rotation.
+        /// 
+        /// Index and Face Point name:
+        /// [0] == Top
+        /// [1] == Bottom
+        /// [2] == Left
+        /// [3] == Right
+        /// [4] == Back
+        /// [5] == Forward
+        /// </summary>
+        /// <returns>Array of the VolumeBounds face point positions in world space</returns>
         public Vector3[] GetFacePositions()
         {
             Vector3[] localFacePositions = new Vector3[6];
@@ -113,11 +124,26 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             localFacePositions[2] = Center + (Rotation * (Vector3.left * Extents.x)); // Left 
             localFacePositions[3] = Center + (Rotation * (Vector3.right * Extents.x)); // Right
             localFacePositions[4] = Center + (Rotation * (Vector3.forward * Extents.z)); // Back
-            localFacePositions[5] = Center + (Rotation * (Vector3.back * Extents.z)); // forward
+            localFacePositions[5] = Center + (Rotation * (Vector3.back * Extents.z)); // Forward
 
             return localFacePositions;
         }
 
+        /// <summary>
+        /// Calculates the corner point positions of the VolumeBounds in world space based on volume size
+        /// and the host transform's rotation.
+        /// 
+        /// Index and Corner Point name:
+        /// [0] == LeftBottomForward
+        /// [1] == LeftBottomBack
+        /// [2] == LeftTopForward
+        /// [3] == LeftTopBack
+        /// [4] == RightBottomForward
+        /// [5] == RightBottomBack
+        /// [6] == RightTopForward
+        /// [7] == RightTopBack
+        /// </summary>
+        /// <returns>Array of the VolumeBounds corner point positions in world space</returns>
         public Vector3[] GetCornerPositions()
         {
             Vector3[] cornerPositions = new Vector3[8];
@@ -152,6 +178,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return (point1 - point2).normalized;
         }
 
+        public Vector3 GetCornerMidPoint(CornerPoint p1, CornerPoint p2)
+        {
+            return (GetCornerPoint(p1) + GetCornerPoint(p2)) * 0.5f;
+        }
+
+        public Vector3 GetFaceMidPoint(FacePoint p1, FacePoint p2)
+        {
+            return (GetFacePoint(p1) + GetFacePoint(p2)) * 0.5f;
+        }
+
         public bool Contains(Vector3 point)
         {
             if ((point.x > GetFacePoint(FacePoint.Left).x && point.x < GetFacePoint(FacePoint.Right).x) &&
@@ -162,11 +198,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 return true;
             }
 
-
             Debug.DrawLine(GetFacePoint(FacePoint.Left), GetFacePoint(FacePoint.Right));
             Debug.DrawLine(GetFacePoint(FacePoint.Top), GetFacePoint(FacePoint.Bottom));
             Debug.DrawLine(GetFacePoint(FacePoint.Forward), GetFacePoint(FacePoint.Back));
-
 
             Debug.DrawLine(GetFacePoint(FacePoint.Left), GetFacePoint(FacePoint.Back));
             Debug.DrawLine(GetFacePoint(FacePoint.Back), GetFacePoint(FacePoint.Right));
@@ -197,6 +231,5 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             Debug.DrawLine(GetCornerPoint(CornerPoint.RightBottomForward), GetCornerPoint(CornerPoint.RightTopForward), color);
             Debug.DrawLine(GetCornerPoint(CornerPoint.RightBottomBack), GetCornerPoint(CornerPoint.RightTopBack), color);
         }
-
     }
 }

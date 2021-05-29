@@ -12,9 +12,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class ChildVolumeItem
     {
         [SerializeField]
-        private UIVolume uIVolume;
+        private Volume uIVolume;
 
-        public UIVolume UIVolume
+        public Volume UIVolume
         {
             get => uIVolume;
             internal set => uIVolume = value;
@@ -77,7 +77,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 // If the volume origin size is local scale, then it is an empty container
                 if (volumeSizeOrigin != VolumeSizeOrigin.LocalScale)
                 {
-                    if (diffVector.IsValidVector())
+                    if (IsValidVector(diffVector))
                     {
                         Transform.localScale = Vector3.Scale(ScaleToLock, diffVector);
                     }
@@ -104,32 +104,41 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
             }
 
-            if (UIVolume == null && Transform.GetComponent<UIVolume>() != null)
+            if (UIVolume == null && Transform.GetComponent<Volume>() != null)
             {
-                UIVolume = Transform.GetComponent<UIVolume>();
+                UIVolume = Transform.GetComponent<Volume>();
             }
         }
 
         private Vector3 GetParentContainerSize()
         {
-            if (Transform.parent.GetComponent<Collider>() != null)
-            {
-                return Transform.parent.GetColliderBounds().size;
-            }
-            else
-            {
-                return Transform.parent.lossyScale;
-            }
+            return Transform.parent.GetComponent<Volume>().VolumeSize;
+
+            //if (Transform.parent.GetComponent<Collider>() != null)
+            //{
+            //    return Transform.parent.GetColliderBounds().size;
+            //}
+            //else
+            //{
+            //    return Transform.parent.lossyScale;
+            //}
         }
 
         public bool IsUIVolume()
         {
-            return Transform.GetComponent<UIVolume>() != null;
+            return Transform.GetComponent<Volume>() != null;
         }
 
         public bool IsParentUIVolume()
         {
-            return Transform.parent.GetComponent<UIVolume>() != null;
+            return Transform.parent.GetComponent<Volume>() != null;
+        }
+
+
+        public bool IsValidVector(Vector3 vector)
+        {
+            return !float.IsNaN(vector.x) && !float.IsNaN(vector.y) && !float.IsNaN(vector.z) &&
+                   !float.IsInfinity(vector.x) && !float.IsInfinity(vector.y) && !float.IsInfinity(vector.z);
         }
     }
 }

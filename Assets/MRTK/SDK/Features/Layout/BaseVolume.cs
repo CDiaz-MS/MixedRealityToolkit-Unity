@@ -66,79 +66,78 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => marginBounds = value;
         }
 
-        [SerializeField]
-        private float marginLeftAndRightMM = 0;
+        //[SerializeField]
+        //private float marginLeftAndRightMM = 0;
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public float MarginLeftAndRightMM
+        //{
+        //    get => marginLeftAndRightMM;
+        //    set
+        //    {
+        //        marginLeftAndRightMM = value;
+
+        //        float mmToMeters = marginLeftAndRightMM * 0.001f;
+
+        //        MarginBounds.Width = VolumeBounds.Width + (mmToMeters * 2f);
+        //    }
+        //}
+
+
+        //[SerializeField]
+        //private float marginTopAndBottomMM = 0;
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public float MarginTopAndBottomMM
+        //{
+        //    get => marginTopAndBottomMM;
+        //    set
+        //    {
+        //        marginTopAndBottomMM = value;
+
+        //        float mmToMeters = marginTopAndBottomMM * 0.001f;
+
+        //        MarginBounds.Height = VolumeBounds.Height + (mmToMeters * 2f);
+        //    }
+        //}
+
+        //[SerializeField]
+        //private float marginForwardAndBackMM = 0;
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public float MarginForwardAndBackMM
+        //{
+        //    get => marginForwardAndBackMM;
+        //    set
+        //    {
+        //        marginForwardAndBackMM = value;
+
+        //        float mmToMeters = marginForwardAndBackMM * 0.001f;
+
+        //        MarginBounds.Depth = VolumeBounds.Depth + (mmToMeters * 2f);
+        //    }
+        //}
+
+        //[SerializeField]
+        //private bool editMargin;
+
+        ///// <summary>
+        ///// 
+        ///// </summary>
+        //public bool EditMargin
+        //{
+        //    get => editMargin;
+        //    set => editMargin = value;
+        //}
 
         /// <summary>
-        /// 
-        /// </summary>
-        public float MarginLeftAndRightMM
-        {
-            get => marginLeftAndRightMM;
-            set
-            {
-                marginLeftAndRightMM = value;
-
-                float mmToMeters = marginLeftAndRightMM * 0.001f;
-
-                MarginBounds.Width = VolumeBounds.Width + (mmToMeters * 2f);
-            }
-        }
-
-
-        [SerializeField]
-        private float marginTopAndBottomMM = 0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public float MarginTopAndBottomMM
-        {
-            get => marginTopAndBottomMM;
-            set
-            {
-                marginTopAndBottomMM = value;
-
-                float mmToMeters = marginTopAndBottomMM * 0.001f;
-
-                MarginBounds.Height = VolumeBounds.Height + (mmToMeters * 2f);
-            }
-        }
-
-        [SerializeField]
-        private float marginForwardAndBackMM = 0;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public float MarginForwardAndBackMM
-        {
-            get => marginForwardAndBackMM;
-            set
-            {
-                marginForwardAndBackMM = value;
-
-                float mmToMeters = marginForwardAndBackMM * 0.001f;
-
-                MarginBounds.Depth = VolumeBounds.Depth + (mmToMeters * 2f);
-            }
-        }
-
-
-        [SerializeField]
-        private bool editMargin;
-
-        /// <summary>
-        /// 
-        /// </summary>
-        public bool EditMargin
-        {
-            get => editMargin;
-            set => editMargin = value;
-        }
-
-        /// <summary>
-        /// The size of the volume
+        /// The size of the Volume.
         /// </summary>
         public Vector3 VolumeSize
         {
@@ -156,32 +155,54 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             } 
         }
 
+        /// <summary>
+        /// The center of the VolumeBounds.
+        /// </summary>
         public Vector3 VolumeCenter
         {
             get => volumeBounds.Center;
             set => volumeBounds.Center = value;
         }
 
+        /// <summary>
+        /// The position of this volume.
+        /// </summary>
         public Vector3 VolumePosition
         {
             get => transform.position;
             set => transform.position = value;
         }
 
-        [SerializeField]
-        private UIVolumePoint[] uiVolumeCorners = new UIVolumePoint[8];
-
-        public UIVolumePoint[] UIVolumeCorners
+        /// <summary>
+        /// List of the corner point world positions of the VolumeBounds
+        /// 
+        /// [0] == LeftBottomForward
+        /// [1] == LeftBottomBack
+        /// [2] == LeftTopForward
+        /// [3] == LeftTopBack
+        /// [4] == RightBottomForward
+        /// [5] == RightBottomBack
+        /// [6] == RightTopForward
+        /// [7] == RightTopBack
+        /// </summary>
+        public Vector3[] UIVolumeCorners
         {
-            get => uiVolumeCorners;
+            get => VolumeBounds.GetCornerPositions();
         }
 
-        [SerializeField]
-        private UIVolumePoint[] uiVolumeFaces = new UIVolumePoint[6];
-
-        public UIVolumePoint[] UIVolumeFaces
+        /// <summary>
+        /// List of the corner point world positions of the VolumeBounds
+        /// 
+        /// [0] == Top
+        /// [1] == Bottom
+        /// [2] == Left
+        /// [3] == Right
+        /// [4] == Back
+        /// [5] == Forward
+        /// </summary>
+        public Vector3[] UIVolumeFaces
         {
-            get => uiVolumeFaces;
+            get => VolumeBounds.GetFacePositions();
         }
 
         #region Gizmo Properties
@@ -212,16 +233,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => drawFacePoints = value;
         }
 
-        #endregion
-
         [SerializeField]
-        private Mesh volumeMesh;
+        [Tooltip("Draw the VolumeBounds.")]
+        private bool drawVolumeBounds = true;
 
-        public Mesh VolumeMesh
+        /// <summary>
+        /// Draw the VolumeBounds.
+        /// </summary>
+        public bool DrawVolumeBounds
         {
-            get => volumeMesh;
-            set => volumeMesh = value;
+            get => drawVolumeBounds;
+            set => drawVolumeBounds = value;
         }
+
+        #endregion
 
         [SerializeField]
         private List<ChildVolumeItem> childVolumeItems = new List<ChildVolumeItem>();
@@ -232,7 +257,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             private set => childVolumeItems = value;
         }
 
-        public List<UIVolume> DirectChildUIVolumes
+        public List<Volume> DirectChildUIVolumes
         {
             get => GetChildUIVolumes();
         }
@@ -245,11 +270,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         protected string[] cornerNames = Enum.GetNames(typeof(CornerPoint)).ToArray();
         protected string[] faceNames = Enum.GetNames(typeof(FacePoint)).ToArray();
 
-        public Transform rootTransform => transform.parent == null || (transform.parent.GetComponent<UIVolume>() == null) ? transform : transform.parent;
+        public Transform rootTransform => transform.parent == null || (transform.parent.GetComponent<Volume>() == null) ? transform : transform.parent;
 
-        public Transform UIVolumeParentTransform => transform != rootTransform ? transform.parent.GetComponent<UIVolume>().transform : GetComponent<UIVolume>().transform;
+        public Transform UIVolumeParentTransform => transform != rootTransform ? transform.parent.GetComponent<Volume>().transform : GetComponent<Volume>().transform;
 
-        public UIVolume UIVolumeParent => transform != rootTransform ? transform.parent.GetComponent<UIVolume>() : null;
+        public Volume UIVolumeParent => transform != rootTransform ? transform.parent.GetComponent<Volume>() : null;
 
         public bool IsRootUIVolume => (transform == rootTransform);
 
@@ -260,14 +285,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public virtual void Update()
         {
             SyncVolumeHierarchy();
-
-            VolumeBounds.DrawBounds(Color.yellow);
         }
 
         protected virtual void OnEnable()
         {
-            InitializePoints();
-
             volumeID = GetInstanceID();
 
 #if UNITY_EDITOR
@@ -285,7 +306,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 MarginBounds.HostTransform = transform;
             }
-
         }
 
         public virtual void SyncVolumeHierarchy()
@@ -297,20 +317,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             CalculateVolumeBounds();
             UpdateMarginBounds();
-
-            UpdatePoints();
         }
 
         private void CalculateVolumeBounds()
         {
-            
             if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
             {
                 Collider collider = gameObject.transform.GetComponent<Collider>();
 
-                VolumeBounds.Size = collider.bounds.size;
-                VolumeBounds.Center = collider.bounds.center;
-                
+                if (collider != null)
+                {
+                    VolumeBounds.Size = collider.bounds.size;
+                    VolumeBounds.Center = collider.bounds.center;
+                }
+                else
+                {
+                    Debug.Log($"Attach an active collider to {gameObject.name} to use the ColliderBounds VolumeSizeOrigin");
+                }
             }
             else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
             {
@@ -367,21 +390,21 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        protected Vector3 GetVolumeSizeOffset()
-        {
-            if (MarginBounds.Size != VolumeSize)
-            {
-                return MarginBounds.Extents;
-            }
-            else
-            {
-                return VolumeBounds.Extents;
-            }
-        }
+        //protected Vector3 GetVolumeSizeOffset()
+        //{
+        //    if (MarginBounds.Size != VolumeSize)
+        //    {
+        //        return MarginBounds.Extents;
+        //    }
+        //    else
+        //    {
+        //        return VolumeBounds.Extents;
+        //    }
+        //}
 
-        public List<UIVolume> GetChildUIVolumes()
+        public List<Volume> GetChildUIVolumes()
         {
-            List<UIVolume> uiVolumes = new List<UIVolume>();
+            List<Volume> uiVolumes = new List<Volume>();
             
             foreach (var item in ChildVolumeItems)
             {
@@ -470,7 +493,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     item.Transform = transform.GetChild(i);
                 }
 
-                VolumeSizeOrigin childVolumeSizeOrigin = item.IsUIVolume() ? item.Transform.GetComponent<UIVolume>().VolumeSizeOrigin : VolumeSizeOrigin.None;
+                VolumeSizeOrigin childVolumeSizeOrigin = item.IsUIVolume() ? item.Transform.GetComponent<Volume>().VolumeSizeOrigin : VolumeSizeOrigin.None;
 
                 item.OnParentScaleChanged(childVolumeSizeOrigin);
 
@@ -508,7 +531,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public Vector3 GetCornerMidPoint(CornerPoint p1, CornerPoint p2)
         {
-            return (GetCornerPoint(p1) + GetCornerPoint(p2)) * 0.5f;
+            return VolumeBounds.GetCornerMidPoint(p1, p2);
+        }
+
+        public Vector3 GetFaceMidPoint(FacePoint p1, FacePoint p2)
+        {
+            return VolumeBounds.GetFaceMidPoint(p1, p2);
         }
 
         public float GetAxisDistance(VolumeAxis axis)
@@ -527,69 +555,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        protected void UpdateCornerPoints()
-        {
-            Vector3[] positions = VolumeBounds.GetCornerPositions();
-
-            // [0] == LeftBottomForward
-            // [1] == LeftBottomBack
-            // [2] == LeftTopForward
-            // [3] == LeftTopBack
-
-            // [4] == RightBottomForward
-            // [5] == RightBottomBack
-            // [6] == RightTopForward
-            // [7] == RightTopBack
-
-            for (int i = 0; i < UIVolumeCorners.Length; i++)
-            {
-                UIVolumeCorners[i].Point = positions[i];
-            }
-        }
-
-        protected void UpdateFacePoints()
-        {
-            Vector3[] faces = VolumeBounds.GetFacePositions();
-
-            // [0] == Top
-            // [1] == Bottom
-            // [2] == Left
-            // [3] == Right
-            // [4] == Back
-            // [5] == Forward
-
-            for (int i = 0; i < UIVolumeFaces.Length; i++)
-            {
-                UIVolumeFaces[i].Point = faces[i];
-            }
-        }
-
-        public void UpdatePoints()
-        {
-            UpdateCornerPoints();
-            UpdateFacePoints();
-        }
-
-        private void InitializePoints()
-        {
-            for (int i = 0; i < UIVolumeCorners.Length; i++)
-            {
-                UIVolumeCorners[i] = new UIVolumePoint(cornerNames[i]);
-            }
-
-            for (int i = 0; i < UIVolumeFaces.Length; i++)
-            {
-                UIVolumeFaces[i] = new UIVolumePoint(faceNames[i]);
-            }
-        }
-
         public bool CheckExternalVolumeEntered(BaseVolume volume, bool maintainScale = true)
         {
             if (volume.transform.parent != transform)
             {
                 foreach (var cornerPoint in volume.UIVolumeCorners)
                 {
-                    if (!VolumeBounds.Contains(cornerPoint.Point))
+                    if (!VolumeBounds.Contains(cornerPoint))
                     {
                         return false;
                     }
@@ -616,7 +588,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 foreach (var cornerPoint in volume.UIVolumeCorners)
                 {
-                    if (VolumeBounds.Contains(cornerPoint.Point))
+                    if (VolumeBounds.Contains(cornerPoint))
                     {
                         return false;
                     }
@@ -651,7 +623,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public bool GetMaintainScale(GameObject target)
         {
-            UIVolume parentUIVolume = UIVolumeParentTransform.GetComponent<UIVolume>();
+            Volume parentUIVolume = UIVolumeParentTransform.GetComponent<Volume>();
 
             if (parentUIVolume != null)
             {
@@ -676,7 +648,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 if (item.UIVolume == null)
                 {
-                    Debug.LogWarning($"{item.Transform.gameObject.name} does not have a UIVolume attached and has not been included in the remaining space calculation.");
+                    Debug.LogWarning($"{item.Transform.gameObject.name} does not have a Volume attached and has not been included in the remaining space calculation.");
                 }
                 else
                 {
@@ -705,27 +677,36 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         protected virtual void OnDrawGizmos()
         {
             DrawCornerAndFacePoints();
+            DrawVolumeBoundsContainer();
+        }
+
+        private void DrawVolumeBoundsContainer()
+        {
+            if (DrawVolumeBounds)
+            {
+                VolumeBounds.DrawBounds(Color.yellow);
+            }
         }
 
         private void DrawCornerAndFacePoints()
         {
+            float pointRadius = (VolumeBounds.Width + VolumeBounds.Height + VolumeBounds.Depth) * 0.01f;
+
             if (DrawCornerPoints)
             {
                 Gizmos.color = Color.magenta;
-                foreach (var point in VolumeBounds.GetCornerPositions())
+                foreach (var point in UIVolumeCorners)
                 {
-
-                    Gizmos.DrawSphere(point, 0.01f);
-
+                    Gizmos.DrawSphere(point, pointRadius);
                 }
             }
 
             if (DrawFacePoints)
             {
                 Gizmos.color = Color.yellow;
-                foreach (var point in VolumeBounds.GetFacePositions())
+                foreach (var point in UIVolumeFaces)
                 {
-                    Gizmos.DrawSphere(point, 0.01f);
+                    Gizmos.DrawSphere(point, pointRadius);
                 }
             }
         }

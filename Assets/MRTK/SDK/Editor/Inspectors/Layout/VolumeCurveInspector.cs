@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.MixedReality.Toolkit.UI.Layout;
-using Microsoft.MixedReality.Toolkit.Utilities.Editor;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -11,24 +10,25 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
-    [CustomEditor(typeof(UIVolumeCurve))]
-    public class UIVolumeCurveInspector : UIVolumeInspector
+    [CustomEditor(typeof(VolumeCurve))]
+    public class VolumeCurveInspector : VolumeInspector
     {
-        private UIVolumeCurve instanceCurve;
+        private VolumeCurve instanceCurve;
         private SerializedProperty curvePoints;
         private SerializedProperty adjustToCurve;
         private SerializedProperty backPointOverride;
+        private SerializedProperty lineSteps;
 
         public override void OnEnable()
         {
             base.OnEnable();
 
-            instanceCurve = target as UIVolumeCurve;
+            instanceCurve = target as VolumeCurve;
 
             adjustToCurve = serializedObject.FindProperty("adjustToCurve");
-            curvePoints = serializedObject.FindProperty("CurvePoints");
+            curvePoints = serializedObject.FindProperty("curvePoints");
             backPointOverride = serializedObject.FindProperty("backPointOverride");
-
+            lineSteps = serializedObject.FindProperty("lineSteps");
         }
 
         public override void OnInspectorGUI()
@@ -46,7 +46,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawAdjustToCurve()
         {
-            InspectorUIUtility.DrawTitle("Curve Settings");
+            DrawTitle("Curve Settings");
+
+
+            EditorGUILayout.PropertyField(curvePoints);
+            EditorGUILayout.PropertyField(lineSteps);
+
 
             Color previousGUIColor = GUI.color;
 

@@ -12,7 +12,7 @@ using UnityEngine.Events;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class UIVolumeGrid : UIVolume
+    public class VolumeGrid : Volume
     {
         [SerializeField]
         [Min(1)]

@@ -3,12 +3,13 @@
 
 using System;
 using System.Collections;
+using TMPro;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
     [ExecuteAlways]
-    public class UIVolume : BaseVolume
+    public class Volume : BaseVolume
     {
         [SerializeField]
         private XAnchorPosition xAnchorPosition;
@@ -105,7 +106,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         #endregion
 
         [SerializeField]
-        private bool useAnchorPositioning = true;
+        private bool useAnchorPositioning = false;
 
         public bool UseAnchorPositioning
         {
@@ -141,7 +142,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             UpdateVolumeSizeMatch();
 
-            UpdateAnchorPosition();   
+            UpdateAnchorPosition();
+
+            if (BackPlateObject != null)
+            {
+                UpdateTextBackPlateSize();
+            }
         }
 
         #endregion
@@ -294,37 +300,33 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         break;
                 }
 
-                if (newPosition.IsValidVector())
+                if (IsValidVector(newPosition))
                 {
                     VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
                 }
             }
         }
 
-        public void SwitchChildVolumes(UIVolume child, UIVolume targetVolume)
+        public void SwitchChildVolumes(Volume child, Volume targetVolume)
         {
-            UIVolume volumeToSwitch = DirectChildUIVolumes.Find((item) => item == child);
-
+            Volume volumeToSwitch = DirectChildUIVolumes.Find((item) => item == child);
             Vector3 pos = targetVolume.transform.position;
 
             volumeToSwitch.transform.SetParent(targetVolume.transform, true);
-
             Vector3 velocity = Vector3.zero;
 
-            child.transform.position = Vector3.SmoothDamp(child.transform.position, pos, ref velocity ,10 * Time.deltaTime);
+            child.transform.position = Vector3.SmoothDamp(child.transform.position, pos, ref velocity, 10 * Time.deltaTime);
 
             float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
             float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
             float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
 
             Vector3 diff = new Vector3(diffX, diffY, diffZ);
-
             Vector3 childScale = child.transform.localScale;
-
             Vector3 targetScale = Vector3.Scale(childScale, diff);
 
-            scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale,targetScale));
-            
+            scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale, targetScale));
+
             SyncChildObjects();
         }
 
@@ -335,9 +337,43 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             while (t <= 1)
             {
                 t += Time.deltaTime;
-                currentTransform.localScale = Vector3.Lerp(currentScale, targetScale, t*1.5f);
+                currentTransform.localScale = Vector3.Lerp(currentScale, targetScale, t * 1.5f);
                 yield return null;
             }
+        }
+
+
+        public bool IsTextBackPlateCompatible()
+        {
+            if (gameObject.GetComponent<TextMeshPro>() != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void UpdateTextBackPlateSize()
+        {
+            if (IsTextBackPlateCompatible() && BackPlateObject != null)
+            {
+                TMP_Text text = transform.GetComponent<TMP_Text>();
+
+                Vector2 textSize = text.GetPreferredValues();
+
+                BackPlateObject.transform.localPosition = text.textBounds.center + (VolumeBounds.Back * 0.5f);
+                BackPlateObject.transform.rotation = transform.rotation;
+
+                BackPlateObject.transform.localScale = (textSize);
+                BackPlateObject.transform.localScale += Vector3.forward * 0.01f;
+                BackPlateObject.transform.localScale += Vector3.one;
+            }
+        }
+
+        public bool IsValidVector(Vector3 vector)
+        {
+            return !float.IsNaN(vector.x) && !float.IsNaN(vector.y) && !float.IsNaN(vector.z) &&
+                   !float.IsInfinity(vector.x) && !float.IsInfinity(vector.y) && !float.IsInfinity(vector.z);
         }
 
         private void PrintMatrix()
