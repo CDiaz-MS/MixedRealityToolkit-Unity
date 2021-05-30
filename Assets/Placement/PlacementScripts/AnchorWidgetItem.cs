@@ -7,9 +7,9 @@ using UnityEngine;
 public class AnchorWidgetItem : MonoBehaviour
 {
     [SerializeField]
-    private UIVolume uiVolume;
+    private Volume uiVolume;
 
-    public UIVolume UIVolume
+    public Volume UIVolume
     {
         get => uiVolume;
         set => uiVolume = value;
@@ -70,7 +70,7 @@ public class AnchorWidgetItem : MonoBehaviour
                 UIVolume.UseAnchorPositioning = true;
             }
 
-            //UIVolume.AnchorLocation = AnchorLocation;
+            //Volume.AnchorLocation = AnchorLocation;
         });
 
         touchEvents.OnTouchCompleted.AddListener((touchData) =>

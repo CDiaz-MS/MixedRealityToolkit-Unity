@@ -8,9 +8,9 @@ using UnityEngine.Events;
 public class DistributeToggleCollection : MonoBehaviour
 {
     [SerializeField]
-    private UIVolume uiVolume;
+    private Volume uiVolume;
 
-    public UIVolume UIVolume
+    public Volume UIVolume
     {
         get => uiVolume;
         set => uiVolume = value;
@@ -40,9 +40,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {
-                    //UIVolume.XAxisDynamicDistribute = true;
-                    //UIVolume.YAxisDynamicDistribute = false;
-                    //UIVolume.ZAxisDynamicDistribute = false;
+                    //Volume.XAxisDynamicDistribute = true;
+                    //Volume.YAxisDynamicDistribute = false;
+                    //Volume.ZAxisDynamicDistribute = false;
 
 
                     // Turn off the other toggles
@@ -54,9 +54,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {                   
-                    //UIVolume.YAxisDynamicDistribute = true;
-                    //UIVolume.ZAxisDynamicDistribute = false;
-                    //UIVolume.XAxisDynamicDistribute = false;
+                    //Volume.YAxisDynamicDistribute = true;
+                    //Volume.ZAxisDynamicDistribute = false;
+                    //Volume.XAxisDynamicDistribute = false;
 
                     InteractiveElementToggleList[0].ForceSetToggleStates(false);
                     InteractiveElementToggleList[2].ForceSetToggleStates(false);
@@ -67,9 +67,9 @@ public class DistributeToggleCollection : MonoBehaviour
             {
                 toggleOn.OnToggleOn.AddListener(() =>
                 {
-                    //UIVolume.ZAxisDynamicDistribute = true;
-                    //UIVolume.XAxisDynamicDistribute = false;
-                    //UIVolume.YAxisDynamicDistribute = false;
+                    //Volume.ZAxisDynamicDistribute = true;
+                    //Volume.XAxisDynamicDistribute = false;
+                    //Volume.YAxisDynamicDistribute = false;
 
                     InteractiveElementToggleList[0].ForceSetToggleStates(false);
                     InteractiveElementToggleList[1].ForceSetToggleStates(false);

@@ -13,17 +13,17 @@ public class MiniVolumeButtons : MonoBehaviour
     public CompressableButton manipButton;
     public CompressableButton lunarButton;
 
-    public UIVolume TargetContainer;
+    public Volume TargetContainer;
 
-    public UIVolumeGrid MiniVolume;
+    public VolumeGrid MiniVolume;
 
-    public UIVolume PianoVolume;
-    public UIVolume ManipVolume;
-    public UIVolume LunarVolume;
+    public Volume PianoVolume;
+    public Volume ManipVolume;
+    public Volume LunarVolume;
 
-    public UIVolume PianoContainer;
-    public UIVolume ManipContainer;
-    public UIVolume LunarContainer;
+    public Volume PianoContainer;
+    public Volume ManipContainer;
+    public Volume LunarContainer;
 
     void Start()
     {

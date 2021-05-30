@@ -6,11 +6,11 @@ using UnityEngine;
 
 public class PlacementVolumeManager : MonoBehaviour
 {
-    public UIVolume currentChild;
+    public Volume currentChild;
 
-    public UIVolume targetVolume;
+    public Volume targetVolume;
     
-    public UIVolume parentContainer;
+    public Volume parentContainer;
 
     public GameObject newCube;
 

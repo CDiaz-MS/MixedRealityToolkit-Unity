@@ -8,13 +8,13 @@ using UnityEngine;
 
 public class SwitchVolumes : MonoBehaviour
 {
-    public UIVolume volume;
+    public Volume volume;
 
-    public UIVolume child1;
-    public UIVolume child2;
-    public UIVolume child3;
+    public Volume child1;
+    public Volume child2;
+    public Volume child3;
 
-    public UIVolume target;
+    public Volume target;
 
     void Update()
     {

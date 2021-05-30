@@ -11,10 +11,10 @@ public class RendererBounds : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        //Gizmos.matrix = transform.localToWorldMatrix;
-
         Renderer[] renderers = GetComponentsInChildren<Renderer>();
         bounds = renderers[0].bounds;
+
+        // Add all the renderer bounds in the hierarchy 
         foreach (Renderer r in renderers) { bounds.Encapsulate(r.bounds); }
 
         Gizmos.color = Color.yellow;

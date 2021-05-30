@@ -896,8 +896,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abfd3a32ffdb9704388897aa3b25d6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  anchorLocation: 0
-  volumeSizeOrigin: 2
+  volumeID: 0
+  volumeSizeOrigin: 3
+  volumeBounds:
+    size: {x: 1, y: 1, z: 1}
+    center: {x: 0, y: 0, z: 0}
+    hostTransform: {fileID: 0}
+  marginBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  paddingBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
   uiVolumeCorners:
   - PointName: LeftTopForward
     point: {x: -0.07890001, y: 0.016, z: -0.008}
@@ -928,6 +938,53 @@ MonoBehaviour:
     point: {x: -0.06290001, y: 0, z: -0.008}
   - PointName: Back
     point: {x: -0.06290001, y: 0, z: 0.008}
+  drawCornerPoints: 0
+  drawFacePoints: 0
+  volumeMesh: {fileID: 0}
+  childVolumeItems:
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 4137616276893531812}
+    maintainScale: 0
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 2620779919653286052}
+    maintainScale: 0
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 5628808852399226640}
+    maintainScale: 0
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 2181796113960651092}
+    maintainScale: 0
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 2197342626664517704}
+    maintainScale: 0
+    scaleToLock: {x: 0.02092387, y: 0.02092387, z: 0.0074375984}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 4844274983645290634}
+    maintainScale: 0
+    scaleToLock: {x: 0.88716996, y: 0.88716996, z: 0.88716996}
+    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
+  OnChildCountChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnVolumeSizeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  centerToPosition: 1
+  anchorLocation: 0
+  anchorPositionSmoothing:
+    smoothing: 0
+    lerpTime: 3
+  useCustomStartPosition: 0
+  distributionStartPosition: {x: 0, y: 0, z: 0}
   xAxisDynamicDistribute: 0
   leftMargin: 0
   distributeContainerFillX:
@@ -950,40 +1007,16 @@ MonoBehaviour:
     containerFillY: 0
     containerFillZ: 0
   backMargin: 0
+  distributeSmoothing:
+    smoothing: 0
+    lerpTime: 3
   fillToParentY: 0
   fillToParentX: 0
   fillToParentZ: 0
   volumeSizeScaleFactorX: 1
   volumeSizeScaleFactorY: 1
   volumeSizeScaleFactorZ: 1
-  drawCornerPoints: 0
-  drawFacePoints: 0
   useAnchorPositioning: 1
-  childVolumeItems:
-  - transform: {fileID: 4137616276893531812}
-    maintainScale: 0
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
-  - transform: {fileID: 2620779919653286052}
-    maintainScale: 0
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
-  - transform: {fileID: 5628808852399226640}
-    maintainScale: 0
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
-  - transform: {fileID: 2181796113960651092}
-    maintainScale: 0
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
-  - transform: {fileID: 2197342626664517704}
-    maintainScale: 0
-    scaleToLock: {x: 0.02092387, y: 0.02092387, z: 0.0074375984}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
-  - transform: {fileID: 4844274983645290634}
-    maintainScale: 0
-    scaleToLock: {x: 0.88716996, y: 0.88716996, z: 0.88716996}
-    startParentSize: {x: 0.032000005, y: 0.032, z: 0.016}
   backPlateObject: {fileID: 0}
 --- !u!1 &4137616276893531811
 GameObject:
@@ -1410,8 +1443,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: abfd3a32ffdb9704388897aa3b25d6c0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  anchorLocation: 13
+  volumeID: 0
   volumeSizeOrigin: 1
+  volumeBounds:
+    size: {x: 1, y: 1, z: 1}
+    center: {x: 0, y: 0, z: 0}
+    hostTransform: {fileID: 0}
+  marginBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  paddingBounds:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
   uiVolumeCorners:
   - PointName: LeftTopForward
     point: {x: -0.07336194, y: 0.010461935, z: -0.0037187992}
@@ -1442,6 +1485,43 @@ MonoBehaviour:
     point: {x: -0.06290001, y: 0, z: -0.0037187992}
   - PointName: Back
     point: {x: -0.06290001, y: 0, z: 0.0037187992}
+  drawCornerPoints: 0
+  drawFacePoints: 0
+  volumeMesh: {fileID: 0}
+  childVolumeItems:
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 4137616277045822509}
+    maintainScale: 1
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 1, y: 1, z: 1}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 4137616276004600179}
+    maintainScale: 1
+    scaleToLock: {x: 0.32, y: 0.32, z: 0.32}
+    startParentSize: {x: 1, y: 1, z: 1}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 2355740719774638801}
+    maintainScale: 1
+    scaleToLock: {x: 1, y: 1, z: 1}
+    startParentSize: {x: 1, y: 1, z: 1}
+  - uIVolume: {fileID: 0}
+    transform: {fileID: 3830185175538985075}
+    maintainScale: 1
+    scaleToLock: {x: 0.0025, y: 0.0025, z: 0.0025}
+    startParentSize: {x: 1, y: 1, z: 1}
+  OnChildCountChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  OnVolumeSizeChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  centerToPosition: 1
+  anchorLocation: 13
+  anchorPositionSmoothing:
+    smoothing: 0
+    lerpTime: 3
+  useCustomStartPosition: 0
+  distributionStartPosition: {x: 0, y: 0, z: 0}
   xAxisDynamicDistribute: 0
   leftMargin: 0
   distributeContainerFillX:
@@ -1464,32 +1544,16 @@ MonoBehaviour:
     containerFillY: 0
     containerFillZ: 0
   backMargin: 0
+  distributeSmoothing:
+    smoothing: 0
+    lerpTime: 3
   fillToParentY: 0
   fillToParentX: 0
   fillToParentZ: 0
   volumeSizeScaleFactorX: 1
   volumeSizeScaleFactorY: 1
   volumeSizeScaleFactorZ: 1
-  drawCornerPoints: 0
-  drawFacePoints: 0
   useAnchorPositioning: 1
-  childVolumeItems:
-  - transform: {fileID: 4137616277045822509}
-    maintainScale: 1
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 1, y: 1, z: 1}
-  - transform: {fileID: 4137616276004600179}
-    maintainScale: 1
-    scaleToLock: {x: 0.32, y: 0.32, z: 0.32}
-    startParentSize: {x: 1, y: 1, z: 1}
-  - transform: {fileID: 2355740719774638801}
-    maintainScale: 1
-    scaleToLock: {x: 1, y: 1, z: 1}
-    startParentSize: {x: 1, y: 1, z: 1}
-  - transform: {fileID: 3830185175538985075}
-    maintainScale: 1
-    scaleToLock: {x: 0.0025, y: 0.0025, z: 0.0025}
-    startParentSize: {x: 1, y: 1, z: 1}
   backPlateObject: {fileID: 0}
 --- !u!1 &5503693411827914347
 GameObject:

@@ -9,21 +9,21 @@ using UnityEngine;
 
 public class OverlapDetection : MonoBehaviour
 { 
-    public UIVolumeGrid TargetContainer;
+    public VolumeGrid TargetContainer;
 
-    public UIVolumeGrid MiniVolume;
+    public VolumeGrid MiniVolume;
 
-    public UIVolume PianoVolume;
-    public UIVolume ManipVolume;
-    public UIVolume LunarVolume;
+    public Volume PianoVolume;
+    public Volume ManipVolume;
+    public Volume LunarVolume;
 
-    public UIVolume PianoContainer;
-    public UIVolume ManipContainer;
-    public UIVolume LunarContainer;
+    public Volume PianoContainer;
+    public Volume ManipContainer;
+    public Volume LunarContainer;
 
     public GameObject BoundaryVisual;
 
-    private UIVolume volume;
+    private Volume volume;
 
     public ObjectManipulator objectManipulator;
 
@@ -34,7 +34,7 @@ public class OverlapDetection : MonoBehaviour
     private float currentRemainingSpace;
     void Start()
     {
-        volume = gameObject.GetComponent<UIVolume>();
+        volume = gameObject.GetComponent<Volume>();
 
         //objectManipulator = gameObject.GetComponent<ObjectManipulator>();
 
@@ -126,13 +126,13 @@ public class OverlapDetection : MonoBehaviour
 
             GameObject vol = TargetContainer.GetObjectAtCoordinates(coordinates);
 
-            UIVolume lastVolume = vol.GetComponent<UIVolume>();
+            Volume lastVolume = vol.GetComponent<Volume>();
 
             TargetContainer.SwitchChildVolumes(lastVolume, GetContainer(lastVolume));
         }
     }
 
-    private UIVolume GetContainer(UIVolume volume)
+    private Volume GetContainer(Volume volume)
     {
         if (volume == PianoVolume)
         {
