@@ -27,14 +27,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Vector3[] positions = GetMeshPositions();
 
-            int vertexCount = positions.Length;
-            int childCount = ChildVolumeItems.Count;
-
-            if (childCount != 0)
+            if (positions != null)
             {
-                for (int i = 0; i < ChildVolumeItems.Count; i++)
+                int vertexCount = positions.Length;
+                int childCount = ChildVolumeItems.Count;
+
+                if (childCount != 0)
                 {
-                    ChildVolumeItems[i].Transform.position = positions[i];
+                    for (int i = 0; i < ChildVolumeItems.Count; i++)
+                    {
+                        ChildVolumeItems[i].Transform.position = positions[i];
+                    }
                 }
             }
         }

@@ -1,4 +1,7 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Layout;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.MixedReality.Toolkit.UI.Layout;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
@@ -101,7 +104,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawFlowSection()
         {
-            DrawTitle("Flow Settings");
+            DrawTitle("Grid Flow Settings");
 
             EditorGUILayout.PropertyField(primaryFlowAxis);
             EditorGUILayout.PropertyField(secondaryFlowAxis);
@@ -166,7 +169,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             EditorGUILayout.Space();
 
-            if (DrawSectionFoldoutWithKey("Grid Debugging", "Grid Debugging", false))
+            DrawTitle("Draw Grid Gizmos");
+
+            if (DrawSectionFoldoutWithKey("Draw Grid Gizmos", "Draw Grid Gizmos", false))
             {
                 EditorGUI.BeginDisabledGroup(true);
 
