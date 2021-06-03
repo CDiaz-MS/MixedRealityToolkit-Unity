@@ -4,16 +4,16 @@ using UnityEngine;
 using System;
 using Microsoft.MixedReality.Toolkit.UI;
 
-
 public class RadialMenuItem
 {
     public string Name;
-    public List<RadialMenuItem> MenuItems = new List<RadialMenuItem>();
+    public Dictionary<string, RadialMenuItem> MenuItems = new Dictionary<string, RadialMenuItem>();
     public Bounds Bounds;
     public BoxCollider Collider;
     public ToolTip ToolTip;
     public Transform Transform;
     public bool AreChildrenVisible;
+    public bool IsMenuItemActive => Transform.gameObject.activeSelf;
 
     public bool HasChildren()
     {
@@ -22,20 +22,27 @@ public class RadialMenuItem
 
     public void SetSubMenuVisibility(bool isVisible)
     {
-        MenuItems.ForEach((item) => item.Transform.gameObject.SetActive(isVisible));
+        foreach (RadialMenuItem item in MenuItems.Values)
+        {
+           item.Transform.gameObject.SetActive(isVisible);
+        }
+
         AreChildrenVisible = isVisible;
     }
 
     public void PrintSubMenus()
     {
-        MenuItems.ForEach((item) => Debug.Log(item.Name));
+        foreach (string name in MenuItems.Keys)
+        {
+            Debug.Log(name);
+        }
     }
 }
 
 
 public class RadialContextMenu : MonoBehaviour
 { 
-    private List<RadialMenuItem> menuItems = new List<RadialMenuItem>();
+    private Dictionary<string, RadialMenuItem> menuItems = new Dictionary<string, RadialMenuItem>();
 
     [SerializeField]
     private Transform rootTransform;
@@ -72,11 +79,11 @@ public class RadialContextMenu : MonoBehaviour
 
                 if (menuItemTransform.parent == RootTransform)
                 {
-                    menuItems.Add(menuItem);
+                    menuItems.Add(menuItem.Name, menuItem);
                 }
                 else
                 {
-                    item.MenuItems.Add(menuItem);
+                    item.MenuItems.Add(menuItem.Name, menuItem);
                 }
 
                 // Go to next item in the hierarchy if it has children
@@ -92,23 +99,22 @@ public class RadialContextMenu : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.K))
         {
-            menuItems[0].SetSubMenuVisibility(true);
+            menuItems["Color"].SetSubMenuVisibility(true);
         }
 
         if (Input.GetKeyDown(KeyCode.L))
         {
-            menuItems[0].MenuItems[0].SetSubMenuVisibility(true);
+            menuItems["Color"].MenuItems["Blue"].SetSubMenuVisibility(true);
         }
 
         if (Input.GetKeyDown(KeyCode.N))
         {
-            menuItems[0].SetSubMenuVisibility(false);
+            menuItems["Color"].SetSubMenuVisibility(false);
         }
 
         if (Input.GetKeyDown(KeyCode.M))
         {
-            menuItems[0].MenuItems[0].SetSubMenuVisibility(false);
+            menuItems["Color"].MenuItems["Blue"].SetSubMenuVisibility(false);
         }
     }
-
 }
