@@ -1,0 +1,22 @@
+{
+    "name": "Hackathon",
+    "rootNamespace": "",
+    "references": [
+        "Microsoft.MixedReality.Toolkit.SDK"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.microsoft.mixedreality.toolkit.planefinding",
+            "expression": "",
+            "define": "PLANE_FINDING_PRESENT"
+        }
+    ],
+    "noEngineReferences": false
+}
