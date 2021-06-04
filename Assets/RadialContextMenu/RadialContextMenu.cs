@@ -5,6 +5,9 @@ using System;
 using Microsoft.MixedReality.Toolkit.UI;
 using UnityEngine.Events;
 
+[System.Serializable]
+public class MenuSelectedEvent : UnityEvent<GameObject> { }
+
 public class RadialMenuItem
 {
     public string Name;
@@ -60,13 +63,8 @@ public class RadialMenuItem
 }
 
 
-[System.Serializable]
-public class MenuSelectedEvent : UnityEvent<GameObject> { }
-
 public class RadialContextMenu : MonoBehaviour
 { 
-    private Dictionary<string, RadialMenuItem> menuItems = new Dictionary<string, RadialMenuItem>();
-
     [SerializeField]
     private Transform rootTransform;
 
@@ -79,9 +77,11 @@ public class RadialContextMenu : MonoBehaviour
     [NonSerialized]
     public GameObject ObjectSelected;
 
-    private RadialMenuItem currentRoot;
-
     public MenuSelectedEvent OnMenuItemSelected = new MenuSelectedEvent();
+
+    private Dictionary<string, RadialMenuItem> menuItems = new Dictionary<string, RadialMenuItem>();
+
+    private RadialMenuItem currentRoot;
 
     private void Start()
     {
@@ -158,29 +158,6 @@ public class RadialContextMenu : MonoBehaviour
         else
         {
             return TraverseMenuItems(menuItems, name);
-        }
-    }
-
-    void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            menuItems["Color"].SetSubMenuVisibility(true);
-        }
-
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            menuItems["Color"].MenuItems["Purple"].SetSubMenuVisibility(true);
-        }
-
-        if (Input.GetKeyDown(KeyCode.N))
-        {
-            menuItems["Color"].SetSubMenuVisibility(false);
-        }
-
-        if (Input.GetKeyDown(KeyCode.M))
-        {
-            menuItems["Color"].MenuItems["Blue"].SetSubMenuVisibility(false);
         }
     }
 }

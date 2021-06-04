@@ -21,15 +21,7 @@ public class DetectMenuVisibility : MonoBehaviour, IMixedRealityFocusHandler, IM
         }
     }
 
-    public void OnFocusExit(FocusEventData eventData){ }
-
-    public void OnPointerDown(MixedRealityPointerEventData eventData) { }
-
-    public void OnPointerDragged(MixedRealityPointerEventData eventData) { }
-
-    public void OnPointerUp(MixedRealityPointerEventData eventData) { }
-
-    public void OnPointerClicked(MixedRealityPointerEventData eventData) 
+    public void OnPointerClicked(MixedRealityPointerEventData eventData)
     {
         RadialMenuItem menuItem = Menu.FindMenuItemByName(gameObject.name);
 
@@ -46,4 +38,12 @@ public class DetectMenuVisibility : MonoBehaviour, IMixedRealityFocusHandler, IM
 
         Menu.OnMenuItemSelected.Invoke(Menu.ObjectSelected);
     }
+
+    public void OnFocusExit(FocusEventData eventData){ }
+
+    public void OnPointerDown(MixedRealityPointerEventData eventData) { }
+
+    public void OnPointerDragged(MixedRealityPointerEventData eventData) { }
+
+    public void OnPointerUp(MixedRealityPointerEventData eventData) { }
 }
