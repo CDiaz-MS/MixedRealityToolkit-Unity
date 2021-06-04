@@ -1,34 +1,60 @@
 using Microsoft.MixedReality.Toolkit.UI;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class RadialMenu : MonoBehaviour
 {
     public List<string> menuOptions;
     public PrefabEmissionSystem prefabEmissionSystem;
-    public List<GameObject> menuElements;
+    public List<RadialMenuElement> menuElements;
+
+    public bool open;
 
     private void Update()
     {
-        if(Input.GetKeyDown(KeyCode.Alpha1))
+        if(Input.GetKeyDown(KeyCode.Alpha1) && !open)
         {
             OpenMenu();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Alpha2) && open)
+        {
+            CloseMenu();
         }
     }
 
     private void OpenMenu()
     {
-        menuElements = new List<GameObject>(prefabEmissionSystem.Emit(menuOptions.Count));
+        if(menuElements == null || menuElements.Count == 0)
+            menuElements = prefabEmissionSystem.Emit(menuOptions.Count).ToArray().Select(x => x.GetComponent<RadialMenuElement>()).ToList();
 
-        var i = 0;
-        foreach (string option in menuOptions)
+        foreach(var menuElement in menuElements)
         {
-            var menuElement = menuElements[i];
-            menuElement.GetComponent<ToolTipConnector>().Target = this.gameObject;
-            menuElement.GetComponent<ToolTip>().ToolTipText = option;
-            i++;
+            menuElement.state = TransitionState.emitting;
         }
+        open = true;
+        //var i = 0;
+        //foreach (string option in menuOptions)
+        //{
+        //    var menuElement = menuElements[i];
+        //    menuElement.GetComponent<ToolTipConnector>().Target = this.gameObject;
+        //    menuElement.GetComponent<ToolTip>().ToolTipText = option;
+        //    i++;
+        //}
     }
+    private void CloseMenu()
+    {
+        foreach (var menuElement in menuElements)
+        {
+            menuElement.state = TransitionState.retracting;
+        }
+        open = false;
+    }
+
+
+
 
 }

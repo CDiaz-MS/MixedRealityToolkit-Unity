@@ -25,7 +25,7 @@ public class PrefabEmissionSystem : MonoBehaviour
     //public bool attachTrailRenderer;
     //private TrailRenderer trailRenderer;
 
-    public UnityEngine.GameObject prefab;
+    public RadialMenuElement prefab;
 
     public int emitCount = 1;
 
@@ -56,9 +56,9 @@ public class PrefabEmissionSystem : MonoBehaviour
     }
 
     // Emit in a hemi-sphere by default for now
-    public UnityEngine.GameObject[] Emit(int count, Vector3? origin = null)
+    public GameObject[] Emit(int count, Vector3? origin = null)
     {
-        UnityEngine.GameObject[] emittedObjects = new UnityEngine.GameObject[count];
+        GameObject[] emittedObjects = new GameObject[count];
 
         if (!origin.HasValue)
         {
@@ -68,7 +68,8 @@ public class PrefabEmissionSystem : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Vector3 direction = Vector3.one;
-            UnityEngine.GameObject obj = Instantiate(prefab);
+            Vector3 objectPosition = origin.Value;
+            GameObject obj = Instantiate(prefab.gameObject);
 
             emittedObjects[i] = obj;
 
@@ -78,7 +79,7 @@ public class PrefabEmissionSystem : MonoBehaviour
                 if (emissionShape == EmissionShape.Sphere)
                 {
                     direction = Random.insideUnitSphere;
-                    obj.transform.position = origin.Value + direction.normalized * radius;
+                    objectPosition = origin.Value + direction.normalized * radius;
                 }
                 else if (emissionShape == EmissionShape.Cone)
                 {
@@ -89,12 +90,12 @@ public class PrefabEmissionSystem : MonoBehaviour
                     float yVel = 1 - displacement.magnitude;
                     direction = new Vector3(xVel, yVel, zVel);
 
-                    obj.transform.position = origin.Value;
+                    objectPosition = origin.Value;
                 }
                 else if (emissionShape == EmissionShape.Edge)
                 {
                     direction = Vector3.up;
-                    obj.transform.position = origin.Value + Vector3.right * Random.Range(-radius, radius);
+                    objectPosition = origin.Value + Vector3.right * Random.Range(-radius, radius);
                 }
                 else if (emissionShape == EmissionShape.Arc)
                 {
@@ -105,7 +106,7 @@ public class PrefabEmissionSystem : MonoBehaviour
                     float zVel = planarVelocity.y;
                     direction = new Vector3(xVel, 0, zVel);
 
-                    obj.transform.position = origin.Value;
+                    objectPosition = origin.Value;
                 }
             }
             else if (emissionPattern == EmissionPattern.Uniform)
@@ -114,7 +115,7 @@ public class PrefabEmissionSystem : MonoBehaviour
                 if (emissionShape == EmissionShape.Sphere)
                 {
                     direction = Random.insideUnitSphere;
-                    obj.transform.position = origin.Value + direction.normalized * radius;
+                    objectPosition = origin.Value + direction.normalized * radius;
                 }
                 // Cone uniform emission is as expected
                 else if (emissionShape == EmissionShape.Cone)
@@ -128,13 +129,13 @@ public class PrefabEmissionSystem : MonoBehaviour
                     float yVel = 1 - displacement.magnitude;
                     direction = new Vector3(xVel, yVel, zVel);
 
-                    obj.transform.position = origin.Value;
+                    objectPosition = origin.Value;
                 }
                 // Edge uniform emission is as expected
                 else if (emissionShape == EmissionShape.Edge)
                 {
                     direction = Vector3.up;
-                    obj.transform.position = origin.Value + Vector3.right * (2 * radius / count) * (count * 0.5f - i);
+                    objectPosition = origin.Value + Vector3.right * (2 * radius / count) * (count * 0.5f - i);
                 }
                 // Arc uniform emission is as expected
                 else if (emissionShape == EmissionShape.Arc)
@@ -146,7 +147,7 @@ public class PrefabEmissionSystem : MonoBehaviour
                     float zVel = planarVelocity.y;
                     direction = new Vector3(xVel, 0, zVel);
 
-                    obj.transform.position = origin.Value;
+                    objectPosition = origin.Value;
                 }
             }
 
@@ -157,21 +158,10 @@ public class PrefabEmissionSystem : MonoBehaviour
                 itemVelocity = transform.localToWorldMatrix * itemVelocity;
             }
 
-            //copying over trail renderer values
-            //if (attachTrailRenderer)
-            //{
-            //    TrailRenderer trail = obj.AddComponent<TrailRenderer>();
-            //    trail.material = trailRenderer.material;
-            //    trail.time = trailRenderer.time;
-            //    trail.minVertexDistance = trailRenderer.minVertexDistance;
-            //    trail.widthMultiplier = trailRenderer.widthMultiplier;
-            //    trail.colorGradient = trailRenderer.colorGradient;
-            //    trail.numCornerVertices = trailRenderer.numCornerVertices;
-            //}
+            obj.transform.position = objectPosition;
 
-            Rigidbody animatedBody = obj.GetComponent<Rigidbody>();
-            animatedBody.velocity = itemVelocity;
-            animatedBody.useGravity = useGravityOnPrefabs;
+            obj.GetComponent<RadialMenuElement>().menuElementOrigin = this.transform;
+            obj.GetComponent<RadialMenuElement>().targetLocation = objectPosition + itemVelocity;
         }
 
         return emittedObjects;
