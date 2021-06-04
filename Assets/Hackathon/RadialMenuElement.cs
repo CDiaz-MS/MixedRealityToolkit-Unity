@@ -11,9 +11,13 @@ public class RadialMenuElement : MonoBehaviour
     private TransitionState state;
     //float threshold = 0.005f;
 
+    public LineRenderer connector;
+
+
     private void Start()
     {
         targetLocation = this.transform.position;
+        connector = GetComponent<LineRenderer>();
     }
 
     // Update is called once per frame
@@ -32,6 +36,8 @@ public class RadialMenuElement : MonoBehaviour
                 transform.position = Vector3.MoveTowards(transform.position, menuElementOrigin.position, 1.0f * Time.deltaTime);
                 break;
         }
+
+        connector.SetPositions(new Vector3[] { transform.position, menuElementOrigin.position});
     }
 
     public void Emit()
