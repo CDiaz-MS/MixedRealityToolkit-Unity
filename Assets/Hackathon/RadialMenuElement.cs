@@ -7,8 +7,14 @@ public class RadialMenuElement : MonoBehaviour
     public Transform menuElementOrigin;
     public Vector3 targetLocation;
 
-    public TransitionState state;
-    float threshold = 0.005f;
+    [SerializeField]
+    private TransitionState state;
+    //float threshold = 0.005f;
+
+    private void Start()
+    {
+        targetLocation = this.transform.position;
+    }
 
     // Update is called once per frame
     void Update()
@@ -19,17 +25,23 @@ public class RadialMenuElement : MonoBehaviour
         {
             case TransitionState.emitting:
                 transform.position = Vector3.MoveTowards(transform.position, targetLocation, distance * Time.deltaTime);
-                if (Vector3.Distance(transform.position, targetLocation) < threshold)
-                    state = TransitionState.stationary;
                 break;
             case TransitionState.stationary:
                 break;
             case TransitionState.retracting:
                 transform.position = Vector3.MoveTowards(transform.position, menuElementOrigin.position, 1.0f * Time.deltaTime);
-                if (Vector3.Distance(transform.position, menuElementOrigin.position) < threshold)
-                    state = TransitionState.stationary;
                 break;
         }
+    }
+
+    public void Emit()
+    {
+        state = TransitionState.emitting;
+    }
+
+    public void Retract()
+    {
+        state = TransitionState.retracting;
     }
 }
 

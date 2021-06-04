@@ -1,15 +1,13 @@
-using Microsoft.MixedReality.Toolkit.UI;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEditor;
 using UnityEngine;
 
 public class RadialMenu : MonoBehaviour
 {
     public List<string> menuOptions;
     public PrefabEmissionSystem prefabEmissionSystem;
-    public List<RadialMenuElement> menuElements;
+    public RadialMenuElement[] menuElements;
 
     public bool open;
 
@@ -28,33 +26,71 @@ public class RadialMenu : MonoBehaviour
 
     private void OpenMenu()
     {
-        if(menuElements == null || menuElements.Count == 0)
-            menuElements = prefabEmissionSystem.Emit(menuOptions.Count).ToArray().Select(x => x.GetComponent<RadialMenuElement>()).ToList();
+        //if(menuElements == null || menuElements.Length == 0)
+        //{
+        //    menuElements = prefabEmissionSystem.EmitFromEmissionSystemSource(menuOptions.Count, transform.position).ToArray().Select(x => x.GetComponent<RadialMenuElement>()).ToArray();
+        //}
+        //else
+        //{
+        //    prefabEmissionSystem.EmitExisting(menuElements.Select(x => x.gameObject).ToArray(), transform.position, transform);
+        //}
 
-        foreach(var menuElement in menuElements)
+        foreach (var menuElement in menuElements)
         {
-            menuElement.state = TransitionState.emitting;
+            menuElement.Emit();
         }
         open = true;
-        //var i = 0;
-        //foreach (string option in menuOptions)
-        //{
-        //    var menuElement = menuElements[i];
-        //    menuElement.GetComponent<ToolTipConnector>().Target = this.gameObject;
-        //    menuElement.GetComponent<ToolTip>().ToolTipText = option;
-        //    i++;
-        //}
     }
+
     private void CloseMenu()
     {
         foreach (var menuElement in menuElements)
         {
-            menuElement.state = TransitionState.retracting;
+            menuElement.Retract();
         }
         open = false;
     }
 
+    public void InitSubMenuElements()
+    {
+        int count = menuElements.Length;
+        for (int i = 0; i < menuElements.Length; i++)
+        {
+            var obj = menuElements[i];
+            obj.menuElementOrigin = transform;
+        }
+    }
+}
 
+[CustomEditor(typeof(RadialMenu))]
+public class ActionSelectionMenuInspector : Editor
+{
+    public override void OnInspectorGUI()
+    {
+        base.OnInspectorGUI();
 
+        var targetRadialMenu = (target as RadialMenu);
+        if (GUILayout.Button("Init MenuElements"))
+        {
+            var menuElementArray = serializedObject.FindProperty("menuElements");
+            menuElementArray.arraySize = 0;
+            serializedObject.ApplyModifiedProperties();
 
+            foreach (Transform obj in targetRadialMenu.transform)
+            {
+                RadialMenuElement elem = obj.gameObject.GetComponent<RadialMenuElement>();
+                if (elem != null)
+                {
+                    menuElementArray.arraySize++;
+                    serializedObject.ApplyModifiedProperties();
+
+                    menuElementArray.GetArrayElementAtIndex(menuElementArray.arraySize - 1).objectReferenceValue = elem;
+
+                }
+            }
+        }
+
+        serializedObject.ApplyModifiedProperties();
+        targetRadialMenu.InitSubMenuElements();
+    }
 }

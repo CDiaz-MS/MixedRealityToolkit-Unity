@@ -19,11 +19,9 @@ public class PrefabEmissionSystem : MonoBehaviour
         Edge,
         Arc,
         Sphere,
-        Cone
+        Cone,
+        UseExisting
     }
-
-    //public bool attachTrailRenderer;
-    //private TrailRenderer trailRenderer;
 
     public RadialMenuElement prefab;
 
@@ -32,8 +30,6 @@ public class PrefabEmissionSystem : MonoBehaviour
     public EmissionSpace emissionSpace;
     public EmissionShape emissionShape;
     public EmissionPattern emissionPattern;
-
-    public bool useGravityOnPrefabs;
 
     [Range(0.0f, 90.0f)]
     [Tooltip("Only used when the Emission Shape is a Cone")]
@@ -45,33 +41,23 @@ public class PrefabEmissionSystem : MonoBehaviour
     public float arcAngle;
 
     public float radius;
-    public float speed;
+    public float emissionDistance;
 
-    private void Start()
+    public void EmitExisting(GameObject[] menuElements, Vector3? origin, Transform rootTransform)
     {
-        // Ensure that the trail renderer attached to this object is deactivated
-
-        //trailRenderer = GetComponent<TrailRenderer>();
-        //trailRenderer.enabled = false;
-    }
-
-    // Emit in a hemi-sphere by default for now
-    public GameObject[] Emit(int count, Vector3? origin = null)
-    {
-        GameObject[] emittedObjects = new GameObject[count];
-
-        if (!origin.HasValue)
+        int count = menuElements.Length;
+        for (int i = 0; i < menuElements.Length; i++)
         {
-            origin = transform.position;
-        }
+            var obj = menuElements[i];
 
-        for (int i = 0; i < count; i++)
-        {
+            if (emissionShape == EmissionShape.UseExisting)
+            {
+                obj.GetComponent<RadialMenuElement>().menuElementOrigin = rootTransform;
+                continue;
+            }
+
             Vector3 direction = Vector3.one;
             Vector3 objectPosition = origin.Value;
-            GameObject obj = Instantiate(prefab.gameObject);
-
-            emittedObjects[i] = obj;
 
             // Spawn position and velocity initialization
             if (emissionPattern == EmissionPattern.Random)
@@ -152,10 +138,10 @@ public class PrefabEmissionSystem : MonoBehaviour
             }
 
             // Orienting the velocity based on rotation
-            Vector3 itemVelocity = direction.normalized * speed;
+            Vector3 itemVelocity = direction.normalized * emissionDistance;
             if (emissionSpace == EmissionSpace.Local)
             {
-                itemVelocity = transform.localToWorldMatrix * itemVelocity;
+                itemVelocity = rootTransform.localToWorldMatrix * itemVelocity;
             }
 
             obj.transform.position = objectPosition;
@@ -163,6 +149,25 @@ public class PrefabEmissionSystem : MonoBehaviour
             obj.GetComponent<RadialMenuElement>().menuElementOrigin = this.transform;
             obj.GetComponent<RadialMenuElement>().targetLocation = objectPosition + itemVelocity;
         }
+    }
+
+    // Emit in a hemi-sphere by default for now
+    public GameObject[] EmitFromEmissionSystemSource(int count, Vector3? origin = null)
+    {
+        GameObject[] emittedObjects = new GameObject[count];
+
+        if (!origin.HasValue)
+        {
+            origin = transform.position;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            GameObject obj = Instantiate(prefab.gameObject);
+            emittedObjects[i] = obj;
+        }
+
+        EmitExisting(emittedObjects, origin, this.transform);
 
         return emittedObjects;
     }
@@ -194,8 +199,8 @@ public class PrefabEmissionSystem : MonoBehaviour
                 float yVel = 1 - displacement.magnitude;
                 Vector3 direction = new Vector3(xVel, yVel, zVel);
 
-                UnityEditor.Handles.DrawWireDisc(transform.position + Vector3.up * yVel * speed, transform.up, xVel * speed);
-                Gizmos.DrawLine(Vector3.zero, direction * speed);
+                UnityEditor.Handles.DrawWireDisc(transform.position + Vector3.up * yVel * emissionDistance, transform.up, xVel * emissionDistance);
+                Gizmos.DrawLine(Vector3.zero, direction * emissionDistance);
             }
         }
         else if (emissionShape == EmissionShape.Arc)
