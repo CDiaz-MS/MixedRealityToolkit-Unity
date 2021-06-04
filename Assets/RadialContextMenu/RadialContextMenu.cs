@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using Microsoft.MixedReality.Toolkit.UI;
+using UnityEngine.Events;
 
 public class RadialMenuItem
 {
@@ -13,6 +14,8 @@ public class RadialMenuItem
     public ToolTip ToolTip;
     public Transform Transform;
     public bool AreChildrenVisible;
+    public RadialMenuItem ParentMenuItem;
+    public RadialMenuItem RootMenuItem;
     public bool IsMenuItemActive => Transform.gameObject.activeSelf;
 
     public bool HasChildren()
@@ -22,12 +25,15 @@ public class RadialMenuItem
 
     public void SetSubMenuVisibility(bool isVisible)
     {
-        foreach (RadialMenuItem item in MenuItems.Values)
+        if (HasChildren())
         {
-           item.Transform.gameObject.SetActive(isVisible);
-        }
+            foreach (RadialMenuItem item in MenuItems.Values)
+            {
+                item.Transform.gameObject.SetActive(isVisible);
+            }
 
-        AreChildrenVisible = isVisible;
+            AreChildrenVisible = isVisible;
+        }
     }
 
     public void PrintSubMenus()
@@ -37,8 +43,25 @@ public class RadialMenuItem
             Debug.Log(name);
         }
     }
+
+    public void DisableAllItemsInHierarchy()
+    {
+        DisableItems(MenuItems);
+    }
+
+    private void DisableItems(Dictionary<string, RadialMenuItem> menu)
+    {
+        foreach (KeyValuePair<string, RadialMenuItem> item in menu)
+        {
+            item.Value.ParentMenuItem.SetSubMenuVisibility(false);
+            DisableItems(item.Value.MenuItems);
+        }
+    }
 }
 
+
+[System.Serializable]
+public class MenuSelectedEvent : UnityEvent<GameObject> { }
 
 public class RadialContextMenu : MonoBehaviour
 { 
@@ -52,6 +75,13 @@ public class RadialContextMenu : MonoBehaviour
         get => rootTransform;
         set => rootTransform = value;
     }
+
+    [NonSerialized]
+    public GameObject ObjectSelected;
+
+    private RadialMenuItem currentRoot;
+
+    public MenuSelectedEvent OnMenuItemSelected = new MenuSelectedEvent();
 
     private void Start()
     {
@@ -74,11 +104,15 @@ public class RadialContextMenu : MonoBehaviour
                     Transform = menuItemTransform,
                     ToolTip = toolTip,
                     Bounds = toolTipBackground.BackgroundRenderer.bounds,
-                    Collider = toolTipBackground.BackgroundTransform.GetComponent<BoxCollider>()
+                    Collider = toolTipBackground.BackgroundTransform.GetComponent<BoxCollider>(),
+                    ParentMenuItem = item,
+                    RootMenuItem = currentRoot
                 };
 
                 if (menuItemTransform.parent == RootTransform)
                 {
+                    currentRoot = menuItem;
+                    menuItem.RootMenuItem = currentRoot;
                     menuItems.Add(menuItem.Name, menuItem);
                 }
                 else
@@ -95,6 +129,38 @@ public class RadialContextMenu : MonoBehaviour
         }
     }
 
+    private RadialMenuItem TraverseMenuItems(Dictionary<string, RadialMenuItem> menu, string name)
+    {
+        foreach (KeyValuePair<string, RadialMenuItem> item in menu)
+        {
+            if (item.Key == name)
+            {
+                return item.Value;
+            }
+
+            RadialMenuItem newItem = TraverseMenuItems(item.Value.MenuItems, name);
+
+            if (newItem != null)
+            {
+                return newItem;
+            }
+        }
+
+        return null;
+    }
+
+    public RadialMenuItem FindMenuItemByName(string name)
+    {
+        if (menuItems.ContainsKey(name))
+        {
+            return menuItems[name];
+        }
+        else
+        {
+            return TraverseMenuItems(menuItems, name);
+        }
+    }
+
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.K))
@@ -104,7 +170,7 @@ public class RadialContextMenu : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.L))
         {
-            menuItems["Color"].MenuItems["Blue"].SetSubMenuVisibility(true);
+            menuItems["Color"].MenuItems["Purple"].SetSubMenuVisibility(true);
         }
 
         if (Input.GetKeyDown(KeyCode.N))
