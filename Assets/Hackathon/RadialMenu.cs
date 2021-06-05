@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class RadialMenu : MonoBehaviour
 {
@@ -9,7 +10,28 @@ public class RadialMenu : MonoBehaviour
     public PrefabEmissionSystem prefabEmissionSystem;
     public RadialMenuElement[] menuElements;
 
-    public bool open;
+    public MenuSelectedEvent OnMenuItemSelected = new MenuSelectedEvent();
+
+    [SerializeField]
+    private bool open = false;
+
+    public bool Open
+    {
+        get => open;
+        set
+        {
+            open = value;
+
+            if (open)
+            {
+                OpenMenu();
+            }
+            else
+            {
+                CloseMenu();
+            }
+        }
+    }
 
     private void Update()
     {
@@ -58,6 +80,14 @@ public class RadialMenu : MonoBehaviour
         {
             var obj = menuElements[i];
             obj.menuElementOrigin = transform;
+        }
+    }
+
+    public void SetMenuItemVisibility(bool isVisible)
+    {
+        foreach (var menuElement in menuElements)
+        {
+            menuElement.gameObject.SetActive(isVisible);
         }
     }
 }
