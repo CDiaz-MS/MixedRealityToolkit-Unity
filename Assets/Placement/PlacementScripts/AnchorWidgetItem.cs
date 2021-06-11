@@ -7,9 +7,9 @@ using UnityEngine;
 public class AnchorWidgetItem : MonoBehaviour
 {
     [SerializeField]
-    private Volume uiVolume;
+    private VolumeAnchorPosition uiVolume;
 
-    public Volume UIVolume
+    public VolumeAnchorPosition UIVolume
     {
         get => uiVolume;
         set => uiVolume = value;

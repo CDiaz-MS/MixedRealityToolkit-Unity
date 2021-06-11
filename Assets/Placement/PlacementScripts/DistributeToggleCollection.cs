@@ -8,9 +8,9 @@ using UnityEngine.Events;
 public class DistributeToggleCollection : MonoBehaviour
 {
     [SerializeField]
-    private Volume uiVolume;
+    private BaseVolume uiVolume;
 
-    public Volume UIVolume
+    public BaseVolume UIVolume
     {
         get => uiVolume;
         set => uiVolume = value;

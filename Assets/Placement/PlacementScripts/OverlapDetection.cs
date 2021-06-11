@@ -13,17 +13,17 @@ public class OverlapDetection : MonoBehaviour
 
     public VolumeGrid MiniVolume;
 
-    public Volume PianoVolume;
-    public Volume ManipVolume;
-    public Volume LunarVolume;
+    public BaseVolume PianoVolume;
+    public BaseVolume ManipVolume;
+    public BaseVolume LunarVolume;
 
-    public Volume PianoContainer;
-    public Volume ManipContainer;
-    public Volume LunarContainer;
+    public BaseVolume PianoContainer;
+    public BaseVolume ManipContainer;
+    public BaseVolume LunarContainer;
 
     public GameObject BoundaryVisual;
 
-    private Volume volume;
+    private BaseVolume volume;
 
     public ObjectManipulator objectManipulator;
 
@@ -34,7 +34,7 @@ public class OverlapDetection : MonoBehaviour
     private float currentRemainingSpace;
     void Start()
     {
-        volume = gameObject.GetComponent<Volume>();
+        volume = gameObject.GetComponent<BaseVolume>();
 
         //objectManipulator = gameObject.GetComponent<ObjectManipulator>();
 
@@ -81,8 +81,8 @@ public class OverlapDetection : MonoBehaviour
 
         //}
 
-        TargetContainer.CheckExternalVolumeEntered(volume);
-        TargetContainer.CheckInternalVolumeExited(volume, TargetContainer.transform.root.parent);
+        TargetContainer.Volume.CheckExternalVolumeEntered(volume);
+        TargetContainer.Volume.CheckInternalVolumeExited(volume, TargetContainer.transform.root.parent);
     }
 
     void Update()
@@ -96,7 +96,7 @@ public class OverlapDetection : MonoBehaviour
         {
             if (volume == PianoVolume)
             {
-                TargetContainer.SwitchChildVolumes(volume, PianoContainer);
+                TargetContainer.Volume.SwitchChildVolumes(volume, PianoContainer);
             }
         }
 
@@ -104,7 +104,7 @@ public class OverlapDetection : MonoBehaviour
         {
             if (volume == PianoVolume)
             {
-                PianoContainer.SwitchChildVolumes(volume, TargetContainer);
+                PianoContainer.SwitchChildVolumes(volume, TargetContainer.Volume);
             }
         }
 
@@ -113,9 +113,9 @@ public class OverlapDetection : MonoBehaviour
 
     private void GetRemainingSpace()
     {
-        float targetWidth = TargetContainer.VolumeSize.x;
+        float targetWidth = TargetContainer.Volume.VolumeSize.x;
 
-        float remainingSpaceRatio = TargetContainer.GetOccupiedSpace(VolumeAxis.X) / targetWidth;
+        float remainingSpaceRatio = TargetContainer.Volume.GetOccupiedSpace(VolumeAxis.X) / targetWidth;
 
         Debug.Log(remainingSpaceRatio);
 
@@ -126,13 +126,13 @@ public class OverlapDetection : MonoBehaviour
 
             GameObject vol = TargetContainer.GetObjectAtCoordinates(coordinates);
 
-            Volume lastVolume = vol.GetComponent<Volume>();
+            BaseVolume lastVolume = vol.GetComponent<BaseVolume>();
 
-            TargetContainer.SwitchChildVolumes(lastVolume, GetContainer(lastVolume));
+            TargetContainer.Volume.SwitchChildVolumes(lastVolume, GetContainer(lastVolume));
         }
     }
 
-    private Volume GetContainer(Volume volume)
+    private BaseVolume GetContainer(BaseVolume volume)
     {
         if (volume == PianoVolume)
         {

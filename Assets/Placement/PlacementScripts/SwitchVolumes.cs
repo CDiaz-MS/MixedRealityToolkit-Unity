@@ -8,19 +8,19 @@ using UnityEngine;
 
 public class SwitchVolumes : MonoBehaviour
 {
-    public Volume volume;
+    public BaseVolume volume;
 
-    public Volume child1;
-    public Volume child2;
-    public Volume child3;
+    public BaseVolume child1;
+    public BaseVolume child2;
+    public BaseVolume child3;
 
-    public Volume target;
+    public BaseVolume target;
 
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.I))
         {
-            if (volume.GetChildUIVolumes().Contains(child1))
+            if (volume.GetChildVolumes().Contains(child1))
             {
                 volume.SwitchChildVolumes(child1, target);
             }
@@ -28,7 +28,7 @@ public class SwitchVolumes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.O))
         {
-            if (target.GetChildUIVolumes().Contains(child1))
+            if (target.GetChildVolumes().Contains(child1))
             {
                 target.SwitchChildVolumes(child1, volume);
             }
@@ -37,7 +37,7 @@ public class SwitchVolumes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.K))
         {
-            if (volume.GetChildUIVolumes().Contains(child2))
+            if (volume.GetChildVolumes().Contains(child2))
             {
                 volume.SwitchChildVolumes(child2, target);
             }
@@ -45,7 +45,7 @@ public class SwitchVolumes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.L))
         {
-            if (target.GetChildUIVolumes().Contains(child2))
+            if (target.GetChildVolumes().Contains(child2))
             {
                 target.SwitchChildVolumes(child2, volume);
             }
@@ -54,7 +54,7 @@ public class SwitchVolumes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.N))
         {
-            if (volume.GetChildUIVolumes().Contains(child3))
+            if (volume.GetChildVolumes().Contains(child3))
             {
                 volume.SwitchChildVolumes(child3, target);
             }
@@ -62,7 +62,7 @@ public class SwitchVolumes : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.M))
         {
-            if (target.GetChildUIVolumes().Contains(child3))
+            if (target.GetChildVolumes().Contains(child3))
             {
                 target.SwitchChildVolumes(child3, volume);
             }
