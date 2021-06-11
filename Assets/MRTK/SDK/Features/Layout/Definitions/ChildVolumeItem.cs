@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
@@ -12,12 +10,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class ChildVolumeItem
     {
         [SerializeField]
-        private Volume uIVolume;
+        private BaseVolume volume;
 
-        public Volume UIVolume
+        public BaseVolume Volume
         {
-            get => uIVolume;
-            internal set => uIVolume = value;
+            get => volume;
+            internal set => volume = value;
         }
 
         [SerializeField]
@@ -104,36 +102,26 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
             }
 
-            if (UIVolume == null && Transform.GetComponent<Volume>() != null)
+            if (Volume == null && Transform.GetComponent<BaseVolume>() != null)
             {
-                UIVolume = Transform.GetComponent<Volume>();
+                Volume = Transform.GetComponent<BaseVolume>();
             }
         }
 
         private Vector3 GetParentContainerSize()
         {
-            return Transform.parent.GetComponent<Volume>().VolumeSize;
-
-            //if (Transform.parent.GetComponent<Collider>() != null)
-            //{
-            //    return Transform.parent.GetColliderBounds().size;
-            //}
-            //else
-            //{
-            //    return Transform.parent.lossyScale;
-            //}
+            return Transform.parent.GetComponent<BaseVolume>().VolumeSize;
         }
 
-        public bool IsUIVolume()
+        public bool IsVolume()
         {
-            return Transform.GetComponent<Volume>() != null;
+            return Transform.GetComponent<BaseVolume>() != null;
         }
 
         public bool IsParentUIVolume()
         {
-            return Transform.parent.GetComponent<Volume>() != null;
+            return Transform.parent.GetComponent<BaseVolume>() != null;
         }
-
 
         public bool IsValidVector(Vector3 vector)
         {

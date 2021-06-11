@@ -3,7 +3,7 @@
 
 using System;
 using UnityEngine;
-
+using UnityEngine.Events;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
@@ -16,7 +16,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Vector3 Size
         {
             get => size;
-            set => size = value;
+            set
+            {
+                size = value;
+                OnBoundsSizeChanged.Invoke();
+            }
         }
 
         [SerializeField]
@@ -45,20 +49,33 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public float Width
         {
             get => size.x;
-            set => size.x = value;
+            set
+            {
+                size.x = value;
+                OnBoundsSizeChanged.Invoke();
+            }
         }
 
         public float Height
         {
             get => size.y;
-            set => size.y = value;
+            set
+            {
+                size.y = value;
+                OnBoundsSizeChanged.Invoke();
+            }
         }
 
         public float Depth
         {
             get => size.z;
-            set => size.z = value;
+            set
+            {
+                size.z = value;
+                OnBoundsSizeChanged.Invoke();
+            }
         }
+
 
         public Vector3 Extents
         {
@@ -93,6 +110,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Vector3 Back
         {
             get => GetDirection(GetFacePoint(FacePoint.Back), GetFacePoint(FacePoint.Forward));
+        }
+
+        [SerializeField]
+        private UnityEvent onBoundsSizeChanged = new UnityEvent();
+
+        public UnityEvent OnBoundsSizeChanged
+        {
+            get => onBoundsSizeChanged;
         }
 
         public VolumeBounds(Vector3 boundsSize, Vector3 boundsCenter, Transform boundsHostTransform)

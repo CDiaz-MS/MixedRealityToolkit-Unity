@@ -58,7 +58,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return Mathf.Pow(childCount, -1);
         }
 
-        public void ResetContainerFillProperties(Volume itemUIVolume)
+        public void ResetContainerFillProperties(VolumeAnchorPosition itemUIVolume)
         {
             ContainerFillX = false;
             ContainerFillY = false;
@@ -67,11 +67,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             EnsureFillPropertyConfiguration(itemUIVolume);
         }
 
-        public void UpdateDistributeContainerFillAxis(VolumeAxis axis, Volume itemUIVolume, int childItems)
+        public void UpdateDistributeContainerFillAxis(VolumeAxis axis, VolumeAnchorPosition itemUIVolume, int childItems)
         {
             if (ContainerFillX || ContainerFillX || ContainerFillX)
             {
-                itemUIVolume.SetMaintainScale(false, itemUIVolume.gameObject);
+                itemUIVolume.Volume.SetMaintainScale(false, itemUIVolume.gameObject);
             }
 
             if (ContainerFillX)
@@ -92,7 +92,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             EnsureFillPropertyConfiguration(itemUIVolume);
         }
 
-        private void EnsureFillPropertyConfiguration(Volume itemUIVolume)
+        private void EnsureFillPropertyConfiguration(VolumeAnchorPosition itemUIVolume)
         {
             // X Axis
             if (ContainerFillX)

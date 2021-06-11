@@ -17,7 +17,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Transform CellGameObjectTransform;
         public Vector3 Coordinates;
         public Vector3 Offset;
-        public int Count;
+
         public bool IsCellPopulated => CheckCellTaken();
 
         private bool CheckCellTaken()
