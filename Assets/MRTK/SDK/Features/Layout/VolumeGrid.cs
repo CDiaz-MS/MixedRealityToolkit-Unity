@@ -12,7 +12,7 @@ using UnityEngine.Events;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class VolumeGrid : Volume
+    public class VolumeGrid : BaseCustomVolume
     {
         [SerializeField]
         [Min(1)]
@@ -207,21 +207,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
 
         [SerializeField]
-        private bool allowCustomPositionSet = false;
+        [Tooltip("Update the grid as properties are changed. If true, the grid will update " +
+            " with each change in the inspector during edit mode and during play mode. " +
+            " If false, the grid will not update as properties are changed.")]
+        private bool updateGrid = true;
 
-        public bool AllowCustomPositionSet
+        /// <summary>
+        /// Update the grid as properties are changed. If true, the grid will update
+        /// with each change in the inspector during edit mode and during play mode.
+        /// If false, the grid will not update as properties are changed.
+        /// </summary>
+        public bool UpdateGrid
         {
-            get => allowCustomPositionSet;
-            set => allowCustomPositionSet = value;
-        }
-
-        [SerializeField]
-        private bool keepGridFilled = true;
-
-        public bool KeepGridFilled
-        {
-            get => keepGridFilled;
-            set => keepGridFilled = value;
+            get => updateGrid;
+            set => updateGrid = value;
         }
 
         public float BoundsWidthIncrement => UseCustomCellWidth ? CellWidth : VolumeBounds.Width / Cols;
@@ -229,12 +228,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public float BoundsDepthIncrement => UseCustomCellDepth ? CellDepth : VolumeBounds.Depth / Depth;
 
         public Vector3 BoundsSize => new Vector3(BoundsWidthIncrement, BoundsHeightIncrement, BoundsDepthIncrement);
-
-        public UnityAction UpdateGrid;
-
-        public UnityEvent OnRowCountChanged = new UnityEvent();
-        public UnityEvent OnColCountChanged = new UnityEvent();
-        public UnityEvent OnDepthCountChanged = new UnityEvent();
 
         private Dictionary<Vector3, VolumeGridNode> gridDictionary = new Dictionary<Vector3, VolumeGridNode>();
 
@@ -274,17 +267,67 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => axisAlignment = value;
         }
 
-        private List<VolumeGridNode> grid => CreateGrid(); 
+        public List<VolumeGridNode> grid = new List<VolumeGridNode>();//> CreateGrid();
+
+        [SerializeField]
+        private UnityEvent onRowCountChanged = new UnityEvent();
+
+        public UnityEvent OnRowCountChanged
+        {
+            get => onRowCountChanged;
+        }
+
+        [SerializeField]
+        private UnityEvent onColCountChanged = new UnityEvent();
+
+        public UnityEvent OnColCountChanged
+        {
+            get => onColCountChanged;
+        }
+
+        [SerializeField]
+        private UnityEvent onDepthCountChanged = new UnityEvent();
+
+        public UnityEvent OnDepthCountChanged
+        {
+            get => onDepthCountChanged;
+        }
+
+        [SerializeField]
+        private float smoothingSpeed = 3f;
+
+        public float SmoothingSpeed
+        {
+            get => smoothingSpeed;
+            set => smoothingSpeed = value;
+        }
+
+        [SerializeField]
+        private bool useSmoothing = true;
+
+        public bool UseSmoothing
+        {
+            get => useSmoothing;
+            set => useSmoothing = value;
+        }
 
         public override void Update()
         {
             base.Update();
 
-            SetObjectPositions();
+            if (UpdateGrid)
+            {
+                CreateGridSetPositions();
+            }
 
             DrawGridCells();
         }
 
+        private void CreateGridSetPositions()
+        {
+            CreateGrid();
+            SetObjectPositions();
+        }
 
         private void DrawGridCells()
         {
@@ -299,6 +342,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private List<VolumeGridNode> CreateGrid()
         {
+            SetRowColDepthCount();
+
             Vector3 startBoundsPos = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward);
 
             Vector3 initialYPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward) + (VolumeBounds.Down * BoundsHeightIncrement * 0.5f);
@@ -365,6 +410,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 incrementZPosition += (VolumeBounds.Back * BoundsDepthIncrement);
             }
 
+            grid = bounds;
+
             return bounds;
         }
 
@@ -372,81 +419,99 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             if (MatchColsToChildren)
             {
-                Cols = PlaceDisabledTransforms ? ChildVolumeItems.Count : GetChildTransforms(false).Count;
+                Cols = PlaceDisabledTransforms ? ChildVolumeItems.Count : Volume.GetActiveChildCount();
             }
 
             if (MatchRowsToChildren)
-            {
-                Rows = PlaceDisabledTransforms ? ChildVolumeItems.Count : GetChildTransforms(false).Count;
+            { 
+                Rows = PlaceDisabledTransforms ? ChildVolumeItems.Count : Volume.GetActiveChildCount();
             }
 
             if (MatchDepthToChildren)
             {
-                Depth = PlaceDisabledTransforms ? ChildVolumeItems.Count : GetChildTransforms(false).Count;
+                Depth = PlaceDisabledTransforms ? ChildVolumeItems.Count : Volume.GetActiveChildCount();
             }
         }
 
-        public void SetObjectPositions()
+        public Vector3[] CalculateObjectFlowPositions()
         {
-            SetRowColDepthCount();
+            int gridSize = Rows * Cols * Depth;
+            Vector3[] gridPositions = new Vector3[gridSize];
 
-            int primaryAxisIndex = AxisFlowIndex(PrimaryFlowAxis);
-            int secondaryAxisIndex = AxisFlowIndex(SecondaryFlowAxis);
-            int tertiaryAxisIndex = AxisFlowIndex(TertiaryFlowAxis);
+            int primaryAxisCount = AxisFlowIndex(PrimaryFlowAxis);
+            int secondaryAxisCount = AxisFlowIndex(SecondaryFlowAxis);
+            int tertiaryAxisCount = AxisFlowIndex(TertiaryFlowAxis);
 
-            int m = 0;
+            int gridPositionsIndex = 0;
 
             if (AreFlowAxesUnique())
             {
-                for (int i = 0; i < tertiaryAxisIndex; i++)
+                for (int tertiaryIndex = 0; tertiaryIndex < tertiaryAxisCount; tertiaryIndex++)
                 {
-                    for (int j = 0; j < secondaryAxisIndex; j++)
+                    for (int secondaryIndex = 0; secondaryIndex < secondaryAxisCount; secondaryIndex++)
                     {
-                        for (int k = 0; k < primaryAxisIndex; k++)
+                        for (int primaryIndex = 0; primaryIndex < primaryAxisCount; primaryIndex++)
                         {
-                            if (m < ChildVolumeItems.Count)
+                            Vector3 coordinate = GetCellCoordinates(tertiaryIndex, secondaryIndex, primaryIndex);
+                            VolumeGridNode cell = GetCell(grid, coordinate);
+                            Vector3 newPosition = GetCellPosition(cell, AxisAlignment);
+
+                            gridPositions[gridPositionsIndex] = newPosition;
+                            
+                            if (gridPositionsIndex < ChildVolumeItems.Count)
                             {
-                                Transform volumeItemTransform = ChildVolumeItems[m].Transform;
-                                
-                                if (!PlaceDisabledTransforms)
-                                {
-                                    if (!volumeItemTransform.gameObject.activeSelf)
-                                    {
-                                        while (!ChildVolumeItems[m].Transform.gameObject.activeSelf)
-                                        {
-                                            if (m >= ChildVolumeItems.Count - 1)
-                                            {
-                                                break;
-                                            }
-
-                                            m++;
-                                        }
-
-                                        volumeItemTransform = ChildVolumeItems[m].Transform;
-                                    }
-                                }
-
-                                Vector3 coordinate = GetCellCoordinates(i, j, k);
-                                VolumeGridNode cell = GetCell(grid, coordinate);
-                                Vector3 newPosition = GetCellPosition(cell, AxisAlignment);
-
-                                SetNodeProperties(cell, volumeItemTransform);
-                                
-                                if (volumeItemTransform.transform.position != newPosition)
-                                {
-                                    SetObjectPosition(volumeItemTransform, newPosition, true);
-                                }
-
-                                m++;
+                                SetNodeProperties(cell, ChildVolumeItems[gridPositionsIndex].Transform);
                             }
+
+                            gridPositionsIndex++;
                         }
                     }
                 }
+            }
 
-                if (DisableObjectsWithoutGridPosition)
+            return gridPositions;
+        }
+
+        private void SetObjectPositions()
+        {
+            Vector3[] positions = CalculateObjectFlowPositions();
+
+            if (PlaceDisabledTransforms && !DisableObjectsWithoutGridPosition)
+            {
+                Volume.SetChildVolumePositions(positions, UseSmoothing, SmoothingSpeed);
+            }
+
+            if (!PlaceDisabledTransforms)
+            {
+                int i = 0;
+
+                foreach (var item in ChildVolumeItems)
                 {
-                    DisableGridOverflowObjects();
+                    if (item.Transform != null)
+                    {
+                        if (item.Transform.gameObject.activeSelf)
+                        {
+                            if (Application.isPlaying && UseSmoothing)
+                            {
+                                item.Transform.position = Vector3.Lerp(item.Transform.position, positions[i], Time.deltaTime * SmoothingSpeed);
+                            }
+                            else
+                            {
+                                if (i < ChildVolumeItems.Count && i < positions.Length)
+                                {
+                                    item.Transform.position = positions[i];
+                                }
+                            }
+
+                            i++;
+                        }
+                    }
                 }
+            }
+
+            if (DisableObjectsWithoutGridPosition)
+            {
+                DisableGridOverflowObjects();
             }
         }
 
@@ -459,22 +524,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 for (int i = gridCapacity; i < numberOfChildren; i++)
                 {
-                    ChildVolumeItems[i].Transform.gameObject.SetActive(false);
+                    ChildVolumeItems[i].Transform?.gameObject.SetActive(false);
                 }
             }
-        }
-
-        protected virtual void SetObjectPosition(Transform transform, Vector3 newPosition, bool includeSmoothing)
-        {
-            if (Application.isPlaying && includeSmoothing)
-            {
-                transform.position = Vector3.Lerp(transform.position, newPosition, Time.deltaTime * 3f);
-            }
-            else
-            {
-                // In edit mode, do not include smoothing 
-                transform.position = newPosition;
-            }  
         }
 
         private bool AreFlowAxesUnique()
@@ -538,15 +590,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private Vector3 GetCellPosition(VolumeGridNode node, AxisAlignment axisAlign)
         {
-            if (AxisAlignment == AxisAlignment.Center)
-            {
-                return node.CellBounds.Center;
-            }
-            else
+            if (node != null)
             {
                 int index = (int)axisAlign;
-                return node.CellBounds.GetFacePoint((FacePoint)index);
+
+                return AxisAlignment == AxisAlignment.Center ? node.CellBounds.Center : node.CellBounds.GetFacePoint((FacePoint)index);
             }
+
+            return Vector3.zero;
         }
 
         public VolumeGridNode GetCell(List<VolumeGridNode> nodes, Vector3 coordinates)
@@ -581,11 +632,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         protected virtual void SetNodeProperties(VolumeGridNode node, Transform transform)
         {
-            if (node != null)
+            if (node != null && transform != null)
             {
                 node.Name = transform.gameObject.name;
-                node.CellBounds.HostTransform = transform;
                 node.CellGameObject = transform.gameObject;
+                node.CellGameObjectTransform = transform;
 
                 gridDictionary[node.Coordinates] = node;
             }

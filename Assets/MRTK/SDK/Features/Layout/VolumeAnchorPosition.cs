@@ -1,15 +1,13 @@
-﻿// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-
-using System;
+﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
+
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    [ExecuteAlways]
-    public class Volume : BaseVolume
+    public class VolumeAnchorPosition : BaseCustomVolume
     {
         [SerializeField]
         private XAnchorPosition xAnchorPosition;
@@ -123,13 +121,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => backPlateObject = value;
         }
 
-        // Scale animation when switching volumes
-        private Coroutine scaleCoroutine;
-        private float scaleStartTime;
-
         #region MonoBehaviour Methods
-
-        protected virtual void Start() { }
 
         public override void Update()
         {
@@ -174,11 +166,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Vector3 newScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 
+            Transform VolumeParentTransform = Volume.VolumeParentTransform;
+
             if (axis == VolumeAxis.X)
             {
                 if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
                 {
-                    newScale.x = includeScaleFactor ? (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x) * volumeSizeScaleFactorX : (UIVolumeParentTransform.localScale.x / UIVolumeParentTransform.transform.lossyScale.x);
+                    newScale.x = includeScaleFactor ? (VolumeParentTransform.localScale.x / VolumeParentTransform.transform.lossyScale.x) * volumeSizeScaleFactorX : (VolumeParentTransform.localScale.x / VolumeParentTransform.transform.lossyScale.x);
 
                     // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
                     // Check if the prefab is a flexible button
@@ -187,13 +181,18 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                         newScale.x *= 31.25f;
                     }
                 }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale || VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
-                    newScale.x = includeScaleFactor ? UIVolumeParentTransform.localScale.x * volumeSizeScaleFactorX : UIVolumeParentTransform.localScale.x;
+                    newScale.x = includeScaleFactor ? VolumeParentTransform.localScale.x * volumeSizeScaleFactorX : VolumeParentTransform.localScale.x;
+                
+                }
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
+                {
+                    newScale.x = includeScaleFactor ? 1 * volumeSizeScaleFactorX: 1;
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
                 {
-                    VolumeBounds.Width = includeScaleFactor ? UIVolumeParent.VolumeSize.x * volumeSizeScaleFactorX : UIVolumeParent.VolumeSize.x;
+                    VolumeBounds.Width = includeScaleFactor ? VolumeParent.VolumeSize.x * volumeSizeScaleFactorX : VolumeParent.VolumeSize.x;
                 }
             }
 
@@ -201,7 +200,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
                 {
-                    newScale.y = includeScaleFactor ? (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y) * volumeSizeScaleFactorY : (UIVolumeParentTransform.localScale.y / UIVolumeParentTransform.transform.lossyScale.y);
+                    newScale.y = includeScaleFactor ? (VolumeParentTransform.localScale.y / VolumeParentTransform.transform.lossyScale.y) * volumeSizeScaleFactorY : (VolumeParentTransform.localScale.y / VolumeParentTransform.transform.lossyScale.y);
 
                     // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
                     // Check if the prefab is a flexible button
@@ -212,11 +211,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
-                    newScale.y = includeScaleFactor ? UIVolumeParentTransform.localScale.y * volumeSizeScaleFactorY : UIVolumeParentTransform.localScale.y;
+                    newScale.y = includeScaleFactor ? VolumeParentTransform.localScale.y * volumeSizeScaleFactorY : VolumeParentTransform.localScale.y;
+                }
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
+                {
+                    newScale.y = includeScaleFactor ? 1 * volumeSizeScaleFactorY : 1;
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
                 {
-                    VolumeBounds.Height = includeScaleFactor ? UIVolumeParent.VolumeSize.y * volumeSizeScaleFactorY : UIVolumeParent.VolumeSize.y;
+                    VolumeBounds.Height = includeScaleFactor ? VolumeParent.VolumeSize.y * volumeSizeScaleFactorY : VolumeParent.VolumeSize.y;
                 }
             }
 
@@ -224,7 +227,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
                 {
-                    newScale.z = includeScaleFactor ? (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z) * volumeSizeScaleFactorZ : (UIVolumeParentTransform.localScale.z / UIVolumeParentTransform.transform.lossyScale.z);
+                    newScale.z = includeScaleFactor ? (VolumeParentTransform.localScale.z / VolumeParentTransform.transform.lossyScale.z) * volumeSizeScaleFactorZ : (VolumeParentTransform.localScale.z / VolumeParentTransform.transform.lossyScale.z);
 
                     // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
                     // Check if the prefab is a flexible button
@@ -235,15 +238,20 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
                 {
-                    newScale.z = includeScaleFactor ? UIVolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : UIVolumeParentTransform.localScale.z;
+                    newScale.z = includeScaleFactor ? VolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : VolumeParentTransform.localScale.z;
+                }
+                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
+                {
+                    newScale.z = includeScaleFactor ? 1 * volumeSizeScaleFactorZ : 1;
                 }
                 else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
                 {
-                    VolumeBounds.Depth = includeScaleFactor ? UIVolumeParent.VolumeSize.z * volumeSizeScaleFactorZ : UIVolumeParent.VolumeSize.z;
+                    VolumeBounds.Depth = includeScaleFactor ? VolumeParent.VolumeSize.z * volumeSizeScaleFactorZ : VolumeParent.VolumeSize.z;
                 }
             }
 
             transform.localScale = newScale;
+            Volume.OnVolumeSizeChanged.Invoke();
         }
 
         public void EqualizeVolumeSizeToParent()
@@ -258,90 +266,63 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public void UpdateAnchorPosition()
         {
-            if (UseAnchorPositioning && !IsRootUIVolume)
+            if (UseAnchorPositioning && !Volume.IsRootVolume)
             {
                 Vector3 newPosition = Vector3.zero;
-                Vector3 marginDifference = GetMarginDifference() * 0.5f;
+                Vector3 marginDifference = Volume.GetMarginDifference() * 0.5f;
 
                 switch (XAnchorPosition)
                 {
                     case XAnchorPosition.Left:
-                        newPosition = UIVolumeParent.GetFacePoint(FacePoint.Left) + (UIVolumeParent.VolumeBounds.Right * (VolumeBounds.Extents.x + marginDifference.x));
+                        newPosition = VolumeParent.GetFacePoint(FacePoint.Left) + (VolumeParent.VolumeBounds.Right * (VolumeBounds.Extents.x + marginDifference.x));
                         break;
                     case XAnchorPosition.Center:
-                        newPosition = UIVolumeParent.VolumeCenter;
+                        newPosition = VolumeParent.VolumeCenter;
                         break;
                     case XAnchorPosition.Right:
-                        newPosition = UIVolumeParent.GetFacePoint(FacePoint.Right) + (UIVolumeParent.VolumeBounds.Left * (VolumeBounds.Extents.x + marginDifference.x));
+                        newPosition = VolumeParent.GetFacePoint(FacePoint.Right) + (VolumeParent.VolumeBounds.Left * (VolumeBounds.Extents.x + marginDifference.x));
                         break;
                 }
 
                 switch (YAnchorPosition)
                 {
                     case YAnchorPosition.Top:
-                        newPosition += (UIVolumeParent.VolumeBounds.Up * UIVolumeParent.VolumeBounds.Extents.y) + (UIVolumeParent.VolumeBounds.Down * (VolumeBounds.Extents.y + marginDifference.y));
+                        newPosition += (VolumeParent.VolumeBounds.Up * VolumeParent.VolumeBounds.Extents.y) + (VolumeParent.VolumeBounds.Down * (VolumeBounds.Extents.y + marginDifference.y));
                         break;
                     case YAnchorPosition.Center:
                         break;
                     case YAnchorPosition.Bottom:
-                        newPosition += (UIVolumeParent.VolumeBounds.Down * UIVolumeParent.VolumeBounds.Extents.y) + (UIVolumeParent.VolumeBounds.Up * (VolumeBounds.Extents.y + marginDifference.y));
+                        newPosition += (VolumeParent.VolumeBounds.Down * VolumeParent.VolumeBounds.Extents.y) + (VolumeParent.VolumeBounds.Up * (VolumeBounds.Extents.y + marginDifference.y));
                         break;
                 }
 
                 switch (ZAnchorPosition)
                 {
                     case ZAnchorPosition.Forward:
-                        newPosition += (UIVolumeParent.VolumeBounds.Forward * UIVolumeParent.VolumeBounds.Extents.z) + (UIVolumeParent.VolumeBounds.Back * (VolumeBounds.Extents.z + marginDifference.z));
+                        newPosition += (VolumeParent.VolumeBounds.Forward * VolumeParent.VolumeBounds.Extents.z) + (VolumeParent.VolumeBounds.Back * (VolumeBounds.Extents.z + marginDifference.z));
                         break;
                     case ZAnchorPosition.Center:
                         break;
                     case ZAnchorPosition.Back:
-                        newPosition += (UIVolumeParent.VolumeBounds.Back * UIVolumeParent.VolumeBounds.Extents.z) + (UIVolumeParent.VolumeBounds.Forward * (VolumeBounds.Extents.z + marginDifference.z));
+                        newPosition += (VolumeParent.VolumeBounds.Back * VolumeParent.VolumeBounds.Extents.z) + (VolumeParent.VolumeBounds.Forward * (VolumeBounds.Extents.z + marginDifference.z));
                         break;
                 }
 
                 if (IsValidVector(newPosition))
                 {
-                    VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
+                    //VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
+                    
+                    //if (VolumeSizeOrigin != VolumeSizeOrigin.RendererBounds)
+                    {
+                        VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
+                    }
+                    //else
+                    //{
+                    //    //VolumePosition = newPosition - (Vector3.left * (newPosition - VolumeCenter).x); //- (newPosition - VolumeCenter);
+                    //}
                 }
             }
         }
-
-        public void SwitchChildVolumes(Volume child, Volume targetVolume)
-        {
-            Volume volumeToSwitch = DirectChildUIVolumes.Find((item) => item == child);
-            Vector3 pos = targetVolume.transform.position;
-
-            volumeToSwitch.transform.SetParent(targetVolume.transform, true);
-            Vector3 velocity = Vector3.zero;
-
-            child.transform.position = Vector3.SmoothDamp(child.transform.position, pos, ref velocity, 10 * Time.deltaTime);
-
-            float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
-            float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
-            float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
-
-            Vector3 diff = new Vector3(diffX, diffY, diffZ);
-            Vector3 childScale = child.transform.localScale;
-            Vector3 targetScale = Vector3.Scale(childScale, diff);
-
-            scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale, targetScale));
-
-            SyncChildObjects();
-        }
-
-        private IEnumerator TransitionScale(Transform currentTransform, Vector3 currentScale, Vector3 targetScale)
-        {
-            scaleStartTime = Time.time;
-            float t = 0;
-            while (t <= 1)
-            {
-                t += Time.deltaTime;
-                currentTransform.localScale = Vector3.Lerp(currentScale, targetScale, t * 1.5f);
-                yield return null;
-            }
-        }
-
 
         public bool IsTextBackPlateCompatible()
         {
@@ -374,39 +355,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             return !float.IsNaN(vector.x) && !float.IsNaN(vector.y) && !float.IsNaN(vector.z) &&
                    !float.IsInfinity(vector.x) && !float.IsInfinity(vector.y) && !float.IsInfinity(vector.z);
-        }
-
-        private void PrintMatrix()
-        {
-            Matrix4x4 localToWoldMatrix = transform.localToWorldMatrix;
-
-            Debug.Log("======== Local to World Matrix ==========");
-
-            Debug.Log(localToWoldMatrix.GetRow(0).ToString("F6"));
-            Debug.Log(localToWoldMatrix.GetRow(1).ToString("F6"));
-            Debug.Log(localToWoldMatrix.GetRow(2).ToString("F6"));
-            Debug.Log(localToWoldMatrix.GetRow(3).ToString("F6"));
-
-            Debug.Log("==================");
-
-            Debug.Log("Local Scale: " + transform.localScale.ToString("F6"));
-            Debug.Log("Lossy Scale: " + transform.lossyScale.ToString("F6"));
-
-            if (transform.parent != null)
-            {
-                Debug.Log("Parent Lossy Scale: " + transform.parent.lossyScale.ToString("F6"));
-            }
-
-            Matrix4x4 worldToLocalMatrix = transform.worldToLocalMatrix;
-
-            Debug.Log("======== World to Local Matrix ==========");
-
-            Debug.Log(worldToLocalMatrix.GetRow(0).ToString("F6"));
-            Debug.Log(worldToLocalMatrix.GetRow(1).ToString("F6"));
-            Debug.Log(worldToLocalMatrix.GetRow(2).ToString("F6"));
-            Debug.Log(worldToLocalMatrix.GetRow(3).ToString("F6"));
-
-            Debug.Log("==================");
         }
     }
 }

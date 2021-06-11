@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class VolumeMesh : Volume
+    public class VolumeMesh : BaseCustomVolume
     {
         [SerializeField]
         private Mesh mesh;
@@ -29,16 +29,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             if (positions != null)
             {
-                int vertexCount = positions.Length;
-                int childCount = ChildVolumeItems.Count;
-
-                if (childCount != 0)
-                {
-                    for (int i = 0; i < ChildVolumeItems.Count; i++)
-                    {
-                        ChildVolumeItems[i].Transform.position = positions[i];
-                    }
-                }
+                Volume.SetChildVolumePositions(positions);
             }
         }
 

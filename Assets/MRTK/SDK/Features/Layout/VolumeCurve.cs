@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class VolumeCurve : Volume
+    public class VolumeCurve : BaseCustomVolume
     {
         [SerializeField]
         private Vector3[] curvePoints = new Vector3[3];
@@ -48,10 +48,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => lineSteps = value;
         }
 
-        protected override void OnDrawGizmos()
+        protected void OnDrawGizmos()
         {
-            base.OnDrawGizmos();
-
             Vector3[] curvePositions = CalculateCurvePositions();
 
             Gizmos.color = Color.blue;
@@ -65,7 +63,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             Gizmos.color = Color.cyan;
 
-
             for (int i = 0; i < curvePositions.Length; i++)
             {
                 Gizmos.DrawSphere(curvePositions[i], 0.005f);
@@ -76,7 +73,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 }
             }
         }
-
 
         private Vector3[] CalculateCurvePositions()
         {
@@ -106,7 +102,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return Vector3.Lerp(Vector3.Lerp(p0, p2, t), Vector3.Lerp(p1, p2, t), t);
         }
 
-        protected override void Start()
+        public override void Start()
         {
             base.Start();
 
@@ -115,9 +111,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private void InitializeCurvePointPositions()
         {
-            CurvePoints[0] = GetCornerMidPoint(CornerPoint.LeftTopForward, CornerPoint.LeftBottomForward);
-            CurvePoints[1] = GetFacePoint(FacePoint.Back);
-            CurvePoints[2] = GetCornerMidPoint(CornerPoint.RightTopForward, CornerPoint.RightBottomForward);
+            CurvePoints[0] = Volume.GetCornerMidPoint(CornerPoint.LeftTopForward, CornerPoint.LeftBottomForward);
+            CurvePoints[1] = Volume.GetFacePoint(FacePoint.Back);
+            CurvePoints[2] = Volume.GetCornerMidPoint(CornerPoint.RightTopForward, CornerPoint.RightBottomForward);
         }
 
         public override void Update()
@@ -131,9 +127,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private void UpdateCurvePoints()
         {
-            CurvePoints[0] = GetCornerMidPoint(CornerPoint.LeftTopForward, CornerPoint.LeftBottomForward);
-            CurvePoints[1] = GetFacePoint(FacePoint.Back);
-            CurvePoints[2] = GetCornerMidPoint(CornerPoint.RightTopForward, CornerPoint.RightBottomForward);
+            CurvePoints[0] = Volume.GetCornerMidPoint(CornerPoint.LeftTopForward, CornerPoint.LeftBottomForward);
+            CurvePoints[1] = Volume.GetFacePoint(FacePoint.Back);
+            CurvePoints[2] = Volume.GetCornerMidPoint(CornerPoint.RightTopForward, CornerPoint.RightBottomForward);
 
             Debug.DrawLine(CurvePoints[0], CurvePoints[1]);
             Debug.DrawLine(CurvePoints[1], CurvePoints[2]);

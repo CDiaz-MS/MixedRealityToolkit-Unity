@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class VolumeEllipse : Volume
+    public class VolumeEllipse : BaseCustomVolume
     {
         [SerializeField]
         private VolumeEllipseOrientation volumeEllipseOrientation = VolumeEllipseOrientation.Vertical;
@@ -36,7 +36,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public int Segments
         {
-            get => ChildVolumeItems.Count;
+            get => Volume.ChildVolumeItems.Count;
         }
 
         public override void Update()
@@ -50,10 +50,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Vector3[] positions = GetObjectPositions();
 
-            for (int i = 0; i < ChildVolumeItems.Count; i++)
-            {
-                ChildVolumeItems[i].Transform.position = Application.isPlaying ? Vector3.Lerp(ChildVolumeItems[i].Transform.position, positions[i], Time.deltaTime * 3f) : positions[i];
-            }
+            Volume.SetChildVolumePositions(positions);
         }
 
         private Vector3[] GetObjectPositions()
