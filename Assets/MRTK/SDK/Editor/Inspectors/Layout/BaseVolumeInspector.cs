@@ -25,12 +25,17 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty drawCornerPoints;
         private SerializedProperty drawFacePoints;
         private SerializedProperty drawVolumeBounds;
+        private SerializedProperty drawMarginBounds;
+        private SerializedProperty useMargin;
+
         private SerializedProperty childVolumeItems;
         private SerializedProperty volumeSizeOrigin;
 
-        private Texture cornerPointsIcon;
-        private Texture facePointsIcon;
-        private Texture volumeBoundsIcon;
+        private SerializedProperty onChildCountChanged;
+        private SerializedProperty onVolumePositionChanged;
+        private SerializedProperty onVolumeSizeChanged;
+        private SerializedProperty onVolumeScaleChanged;
+        private SerializedProperty onVolumeModified;
 
         private BoxBoundsHandle volumeBoundsHandle = new BoxBoundsHandle();
         private BoxBoundsHandle marginBoundsHandle = new BoxBoundsHandle();
@@ -39,37 +44,30 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private const string DrawGizmosTitle = "Draw Gizmos";
         private const string ChildTransformsTitle = "Child Volume Transforms";
         private const string VolumeSizePresetsTitle = "Volume Size Presets";
+        private const string EventsTitle = "Volume Events";
+        private const string MarginBoundsTitle = "Margin Bounds";
         private const string EnableMaintainScaleLabel = "Enable Maintain Scale All";
         private const string DisableMaintainScaleLabel = "Disable Maintain Scale All";
         private const string FacePointsDisplayLabel = " Display Face Points";
         private const string CornerPointsDisplayLabel = " Display Corner Points";
         private const string VolumeBoundsDisplayLabel = " Display Volume Bounds";
+        private const string MarginBoundsDisplayLabel = " Display Margin Bounds";
         private const string ButtonSizePresetLabel = "Button Size Presets";
         private const string ButtonGroupPresetLabel = "Button Group Presets";
         private const string ActionBarPresetLabel = "Action Bar Presets";
         private const string DialogSizePresetLabel = "Dialog Size Presets";
         private const string ListMenuPresetLabel = "List Menu Presets";
         private const string MenuListPresetLabel = "Menu List Presets";
-
-        private Color warningColor = new Color(1f, 0.85f, 0.6f);
-
-        protected const int TitleFontSize = 14;
+        private const string MarginBoundsResetLabel = "Reset Margin Bounds to Volume BoundsSize";
+        private const string MarginValuesLabel = "View Margin Values";
+        
+        private Texture cornerPointsIcon;
+        private Texture facePointsIcon;
+        private Texture volumeBoundsIcon;
 
         private readonly string FacePointsIconGUID = "7d524dcfa288d5145a5d25b92440ce7b";
         private readonly string CornerPointsIconGUID = "df9428ac399ba3e4c9d07027789752c4";
-        private readonly string VolumeBoundsIconGUID = "df9428ac399ba3e4c9d07027789752c4";
-
-        private static readonly Color ProfessionalThemeColorTint100 = new Color(0f, 0f, 0f);
-        private static readonly Color ProfessionalThemeColorTint75 = new Color(0.25f, 0.25f, 0.25f);
-        private static readonly Color ProfessionalThemeColorTint50 = new Color(0.5f, 0.5f, 0.5f);
-
-        private static readonly Color PersonalThemeColorTint100 = new Color(1f, 1f, 1f);
-        private static readonly Color PersonalThemeColorTint75 = new Color(0.75f, 0.75f, 0.75f);
-        private static readonly Color PersonalThemeColorTint50 = new Color(0.5f, 0.5f, 0.5f);
-
-        public Color ColorTint100 => EditorGUIUtility.isProSkin ? ProfessionalThemeColorTint100 : PersonalThemeColorTint100;
-        public Color ColorTint75 => EditorGUIUtility.isProSkin ? ProfessionalThemeColorTint75 : PersonalThemeColorTint75;
-        public Color ColorTint50 => EditorGUIUtility.isProSkin ? ProfessionalThemeColorTint50 : PersonalThemeColorTint50;
+        private readonly string VolumeBoundsIconGUID = "44b20929bf465864d8ad1fcc5001d9c5";
 
         // Size Presets 
         private Vector3[] buttonSizePresetsRow1 = new Vector3[4]
@@ -146,9 +144,18 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             drawCornerPoints = serializedObject.FindProperty("drawCornerPoints");
             drawFacePoints = serializedObject.FindProperty("drawFacePoints");
             drawVolumeBounds = serializedObject.FindProperty("drawVolumeBounds");
+            drawMarginBounds = serializedObject.FindProperty("drawMarginBounds");
+            useMargin = serializedObject.FindProperty("useMargin");
+
             childVolumeItems = serializedObject.FindProperty("childVolumeItems");
             volumeSizeOrigin = serializedObject.FindProperty("volumeSizeOrigin");
-        }
+
+            onChildCountChanged = serializedObject.FindProperty("onChildCountChanged");
+            onVolumePositionChanged = serializedObject.FindProperty("onVolumePositionChanged");
+            onVolumeSizeChanged = serializedObject.FindProperty("onVolumeSizeChanged");
+            onVolumeScaleChanged = serializedObject.FindProperty("onVolumeScaleChanged");
+            onVolumeModified = serializedObject.FindProperty("onVolumeModified");
+    }
 
         public override void OnInspectorGUI()
         {
@@ -156,21 +163,35 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             serializedObject.Update();
 
-            if (instance.IsRootUIVolume)
+            if (instance.IsRootVolume)
             {
-                DrawWarning("This Volume is the root");
+                VolumeInspectorUtility.DrawWarning("This Volume is the root");
             }
 
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(volumeSizeOrigin);
 
+            if (EditorGUI.EndChangeCheck())
+            {
+                instance.UpdateVolumeBounds();
+            }
+
             DrawVolumeBoundsProperties();
+
+            DrawMarginBoundsSection();
 
             DrawCommonContainerSizeSection();
 
             DrawDebuggingSection();
 
-            DrawChildTransformSection();
+            DrawEventsSection();
 
+            if (instance.ChildVolumeItems.Count != 0)
+            {
+                DrawChildTransformSection();
+            }
+            
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -179,6 +200,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.Custom)
             {
                 DrawHandleBounds(volumeBoundsHandle, Color.magenta, instance.VolumeSize);
+                instance.DrawVolumeBounds = false;
             }
         }
 
@@ -203,6 +225,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     Undo.RecordObject(instance, "Layout Item Size");
 
                     SetHandleSize(handle);
+
+                    instance.OnVolumeSizeChanged.Invoke();
                 }
             }
         }
@@ -211,25 +235,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             Vector3 newSize = Vector3.zero;
 
-            if (handle == marginBoundsHandle)
-            {
-                newSize.x = handle.size.x < instance.VolumeSize.x ? instance.VolumeSize.x : handle.size.x;
-                newSize.y = handle.size.y < instance.VolumeSize.y ? instance.VolumeSize.y : handle.size.y;
-                newSize.z = handle.size.z < instance.VolumeSize.z ? instance.VolumeSize.z : handle.size.z;
+            newSize = handle.size;
 
-                instance.MarginBounds.Size = newSize;
-            }
-            else
-            {
-                newSize = handle.size;
+            instance.VolumeBounds.Size = newSize;
 
-                instance.VolumeBounds.Size = newSize;
+            SerializedProperty boundsSize = volumeBounds.FindPropertyRelative("size");
 
-                SerializedProperty boundsSize = volumeBounds.FindPropertyRelative("size");
-
-                boundsSize.vector3Value = newSize;
-            }
-
+            boundsSize.vector3Value = newSize;
+     
             return newSize;
         }
 
@@ -266,7 +279,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         #region Draw Volume Sections
         private void DrawVolumeBoundsProperties()
         {
-            DrawTitle(VolumeBoundsTitle);
+            VolumeInspectorUtility.DrawTitle(VolumeBoundsTitle);
 
             EditorGUILayout.Space();
 
@@ -290,9 +303,71 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUI.EndDisabledGroup();
         }
 
+
+        private void DrawMarginBoundsSection()
+        {
+            VolumeInspectorUtility.DrawTitle(MarginBoundsTitle);
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(MarginBoundsTitle, MarginBoundsTitle, false))
+            {
+
+                EditorGUILayout.PropertyField(useMargin);
+
+                EditorGUI.BeginDisabledGroup(!useMargin.boolValue);
+
+
+                DrawMarginBoundsProperty(marginBounds);
+
+                if (GUILayout.Button(MarginBoundsResetLabel))
+                {
+                    ResetMarginBoundsToVolumeBounds();
+                }
+
+                if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(MarginValuesLabel, MarginValuesLabel, false))
+                {
+                    EditorGUI.BeginDisabledGroup(volumeSizeOrigin.enumValueIndex != (int)VolumeSizeOrigin.Custom);
+
+                    using (new EditorGUILayout.VerticalScope())
+                    {
+                        using (new EditorGUI.IndentLevelScope())
+                        {
+                            EditorGUILayout.FloatField("Margin Left cm", instance.GetMarginDifference().x * 0.5f);
+                            EditorGUILayout.FloatField("Margin Right cm", instance.GetMarginDifference().x * 0.5f);
+
+                            EditorGUILayout.Space();
+
+                            EditorGUILayout.FloatField("Margin Top cm", instance.GetMarginDifference().y * 0.5f);
+                            EditorGUILayout.FloatField("Margin Bottom cm", instance.GetMarginDifference().y * 0.5f);
+
+                            EditorGUILayout.Space();
+
+                            EditorGUILayout.FloatField("Margin Forward cm", instance.GetMarginDifference().z * 0.5f);
+                            EditorGUILayout.FloatField("Margin Back cm", instance.GetMarginDifference().z * 0.5f);
+                        }
+                    }
+
+                    EditorGUI.EndDisabledGroup();
+                }
+
+                EditorGUI.EndDisabledGroup();
+            }
+        }
+
+        private void ResetMarginBoundsToVolumeBounds()
+        {
+            instance.MarginBounds.Size = instance.VolumeBounds.Size;
+        }
+
         private void DrawVolumeBoundsProperty(SerializedProperty volumeBounds)
         {
+
+            EditorGUI.BeginChangeCheck();
             SerializedProperty volumeSize = volumeBounds.FindPropertyRelative("size");
+            if (EditorGUI.EndChangeCheck())
+            {
+                instance.OnVolumeModified.Invoke();
+            }
+
             SerializedProperty volumeCenter = volumeBounds.FindPropertyRelative("center");
             SerializedProperty volumeHostTransform = volumeBounds.FindPropertyRelative("hostTransform");
 
@@ -305,6 +380,13 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUI.BeginDisabledGroup(true);
             EditorGUILayout.Vector3Field("Extents", extents);
             EditorGUI.EndDisabledGroup();
+        }
+
+        private void DrawMarginBoundsProperty(SerializedProperty volumeBounds)
+        {
+            SerializedProperty volumeSize = volumeBounds.FindPropertyRelative("size");
+
+            EditorGUILayout.PropertyField(volumeSize);
         }
 
         private void SetMaintainScaleAll(bool isMaintainScaleEnabled)
@@ -320,9 +402,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawChildTransformSection()
         {
-            DrawTitle(ChildTransformsTitle);
+            VolumeInspectorUtility.DrawTitle(ChildTransformsTitle);
 
-            if (DrawSectionFoldoutWithKey(ChildTransformsTitle, ChildTransformsTitle, false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(ChildTransformsTitle, ChildTransformsTitle, false))
             {
                 EditorGUILayout.Space();
 
@@ -366,7 +448,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                                 GUI.enabled = false;
                                 EditorGUILayout.PropertyField(transform);
+
+                                Transform itemTransform = transform.objectReferenceValue as Transform;
+
+                                EditorGUILayout.Vector3Field("Position", itemTransform.position);
                                 EditorGUILayout.PropertyField(scaleToLock);
+                                
 
                                 if (uiVolume != null)
                                 {
@@ -389,7 +476,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawDebuggingSection()
         {
-            DrawTitle(DrawGizmosTitle);
+            VolumeInspectorUtility.DrawTitle(DrawGizmosTitle);
 
             var cornerPointsContent = new GUIContent()
             {
@@ -409,15 +496,21 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 image = volumeBoundsIcon
             };
 
-            if (DrawSectionFoldoutWithKey(DrawGizmosTitle, DrawGizmosTitle, false))
+            var marginBoundsContent = new GUIContent()
+            {
+                text = MarginBoundsDisplayLabel,
+            };
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(DrawGizmosTitle, DrawGizmosTitle, false))
             {
                 using (new EditorGUI.IndentLevelScope())
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
-                        DrawColorToggleButton(drawCornerPoints, cornerPointsContent, 40, 190);
-                        DrawColorToggleButton(drawFacePoints, facePointsContent, 40, 190);
-                        DrawColorToggleButton(drawVolumeBounds, volumeBoundsContent, 40, 190);
+                        VolumeInspectorUtility.DrawColorToggleButton(drawCornerPoints, cornerPointsContent, 30, 160);
+                        VolumeInspectorUtility.DrawColorToggleButton(drawFacePoints, facePointsContent, 30, 160);
+                        VolumeInspectorUtility.DrawColorToggleButton(drawVolumeBounds, volumeBoundsContent, 30, 160);
+                        VolumeInspectorUtility.DrawColorToggleButton(drawMarginBounds, marginBoundsContent, 65, 160);
                     }
 
                     EditorGUILayout.Space();
@@ -436,9 +529,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             if (volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.LocalScale || volumeSizeOrigin.enumValueIndex == (int)VolumeSizeOrigin.LossyScale)
             {
-                DrawTitle(VolumeSizePresetsTitle);
+                VolumeInspectorUtility.DrawTitle(VolumeSizePresetsTitle);
 
-                if (DrawSectionFoldoutWithKey(VolumeSizePresetsTitle, VolumeSizePresetsTitle, false))
+                if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(VolumeSizePresetsTitle, VolumeSizePresetsTitle, false))
                 {
                     using (new EditorGUI.IndentLevelScope())
                     {
@@ -453,9 +546,24 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
         }
 
+
+        private void DrawEventsSection()
+        {
+            VolumeInspectorUtility.DrawTitle(EventsTitle);
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(EventsTitle, EventsTitle, false))
+            {
+                EditorGUILayout.PropertyField(onChildCountChanged);
+                EditorGUILayout.PropertyField(onVolumePositionChanged);
+                EditorGUILayout.PropertyField(onVolumeSizeChanged);
+                EditorGUILayout.PropertyField(onVolumeScaleChanged);
+                EditorGUILayout.PropertyField(onVolumeModified);
+            }
+         }
+
         private void DrawSizePresetSection(string title, Vector3[] list1, Vector3[] list2 = null)
         {
-            if (DrawSectionFoldoutWithKey(title, title, false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(title, title, false))
             {
                 using (new EditorGUILayout.VerticalScope())
                 {
@@ -497,120 +605,16 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             return xValue + "mm x " + yValue + "mm x " + zValue + "mm";
         }
 
+
         #endregion
 
-        #region EditorGUI Utils
-        protected void DrawTitle(string title)
+        #region Utils
+
+        public void GetIcons()
         {
-            GUIStyle labelStyle = LableStyle(TitleFontSize, ColorTint50);
-            EditorGUILayout.LabelField(new GUIContent(title), labelStyle);
-            EditorGUILayout.Space();
-        }
-
-        protected void DrawWarning(string warning)
-        {
-            Color prevColor = GUI.color;
-
-            GUI.color = warningColor;
-            EditorGUILayout.BeginVertical(EditorStyles.textArea);
-            EditorGUILayout.LabelField(warning, EditorStyles.wordWrappedMiniLabel);
-            EditorGUILayout.EndVertical();
-
-            GUI.color = prevColor;
-        }
-
-        protected GUIStyle LableStyle(int size, Color color)
-        {
-            GUIStyle labelStyle = new GUIStyle(EditorStyles.boldLabel);
-            labelStyle.fontStyle = FontStyle.Bold;
-            labelStyle.fontSize = size;
-            labelStyle.fixedHeight = size * 2;
-            labelStyle.normal.textColor = color;
-            return labelStyle;
-        }
-
-        private void GetIcons()
-        {
-            cornerPointsIcon = GetIcon(CornerPointsIconGUID);
-            facePointsIcon = GetIcon(FacePointsIconGUID);
-            volumeBoundsIcon = GetIcon(VolumeBoundsIconGUID);
-        }
-
-        protected Texture GetIcon(string GUID)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(GUID);
-            Texture icon = AssetDatabase.LoadAssetAtPath<Texture>(path);
-            return icon;
-        }
-
-        protected void DrawHorizontalToggleSlider(SerializedProperty boolProperty, string boolTitle, SerializedProperty floatProperty, string floatTitle, float sliderMax)
-        {
-            using (new EditorGUILayout.HorizontalScope())
-            {
-                Color previousGUIColor = GUI.color;
-
-                if (boolProperty.boolValue)
-                {
-                    GUI.color = Color.cyan;
-                }
-
-                if (GUILayout.Button(boolTitle, GUILayout.MinHeight(40)))
-                {
-                    boolProperty.boolValue = !boolProperty.boolValue;
-                }
-
-                GUI.color = previousGUIColor;
-
-                using (new EditorGUILayout.VerticalScope())
-                {
-                    EditorGUILayout.LabelField(floatTitle);
-                    floatProperty.floatValue = EditorGUILayout.Slider("", floatProperty.floatValue, 0, sliderMax);
-                }
-            }
-        }
-
-        protected bool DrawSectionFoldoutWithKey(string headerName, string preferenceKey = null, bool defaultOpen = true)
-        {
-            GUIStyle style = new GUIStyle(EditorStyles.foldout) { fontStyle = FontStyle.Bold };
-            bool showPref = SessionState.GetBool(preferenceKey, defaultOpen);
-            bool show = DrawSectionFoldout(headerName, showPref, style);
-            if (show != showPref)
-            {
-                SessionState.SetBool(preferenceKey, show);
-            }
-
-            return show;
-        }
-
-        protected bool DrawSectionFoldout(string headerName, bool open = true, GUIStyle style = null)
-        {
-            if (style == null)
-            {
-                style = EditorStyles.foldout;
-            }
-
-            using (new EditorGUI.IndentLevelScope())
-            {
-                return EditorGUILayout.Foldout(open, headerName, true, style);
-            }
-        }
-
-        protected bool DrawColorToggleButton(SerializedProperty boolProperty, GUIContent buttonContent, int minHeight, int minWidth)
-        {
-            Color previousGUIColor = GUI.color;
-
-            if (boolProperty.boolValue)
-            {
-                GUI.color = Color.cyan;
-            }
-
-            if (GUILayout.Button(buttonContent, GUILayout.MinHeight(minHeight), GUILayout.MinWidth(minWidth)))
-            {
-                boolProperty.boolValue = !boolProperty.boolValue;
-            }
-
-            GUI.color = previousGUIColor;
-            return boolProperty.boolValue;
+            cornerPointsIcon = VolumeInspectorUtility.GetIcon(CornerPointsIconGUID);
+            facePointsIcon = VolumeInspectorUtility.GetIcon(FacePointsIconGUID);
+            volumeBoundsIcon = VolumeInspectorUtility.GetIcon(VolumeBoundsIconGUID);
         }
 
         #endregion

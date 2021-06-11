@@ -2,8 +2,6 @@
 // Licensed under the MIT License.
 
 using Microsoft.MixedReality.Toolkit.UI.Layout;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 
@@ -11,7 +9,7 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
     [CustomEditor(typeof(VolumeCurve))]
-    public class VolumeCurveInspector : VolumeInspector
+    public class VolumeCurveInspector : UnityEditor.Editor
     {
         private VolumeCurve instanceCurve;
         private SerializedProperty curvePoints;
@@ -19,10 +17,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty backPointOverride;
         private SerializedProperty lineSteps;
 
-        public override void OnEnable()
+        public void OnEnable()
         {
-            base.OnEnable();
-
             instanceCurve = target as VolumeCurve;
 
             adjustToCurve = serializedObject.FindProperty("adjustToCurve");
@@ -33,25 +29,23 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             serializedObject.Update();
 
             DrawAdjustToCurve();
 
             DrawSlider();
 
+            DrawAdjustToCurveButton();
+
             serializedObject.ApplyModifiedProperties();
         }
 
         private void DrawAdjustToCurve()
         {
-            DrawTitle("Curve Settings");
-
+            VolumeInspectorUtility.DrawTitle("Curve Settings");
 
             EditorGUILayout.PropertyField(curvePoints);
             EditorGUILayout.PropertyField(lineSteps);
-
 
             Color previousGUIColor = GUI.color;
 
@@ -61,6 +55,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 GUI.color = Color.cyan;
             }
 
+            GUI.color = previousGUIColor;
+        }
+
+        private void DrawAdjustToCurveButton()
+        {
             if (GUILayout.Button("Adjust To Curve"))
             {
                 if (adjustToCurve.boolValue)
@@ -72,24 +71,21 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     adjustToCurve.boolValue = true;
                 }
             }
-
-            GUI.color = previousGUIColor;
         }
-
 
         private void DrawSlider()
         {
             SerializedProperty uiVolumePoint = curvePoints.GetArrayElementAtIndex(1);
-            SerializedProperty point = uiVolumePoint.FindPropertyRelative("point");
+            //SerializedProperty point = uiVolumePoint.FindPropertyRelative("point");
 
             EditorGUILayout.PropertyField(backPointOverride);
 
             if (backPointOverride.boolValue)
             {
-                point.vector3Value = new Vector3(
-                    EditorGUILayout.Slider("X Position", point.vector3Value.x, -1, 1),
-                    EditorGUILayout.Slider("Y Position", point.vector3Value.y, -1, 1),
-                    EditorGUILayout.Slider("Z Position", point.vector3Value.z, -2, 2));
+                uiVolumePoint.vector3Value = new Vector3(
+                    EditorGUILayout.Slider("X Position", uiVolumePoint.vector3Value.x, -1, 1),
+                    EditorGUILayout.Slider("Y Position", uiVolumePoint.vector3Value.y, -1, 1),
+                    EditorGUILayout.Slider("Z Position", uiVolumePoint.vector3Value.z, -2, 2));
             }
         }
 

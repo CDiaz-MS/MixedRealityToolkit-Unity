@@ -1,6 +1,7 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Layout;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.MixedReality.Toolkit.UI.Layout;
 using UnityEditor;
 using UnityEngine;
 
@@ -9,17 +10,15 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 {
     [CustomEditor(typeof(VolumeEllipse))]
     [CanEditMultipleObjects]
-    public class VolumeEllipseInspector : VolumeInspector
+    public class VolumeEllipseInspector : UnityEditor.Editor
     {
         private VolumeEllipse instanceElipse;
         private SerializedProperty radius;
         private SerializedProperty useCustomRadius;
         private SerializedProperty volumeEllipseOrientation;
 
-        public override void OnEnable()
+        public void OnEnable()
         {
-            base.OnEnable();
-
             instanceElipse = target as VolumeEllipse;
 
             radius = serializedObject.FindProperty("radius");
@@ -29,8 +28,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             serializedObject.Update();
 
             DrawElipseSection();
@@ -38,16 +35,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-
-        public override void OnSceneGUI()
-        {
-            base.OnSceneGUI();
-        }
-
-
         private void DrawElipseSection()
         {
-            DrawTitle("Volume Ellipse Settings");
+            VolumeInspectorUtility.DrawTitle("Volume Ellipse Settings");
 
             EditorGUILayout.PropertyField(volumeEllipseOrientation);
             EditorGUILayout.PropertyField(useCustomRadius);

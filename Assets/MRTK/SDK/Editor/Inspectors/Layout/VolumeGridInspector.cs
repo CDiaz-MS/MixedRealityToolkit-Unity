@@ -12,9 +12,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 {
     [CustomEditor(typeof(VolumeGrid))]
     [CanEditMultipleObjects]
-    public class VolumeGridInspector : VolumeInspector
+    public class VolumeGridInspector : UnityEditor.Editor
     {
         private VolumeGrid instanceGrid;
+
+        private SerializedProperty updateGrid;
 
         private SerializedProperty primaryFlowAxis;
         private SerializedProperty secondaryFlowAxis;
@@ -47,11 +49,20 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private SerializedProperty allowCustomPositionSet;
 
-        public override void OnEnable()
-        {
-            base.OnEnable();
+        private SerializedProperty grid;
 
+        private SerializedProperty onRowCountChanged;
+        private SerializedProperty onColCountChanged;
+        private SerializedProperty onDepthCountChanged;
+
+        private SerializedProperty smoothingSpeed;
+        private SerializedProperty useSmoothing;
+
+        public void OnEnable()
+        {
             instanceGrid = target as VolumeGrid;
+
+            updateGrid = serializedObject.FindProperty("updateGrid");
 
             primaryFlowAxis = serializedObject.FindProperty("primaryFlowAxis");
             secondaryFlowAxis = serializedObject.FindProperty("secondaryFlowAxis");
@@ -81,48 +92,77 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             minWidth = serializedObject.FindProperty("minWidth");
             allowCustomPositionSet = serializedObject.FindProperty("allowCustomPositionSet");
+
+            onRowCountChanged = serializedObject.FindProperty("onRowCountChanged");
+            onColCountChanged = serializedObject.FindProperty("onColCountChanged");
+            onDepthCountChanged = serializedObject.FindProperty("onDepthCountChanged");
+
+            smoothingSpeed = serializedObject.FindProperty("smoothingSpeed");
+            useSmoothing = serializedObject.FindProperty("useSmoothing");
+
+            grid = serializedObject.FindProperty("grid");
         }
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             serializedObject.Update();
 
             DrawGridSection();
 
+            DrawTransitions();
+
+            DrawEvents();
+
             serializedObject.ApplyModifiedProperties();
         }
 
-
-        public override void OnSceneGUI()
+        private void DrawEvents()
         {
-            base.OnSceneGUI();
+            VolumeInspectorUtility.DrawTitle("Grid Events");
 
-            instanceGrid.SetObjectPositions();
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Grid Events", "Grid Events", false))
+            {
+                EditorGUILayout.PropertyField(onRowCountChanged);
+                EditorGUILayout.PropertyField(onColCountChanged);
+                EditorGUILayout.PropertyField(onDepthCountChanged);
+            }
+        }
+
+        private void DrawTransitions()
+        {
+            VolumeInspectorUtility.DrawTitle("Object Movement Settings");
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Object Movement Settings", "Object Movement Settings", false))
+            {
+                EditorGUILayout.PropertyField(useSmoothing);
+                EditorGUILayout.PropertyField(smoothingSpeed);
+            }
         }
 
         private void DrawFlowSection()
         {
-            DrawTitle("Grid Flow Settings");
+            VolumeInspectorUtility.DrawTitle("Grid Flow Settings");
 
-            EditorGUILayout.PropertyField(primaryFlowAxis);
-            EditorGUILayout.PropertyField(secondaryFlowAxis);
-            EditorGUILayout.PropertyField(tertiaryFlowAxis);
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Grid Flow Settings", "Grid Flow Settings", false))
+            {
+                EditorGUILayout.PropertyField(primaryFlowAxis);
+                EditorGUILayout.PropertyField(secondaryFlowAxis);
+                EditorGUILayout.PropertyField(tertiaryFlowAxis);
+            }
         }
 
         private void DrawGridSection()
         {
-            DrawTitle("Grid Settings");
+            VolumeInspectorUtility.DrawTitle("Grid Settings");
 
             DrawRowColDepthSection();
 
             DrawColRowGridMatchingSection();
 
             DrawCustomCellSizeSettings();
-
+            
             DrawFlowSection();
-
+            
             DrawOverFlowSettings();
 
             DrawGridDebuggingSection();
@@ -130,19 +170,44 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawRowColDepthSection()
         {
-            EditorGUILayout.PropertyField(rows);
-            EditorGUILayout.PropertyField(cols);
-            EditorGUILayout.PropertyField(depth);
+            EditorGUILayout.PropertyField(updateGrid);
+            EditorGUILayout.Space();
 
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(rows);
+            if (EditorGUI.EndChangeCheck())
+            {
+                instanceGrid.Rows = rows.intValue;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(cols);
+            if (EditorGUI.EndChangeCheck())
+            {
+                instanceGrid.Cols = cols.intValue;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(depth);
             EditorGUILayout.PropertyField(axisAlignment);
+            if (EditorGUI.EndChangeCheck())
+            {
+                instanceGrid.AxisAlignment = (AxisAlignment)axisAlignment.enumValueIndex;
+                instanceGrid.Depth = depth.intValue;
+            }  
+
         }
 
         private void DrawOverFlowSettings()
         {
-            DrawTitle("Grid Overflow Settings");
+            VolumeInspectorUtility.DrawTitle("Grid Overflow Settings");
 
-            EditorGUILayout.PropertyField(disableObjectsWithoutGridPosition);
-            EditorGUILayout.PropertyField(placeDisabledTransforms);
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Grid Overflow Settings", "Grid Overflow Settings", false))
+            {
+                EditorGUILayout.PropertyField(disableObjectsWithoutGridPosition);
+                EditorGUILayout.PropertyField(placeDisabledTransforms);
+            }
         }
 
 
@@ -150,7 +215,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             EditorGUILayout.Space();
 
-            if (DrawSectionFoldoutWithKey("Custom Cell Size Settings", "Custom Cell Size Settings", false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Custom Cell Size Settings", "Custom Cell Size Settings", false))
             {
                 EditorGUILayout.PropertyField(useCustomCellWidth);
                 EditorGUILayout.PropertyField(cellWidth);
@@ -167,11 +232,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawGridDebuggingSection()
         {
-            EditorGUILayout.Space();
+            VolumeInspectorUtility.DrawTitle("Draw Grid Gizmos");
 
-            DrawTitle("Draw Grid Gizmos");
-
-            if (DrawSectionFoldoutWithKey("Draw Grid Gizmos", "Draw Grid Gizmos", false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Draw Grid Gizmos", "Draw Grid Gizmos", false))
             {
                 EditorGUI.BeginDisabledGroup(true);
 
@@ -189,7 +252,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             EditorGUILayout.Space();
 
-            if (DrawSectionFoldoutWithKey("Grid Child Transform Matching", "Grid Child Transform Matching", false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Grid Child Transform Matching", "Grid Child Transform Matching", false))
             {
                 GUIContent matchRows = new GUIContent()
                 {
@@ -210,19 +273,19 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
-                    if (DrawColorToggleButton(matchRowsToChildren, matchRows, 50, 100))
+                    if (VolumeInspectorUtility.DrawColorToggleButton(matchRowsToChildren, matchRows, 50, 100))
                     {
                         matchColsToChildren.boolValue = false;
                         matchDepthToChildren.boolValue = false;
                     }
 
-                    if (DrawColorToggleButton(matchColsToChildren, matchCols, 50, 100))
+                    if (VolumeInspectorUtility.DrawColorToggleButton(matchColsToChildren, matchCols, 50, 100))
                     {
                         matchRowsToChildren.boolValue = false;
                         matchDepthToChildren.boolValue = false;
                     }
 
-                    if (DrawColorToggleButton(matchDepthToChildren, matchDepth, 50, 100))
+                    if (VolumeInspectorUtility.DrawColorToggleButton(matchDepthToChildren, matchDepth, 50, 100))
                     {
                         matchRowsToChildren.boolValue = false;
                         matchColsToChildren.boolValue = false;

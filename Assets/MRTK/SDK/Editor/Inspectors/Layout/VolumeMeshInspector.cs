@@ -1,32 +1,28 @@
-﻿using Microsoft.MixedReality.Toolkit.UI.Layout;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using Microsoft.MixedReality.Toolkit.UI.Layout;
 using UnityEditor;
-using UnityEngine;
 
 
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
     [CustomEditor(typeof(VolumeMesh))]
     [CanEditMultipleObjects]
-    public class VolumeMeshInspector : VolumeInspector
+    public class VolumeMeshInspector : UnityEditor.Editor
     {
         private VolumeMesh instanceMesh;
 
         private SerializedProperty mesh;
 
-        public override void OnEnable()
+        public void OnEnable()
         {
-            base.OnEnable();
-
             instanceMesh = target as VolumeMesh;
             mesh = serializedObject.FindProperty("mesh");
         }
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             serializedObject.Update();
 
             DrawMeshSection();
@@ -34,20 +30,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             serializedObject.ApplyModifiedProperties();
         }
 
-
-        public override void OnSceneGUI()
-        {
-            base.OnSceneGUI();
-        }
-
-
         private void DrawMeshSection()
         {
-            DrawTitle("Volume Mesh Settings");
+            VolumeInspectorUtility.DrawTitle("Volume Mesh Settings");
 
             EditorGUILayout.PropertyField(mesh);
         }
-
-
     }
 }

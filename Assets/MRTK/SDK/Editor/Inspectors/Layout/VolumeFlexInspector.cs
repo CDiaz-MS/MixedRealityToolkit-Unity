@@ -11,14 +11,12 @@ using UnityEngine;
 namespace Microsoft.MixedReality.Toolkit.Editor
 {
     [CustomEditor(typeof(VolumeFlex))]
-    public class VolumeFlexInspector : VolumeGridInspector
+    public class VolumeFlexInspector : UnityEditor.Editor
     {
         private VolumeFlex instanceFlex;
 
-        public override void OnEnable()
+        public void OnEnable()
         {
-            base.OnEnable();
-
             instanceFlex = target as VolumeFlex;
         }
 

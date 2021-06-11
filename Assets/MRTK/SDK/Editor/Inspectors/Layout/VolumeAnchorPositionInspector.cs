@@ -15,10 +15,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
     /// Custom inspector for the Volume component.  Contains anchor positioning buttons. 
     /// </summary>
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(Volume))]
-    public class VolumeInspector : BaseVolumeInspector
+    [CustomEditor(typeof(VolumeAnchorPosition))]
+    public class VolumeAnchorPositionInspector : UnityEditor.Editor
     {
-        private Volume instanceVolume;
+        private VolumeAnchorPosition instanceVolume;
 
         private SerializedProperty anchorPositionSmoothing;
         private SerializedProperty xAnchorPosition;
@@ -74,11 +74,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private string[] dictionaryKeys;
 
-        public override void OnEnable()
+        public void OnEnable()
         {
-            base.OnEnable();
-
-            instanceVolume = target as Volume;
+            instanceVolume = target as VolumeAnchorPosition;
 
             anchorPositionSmoothing = serializedObject.FindProperty("anchorPositionSmoothing");
             xAnchorPosition = serializedObject.FindProperty("xAnchorPosition");
@@ -100,13 +98,11 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
-
             GetAnchorIcons();
 
             serializedObject.Update();
 
-            if (!instanceVolume.IsRootUIVolume)
+            if (!instanceVolume.Volume.IsRootVolume)
             {
                 DrawAnchorButtons();
 
@@ -118,11 +114,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
 
             serializedObject.ApplyModifiedProperties();
-        }
-
-        public override void OnSceneGUI()
-        {
-            base.OnSceneGUI();
         }
 
         #region Draw Volume Sections
@@ -163,7 +154,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawAnchorSizeSection()
         {
-            DrawTitle(VolumeSizeSettingsTitle);
+            VolumeInspectorUtility.DrawTitle(VolumeSizeSettingsTitle);
 
             var fillToParentXContent = new GUIContent()
             {
@@ -225,7 +216,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawAnchorButtons()
         {
-            DrawTitle(AnchorPositionTitle);
+            VolumeInspectorUtility.DrawTitle(AnchorPositionTitle);
 
             DrawUseAnchorPositioning();
 
@@ -275,12 +266,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             GUI.enabled = true;
 
-            if (DrawSectionFoldoutWithKey("Anchor Position Smoothing", "Anchor Position Smoothing", false))
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Anchor Position Smoothing", "Anchor Position Smoothing", false))
             {
                 SerializedProperty smoothing = anchorPositionSmoothing.FindPropertyRelative("smoothing");
                 SerializedProperty lerpTime = anchorPositionSmoothing.FindPropertyRelative("lerpTime");
 
-                DrawHorizontalToggleSlider(smoothing, "Use Anchor Position Smoothing", lerpTime, "Lerp Time", 5);
+                VolumeInspectorUtility.DrawHorizontalToggleSlider(smoothing, "Use Anchor Position Smoothing", lerpTime, "Lerp Time", 5);
             }
         }
 
@@ -375,9 +366,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 }
             }
 
-            fillParentXIcon = GetIcon(FillParentXIconGUID);
-            fillParentYIcon = GetIcon(FillParentYIconGUID);
-            fillParentZIcon = GetIcon(FillParentZIconGUID);
+            fillParentXIcon = VolumeInspectorUtility.GetIcon(FillParentXIconGUID);
+            fillParentYIcon = VolumeInspectorUtility.GetIcon(FillParentYIconGUID);
+            fillParentZIcon = VolumeInspectorUtility.GetIcon(FillParentZIconGUID);
         }
 
         #endregion
