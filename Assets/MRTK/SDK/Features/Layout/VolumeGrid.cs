@@ -42,7 +42,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-
         [SerializeField]
         private bool useCustomCellHeight = false;
 
@@ -311,11 +310,19 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => useSmoothing = value;
         }
 
+        private Vector3 startingGridCalculationPosition;
+
+        public Vector3 StartingGridCalculationPosition
+        {
+            get => startingGridCalculationPosition;
+            set => startingGridCalculationPosition = value;
+        }
+
         public override void Update()
         {
             base.Update();
 
-            if (UpdateGrid)
+            if (UpdateGrid && Application.isPlaying)
             {
                 CreateGridSetPositions();
             }
@@ -323,13 +330,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             DrawGridCells();
         }
 
-        private void CreateGridSetPositions()
+        public virtual void CreateGridSetPositions()
         {
+            StartingGridCalculationPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward);
+
             CreateGrid();
             SetObjectPositions();
         }
 
-        private void DrawGridCells()
+        public void DrawGridCells()
         {
             if (DrawGrid)
             {
@@ -340,22 +349,24 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        private List<VolumeGridNode> CreateGrid()
+        protected virtual List<VolumeGridNode> CreateGrid()
         {
             SetRowColDepthCount();
 
-            Vector3 startBoundsPos = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward);
+            gridDictionary.Clear();
 
-            Vector3 initialYPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward) + (VolumeBounds.Down * BoundsHeightIncrement * 0.5f);
+            Vector3 startBoundsPos = StartingGridCalculationPosition;
+
+            Vector3 initialYPosition = StartingGridCalculationPosition + (VolumeBounds.Down * BoundsHeightIncrement * 0.5f);
             Vector3 incrementYPosition = initialYPosition;
 
-            Vector3 initialXPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward) + (VolumeBounds.Right * BoundsWidthIncrement * 0.5f);
+            Vector3 initialXPosition = StartingGridCalculationPosition + (VolumeBounds.Right * BoundsWidthIncrement * 0.5f);
             Vector3 incrementXPosition = initialXPosition;
 
-            Vector3 initialZPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward) + (VolumeBounds.Back * BoundsDepthIncrement * 0.5f);
+            Vector3 initialZPosition = StartingGridCalculationPosition + (VolumeBounds.Back * BoundsDepthIncrement * 0.5f);
             Vector3 incrementZPosition = initialZPosition;
 
-            List<VolumeGridNode> bounds = new List<VolumeGridNode>();
+            List<VolumeGridNode> nodes = new List<VolumeGridNode>();
 
             for (int z = 0; z < Depth; z++)
             {
@@ -394,12 +405,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                             Coordinates = coordinate,
                         };
 
-                        if (!gridDictionary.ContainsKey(coordinate))
-                        {
-                            gridDictionary.Add(coordinate, node);
-                        }
-                        
-                        bounds.Add(node);
+                        gridDictionary.Add(coordinate, node);
+                       
+                        nodes.Add(node);
 
                         incrementYPosition += (VolumeBounds.Down * BoundsHeightIncrement);
                     }
@@ -410,9 +418,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 incrementZPosition += (VolumeBounds.Back * BoundsDepthIncrement);
             }
 
-            grid = bounds;
+            grid = nodes;
 
-            return bounds;
+            return nodes;
         }
 
         private void SetRowColDepthCount()
@@ -457,11 +465,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                             Vector3 newPosition = GetCellPosition(cell, AxisAlignment);
 
                             gridPositions[gridPositionsIndex] = newPosition;
-                            
-                            if (gridPositionsIndex < ChildVolumeItems.Count)
-                            {
-                                SetNodeProperties(cell, ChildVolumeItems[gridPositionsIndex].Transform);
-                            }
 
                             gridPositionsIndex++;
                         }
@@ -472,13 +475,37 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return gridPositions;
         }
 
-        private void SetObjectPositions()
+        protected void SetObjectPositions()
         {
             Vector3[] positions = CalculateObjectFlowPositions();
 
             if (PlaceDisabledTransforms && !DisableObjectsWithoutGridPosition)
             {
-                Volume.SetChildVolumePositions(positions, UseSmoothing, SmoothingSpeed);
+                int i = 0;
+
+                foreach (var item in ChildVolumeItems)
+                {
+                    if (item.Transform)
+                    {
+                        VolumeGridNode cell = FindGridCellFromCenterPosition(positions[i]);
+
+                        SetNodeProperties(cell, item.Transform);
+
+                        if (Application.isPlaying && UseSmoothing)
+                        {
+                            item.Transform.position = Vector3.Lerp(item.Transform.position, positions[i], Time.deltaTime * SmoothingSpeed);
+                        }
+                        else
+                        {
+                            if (i < ChildVolumeItems.Count && i < positions.Length)
+                            {
+                                item.Transform.position = positions[i];
+                            }
+                        }
+
+                        i++;
+                    }
+                }
             }
 
             if (!PlaceDisabledTransforms)
@@ -487,10 +514,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                 foreach (var item in ChildVolumeItems)
                 {
-                    if (item.Transform != null)
+                    if (item.Transform)
                     {
                         if (item.Transform.gameObject.activeSelf)
                         {
+                            VolumeGridNode cell = FindGridCellFromCenterPosition(positions[i]);
+
+                            SetNodeProperties(cell, item.Transform);
+
                             if (Application.isPlaying && UseSmoothing)
                             {
                                 item.Transform.position = Vector3.Lerp(item.Transform.position, positions[i], Time.deltaTime * SmoothingSpeed);
@@ -515,6 +546,21 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
+        private VolumeGridNode FindGridCellFromCenterPosition(Vector3 position)
+        {
+            VolumeGridNode node = null;
+
+            foreach (KeyValuePair<Vector3, VolumeGridNode> item in gridDictionary)
+            {
+                if (item.Value.CellBounds.Center == position)
+                {
+                    return item.Value;
+                }
+            }
+
+            return node;
+        }
+
         private void DisableGridOverflowObjects()
         {
             int gridCapacity = (Rows * Cols * Depth);
@@ -537,17 +583,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             if (primaryAxisName == secondaryAxisName)
             {
-                Debug.LogError($"The values for PrimaryFlowAxis and SecondaryFlowAxis are both on the {primaryAxisName} axis, ensure each flow axis property is on a unique axis.");
+                Debug.LogWarning($"The values for PrimaryFlowAxis and SecondaryFlowAxis are both on the {primaryAxisName} axis, ensure each flow axis property is on a unique axis.");
                 return false;
             }
             else if (primaryAxisName == tertiaryAxisName)
             {
-                Debug.LogError($"The values for PrimaryFlowAxis and TertiaryFlowAxis are both on the {primaryAxisName} axis, ensure each flow axis property is on a unique axis.");
+                Debug.LogWarning($"The values for PrimaryFlowAxis and TertiaryFlowAxis are both on the {primaryAxisName} axis, ensure each flow axis property is on a unique axis.");
                 return false;
             }
             else if (secondaryAxisName == tertiaryAxisName)
             {
-                Debug.LogError($"The values for SecondaryFlowAxis and TertiaryFlowAxis are both on the {secondaryAxisName} axis, ensure each flow axis property is on a unique axis.");
+                Debug.LogWarning($"The values for SecondaryFlowAxis and TertiaryFlowAxis are both on the {secondaryAxisName} axis, ensure each flow axis property is on a unique axis.");
                 return false;
             }
 
@@ -666,6 +712,37 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
 
             return Vector3.zero;
+        }
+
+        public List<VolumeGridNode> GetGameObjectsAtRow(int row)
+        {
+            List<VolumeGridNode> nodes = new List<VolumeGridNode>();
+
+            foreach (KeyValuePair<Vector3, VolumeGridNode> item in gridDictionary)
+            {
+                if (item.Key.x == row)
+                {
+                    nodes.Add(item.Value);
+                }
+
+            }
+
+            return nodes;
+        }
+
+        public List<VolumeGridNode> GetGameObjectsAtCol(int col)
+        {
+            List<VolumeGridNode> nodes = new List<VolumeGridNode>();
+
+            foreach (KeyValuePair<Vector3, VolumeGridNode> item in gridDictionary)
+            {
+                if (item.Key.x == col)
+                {
+                    nodes.Add(item.Value);
+                }
+            }
+
+            return nodes;
         }
 
         public void PrintAvailableCoordinates()

@@ -103,6 +103,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             grid = serializedObject.FindProperty("grid");
         }
 
+        private void OnSceneGUI()
+        {
+            if (!Application.isPlaying && instanceGrid.enabled)
+            {
+                instanceGrid.CreateGridSetPositions();
+            }
+        }
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -172,7 +180,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         {
             EditorGUILayout.PropertyField(updateGrid);
             EditorGUILayout.Space();
-
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(rows);
@@ -293,6 +300,5 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 }
             }
         }
-
     }
 }

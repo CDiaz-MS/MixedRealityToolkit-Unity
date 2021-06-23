@@ -277,14 +277,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => onVolumeModified;
         }
 
-        // Scale animation when switching volumes
-        private Coroutine scaleCoroutine;
-        private float scaleStartTime;
+        // Transition animation when switching volumes
+        private Coroutine scaleAndPositionCoroutine;
+        private float startTime;
 
         private Vector3 currentPosition;
         private Vector3 currentVolumeScale;
 
-        //[SerializeField, HideInInspector]
         private int currentChildCount;
 
         public virtual void Update()
@@ -536,34 +535,41 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public void SwitchChildVolumes(BaseVolume child, BaseVolume targetVolume)
         {
             BaseVolume volumeToSwitch = DirectChildVolumes.Find((item) => item == child);
-            Vector3 pos = targetVolume.transform.position;
 
-            volumeToSwitch.transform.SetParent(targetVolume.transform, true);
-            Vector3 velocity = Vector3.zero;
+            if (volumeToSwitch)
+            {
+                volumeToSwitch.transform.SetParent(targetVolume.transform, true);
 
-            child.transform.position = Vector3.SmoothDamp(child.transform.position, pos, ref velocity, 10 * Time.deltaTime);
+                float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
+                float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
+                float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
 
-            float diffX = targetVolume.transform.lossyScale.x / transform.lossyScale.x;
-            float diffY = targetVolume.transform.lossyScale.y / transform.lossyScale.y;
-            float diffZ = targetVolume.transform.lossyScale.z / transform.lossyScale.z;
+                Vector3 diff = new Vector3(diffX, diffY, diffZ);
+                Vector3 childScale = child.transform.localScale;
+                Vector3 targetScale = Vector3.Scale(childScale, diff);
 
-            Vector3 diff = new Vector3(diffX, diffY, diffZ);
-            Vector3 childScale = child.transform.localScale;
-            Vector3 targetScale = Vector3.Scale(childScale, diff);
+                Vector3 targetPosition = targetVolume.transform.position;
+                Vector3 childPosition = child.transform.position;
 
-            scaleCoroutine = StartCoroutine(TransitionScale(child.transform, childScale, targetScale));
+                scaleAndPositionCoroutine = StartCoroutine(TransitionScaleAndPosition(child.transform, childScale, targetScale, childPosition, targetPosition));
 
-            SyncChildObjects();
+                SyncChildObjects();
+            }
+            else
+            {
+                Debug.LogError($"{child.gameObject.name} is not a child of {gameObject.name}, could not switch the volumes.");
+            }
         }
 
-        private IEnumerator TransitionScale(Transform currentTransform, Vector3 currentScale, Vector3 targetScale)
+        private IEnumerator TransitionScaleAndPosition(Transform currentTransform, Vector3 currentScale, Vector3 targetScale, Vector3 currentPosition, Vector3 targetPosition)
         {
-            scaleStartTime = Time.time;
+            startTime = Time.time;
             float t = 0;
             while (t <= 1)
             {
                 t += Time.deltaTime;
                 currentTransform.localScale = Vector3.Lerp(currentScale, targetScale, t * 1.5f);
+                currentTransform.position = Vector3.Lerp(currentPosition, targetPosition, t * 1.5f);
                 yield return null;
             }
         }
