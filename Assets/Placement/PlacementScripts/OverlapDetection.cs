@@ -108,7 +108,7 @@ public class OverlapDetection : MonoBehaviour
             }
         }
 
-        GetRemainingSpace();
+        //GetRemainingSpace();
     }
 
     private void GetRemainingSpace()
