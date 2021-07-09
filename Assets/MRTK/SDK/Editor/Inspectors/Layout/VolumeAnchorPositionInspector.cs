@@ -28,11 +28,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private SerializedProperty fillToParentX;
         private SerializedProperty fillToParentY;
         private SerializedProperty fillToParentZ;
+
         private SerializedProperty volumeSizeScaleFactorX;
         private SerializedProperty volumeSizeScaleFactorY;
         private SerializedProperty volumeSizeScaleFactorZ;
 
         private SerializedProperty useAnchorPositioning;
+        private SerializedProperty useScaleConversion;
+        private SerializedProperty scaleConversion;
 
         private Texture fillParentXIcon;
         private Texture fillParentYIcon;
@@ -40,6 +43,13 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private const string VolumeSizeSettingsTitle = "Volume Size Settings";
         private const string AnchorPositionTitle = "Anchor Position";
+        private const string AnchorPositionSmoothingTitle = "Anchor Position Smooting";
+        private const string ScaleConversionTitle = "Scale Conversion";
+        private const string UseAnchorPositioningLabel = "Use Anchor Positioning";
+        private const string UseFreePositioningLabel = "Use Free Positioning";
+        private const string MatchXParentSizeLabel = " Match X Parent Size";
+        private const string MatchYParentSizeLabel = " Match Y Parent Size";
+        private const string MatchZParentSizeLabel = " Match Z Parent Size";
 
         private List<Texture> icons = new List<Texture>();
 
@@ -92,6 +102,8 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             volumeSizeScaleFactorZ = serializedObject.FindProperty("volumeSizeScaleFactorZ");
 
             useAnchorPositioning = serializedObject.FindProperty("useAnchorPositioning");
+            scaleConversion = serializedObject.FindProperty("scaleConversion");
+            useScaleConversion = serializedObject.FindProperty("useScaleConversion");
 
             dictionaryKeys = depthLevelDictionary.Keys.ToArray();
         }
@@ -108,16 +120,35 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
                 EditorGUILayout.Space();
 
+                DrawAnchorPositionSmoothingSection();
+
+                EditorGUILayout.Space();
+
                 DrawAnchorSizeSection();
 
                 EditorGUILayout.Space();
+
+                DrawScaleConversionSection();
+            }
+            else
+            {
+                EditorGUILayout.HelpBox($"The current game object is the root volume.  The Volume Anchor Position component places this transform relative to the parent volume. " +
+                    $"Please attach the Volume Anchor Position script to a game object that has the Base Volume component attached to the parent.", MessageType.Info);
             }
 
             serializedObject.ApplyModifiedProperties();
         }
 
+        private void OnSceneGUI()
+        {
+            if (!Application.isPlaying)
+            {
+                instanceVolume.UpdateSizingBehaviors();
+            }
+        }
+
         #region Draw Volume Sections
-        
+
         private void DrawUseAnchorPositioning()
         {
             Color previousGUIColor = GUI.color;
@@ -129,7 +160,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     GUI.color = Color.cyan;
                 }
 
-                if (GUILayout.Button("Use Anchor Positioning"))
+                if (GUILayout.Button(UseAnchorPositioningLabel))
                 {
                     useAnchorPositioning.boolValue = true;
                 }
@@ -141,7 +172,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                     GUI.color = Color.cyan;
                 }
 
-                if (GUILayout.Button("Use Free Positioning"))
+                if (GUILayout.Button(UseFreePositioningLabel))
                 {
                     useAnchorPositioning.boolValue = false;
                 }
@@ -158,19 +189,19 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             var fillToParentXContent = new GUIContent()
             {
-                text = " Match X Parent Size",
+                text = MatchXParentSizeLabel,
                 image = fillParentXIcon
             };
 
             var fillToParentYContent = new GUIContent()
             {
-                text = " Match Y Parent Size",
+                text = MatchYParentSizeLabel,
                 image = fillParentYIcon
             };
 
             var fillToParentZContent = new GUIContent()
             {
-                text = " Match Z Parent Size",
+                text = MatchZParentSizeLabel,
                 image = fillParentZIcon
             };
 
@@ -184,6 +215,17 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             if (GUILayout.Button("Equalize Volume Size to Parent"))
             {
                 instanceVolume.EqualizeVolumeSizeToParent();
+            }
+        }
+
+        private void DrawScaleConversionSection()
+        {
+            VolumeInspectorUtility.DrawTitle(ScaleConversionTitle);
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(ScaleConversionTitle, ScaleConversionTitle, false))
+            {
+                EditorGUILayout.PropertyField(useScaleConversion);
+                EditorGUILayout.PropertyField(scaleConversion);
             }
         }
 
@@ -265,8 +307,13 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
 
             GUI.enabled = true;
+        }
 
-            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey("Anchor Position Smoothing", "Anchor Position Smoothing", false))
+        private void DrawAnchorPositionSmoothingSection()
+        {
+            VolumeInspectorUtility.DrawTitle(AnchorPositionSmoothingTitle);
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(AnchorPositionSmoothingTitle, AnchorPositionSmoothingTitle, false))
             {
                 SerializedProperty smoothing = anchorPositionSmoothing.FindPropertyRelative("smoothing");
                 SerializedProperty lerpTime = anchorPositionSmoothing.FindPropertyRelative("lerpTime");

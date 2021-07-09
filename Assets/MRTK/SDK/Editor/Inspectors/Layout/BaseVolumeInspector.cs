@@ -46,6 +46,7 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private const string VolumeSizePresetsTitle = "Volume Size Presets";
         private const string EventsTitle = "Volume Events";
         private const string MarginBoundsTitle = "Margin Bounds";
+        private const string AddCustomVolumeTitle = "Add Custom Volume";
         private const string EnableMaintainScaleLabel = "Enable Maintain Scale All";
         private const string DisableMaintainScaleLabel = "Disable Maintain Scale All";
         private const string FacePointsDisplayLabel = " Display Face Points";
@@ -60,14 +61,31 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private const string MenuListPresetLabel = "Menu List Presets";
         private const string MarginBoundsResetLabel = "Reset Margin Bounds to Volume BoundsSize";
         private const string MarginValuesLabel = "View Margin Values";
-        
+        private const string VolumeGridLabel = " Volume\nGrid";
+        private const string VolumeAnchorPositionLabel = " Volume\nAnchor\nPosition";
+        private const string VolumeEllipseLabel = " Volume\nEllipse";
+        private const string VolumeFlexLabel = " Volume\nFlex";
+        private const string VolumeMeshLabel = " Volume\nMesh";
+
         private Texture cornerPointsIcon;
         private Texture facePointsIcon;
         private Texture volumeBoundsIcon;
 
+        private Texture volumeGridIcon;
+        private Texture volumeAnchorPositionIcon;
+        private Texture volumeEllipseIcon;
+        private Texture volumeFlexIcon;
+        private Texture volumeMeshIcon;
+
         private readonly string FacePointsIconGUID = "7d524dcfa288d5145a5d25b92440ce7b";
         private readonly string CornerPointsIconGUID = "df9428ac399ba3e4c9d07027789752c4";
         private readonly string VolumeBoundsIconGUID = "44b20929bf465864d8ad1fcc5001d9c5";
+
+        private readonly string volumeGridIconGUID = "80058ab0bc50f624bb429039f59fe30d";
+        private readonly string volumeAnchorPositionIconGUID = "e350ef815175a114991e063f0cbcdc09";
+        private readonly string volumeEllipseIconGUID = "69c8909fefe4de44aa0a9f8c7df7d396";
+        private readonly string volumeFlexIconGUID = "b3d9811b14dcf20448bb6fc7ff9586b7";
+        private readonly string volumeMeshIconGUID = "4abdc9ce295391441914697c8754affb";
 
         // Size Presets 
         private Vector3[] buttonSizePresetsRow1 = new Vector3[4]
@@ -168,7 +186,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 VolumeInspectorUtility.DrawWarning("This Volume is the root");
             }
 
-
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(volumeSizeOrigin);
 
@@ -191,7 +208,9 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 DrawChildTransformSection();
             }
-            
+
+            DrawAddCustomVolumeSection();
+
             serializedObject.ApplyModifiedProperties();
         }
 
@@ -201,6 +220,37 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             {
                 DrawHandleBounds(volumeBoundsHandle, Color.magenta, instance.VolumeSize);
                 instance.DrawVolumeBounds = false;
+            }
+
+            if (!Application.isPlaying)
+            {
+                //instance.SyncVolume();
+            }
+
+            DrawCornerAndFacePoints();
+        }
+
+        private void DrawCornerAndFacePoints()
+        {
+            float pointRadius = (instance.VolumeBounds.Width + instance.VolumeBounds.Width + instance.VolumeBounds.Width) * 0.01f;
+
+            if (drawCornerPoints.boolValue)
+            {
+                Gizmos.color = Color.magenta;
+                foreach (var point in instance.VolumeCorners)
+                {
+                    Handles.SphereHandleCap(0, point, Quaternion.identity, pointRadius, EventType.Repaint);
+                }
+            }
+
+            if (drawFacePoints.boolValue)
+            {
+                Gizmos.color = Color.yellow;
+                foreach (var point in instance.VolumeFaces)
+                {
+                    Handles.SphereHandleCap(0, point, Quaternion.identity, pointRadius, EventType.Repaint);
+
+                }
             }
         }
 
@@ -303,7 +353,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             EditorGUI.EndDisabledGroup();
         }
 
-
         private void DrawMarginBoundsSection()
         {
             VolumeInspectorUtility.DrawTitle(MarginBoundsTitle);
@@ -372,7 +421,14 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             SerializedProperty volumeHostTransform = volumeBounds.FindPropertyRelative("hostTransform");
 
             EditorGUILayout.PropertyField(volumeSize);
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(volumeCenter);
+            if (EditorGUI.EndChangeCheck())
+            {
+                instance.VolumeCenter = volumeCenter.vector3Value;
+            }
+
             EditorGUILayout.PropertyField(volumeHostTransform);
 
             Vector3 extents = instance.VolumeBounds.Extents;
@@ -546,7 +602,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             }
         }
 
-
         private void DrawEventsSection()
         {
             VolumeInspectorUtility.DrawTitle(EventsTitle);
@@ -605,6 +660,78 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             return xValue + "mm x " + yValue + "mm x " + zValue + "mm";
         }
 
+        private void DrawAddCustomVolumeSection()
+        {
+            var volumeGridContent = new GUIContent()
+            {
+                text = VolumeGridLabel,
+                image = volumeGridIcon
+            };
+
+            var volumeAnchorPositionContent = new GUIContent()
+            {
+                text = VolumeAnchorPositionLabel,
+                image = volumeAnchorPositionIcon
+            };
+
+            var volumeEllipseContent = new GUIContent()
+            {
+                text = VolumeEllipseLabel,
+                image = volumeEllipseIcon
+            };
+
+            var volumeFlexContent = new GUIContent()
+            {
+                text = VolumeFlexLabel,
+                image = volumeFlexIcon
+            };
+
+            var volumeMeshContent = new GUIContent()
+            {
+                text = VolumeMeshLabel,
+                image = volumeMeshIcon
+            };
+
+            VolumeInspectorUtility.DrawTitle(AddCustomVolumeTitle);
+
+            if (VolumeInspectorUtility.DrawSectionFoldoutWithKey(AddCustomVolumeTitle, AddCustomVolumeTitle, false))
+            {
+                using (new EditorGUILayout.VerticalScope())
+                {
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button(volumeGridContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(130)))
+                        {
+                            instance.gameObject.EnsureComponent<VolumeGrid>();
+                        }
+
+                        if (GUILayout.Button(volumeAnchorPositionContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(130)))
+                        {
+                            instance.gameObject.EnsureComponent<VolumeAnchorPosition>();
+                        }
+
+                        if (GUILayout.Button(volumeEllipseContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(130)))
+                        {
+                            instance.gameObject.EnsureComponent<VolumeEllipse>();
+                        }
+
+                    }
+
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        if (GUILayout.Button(volumeFlexContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(130)))
+                        {
+                            instance.gameObject.EnsureComponent<VolumeFlex>();
+                        }
+
+                        if (GUILayout.Button(volumeMeshContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(130)))
+                        {
+                            instance.gameObject.EnsureComponent<VolumeMesh>();
+                        }
+                    }
+                }
+            }
+        }
 
         #endregion
 
@@ -615,6 +742,12 @@ namespace Microsoft.MixedReality.Toolkit.Editor
             cornerPointsIcon = VolumeInspectorUtility.GetIcon(CornerPointsIconGUID);
             facePointsIcon = VolumeInspectorUtility.GetIcon(FacePointsIconGUID);
             volumeBoundsIcon = VolumeInspectorUtility.GetIcon(VolumeBoundsIconGUID);
+
+            volumeGridIcon = VolumeInspectorUtility.GetIcon(volumeGridIconGUID);
+            volumeAnchorPositionIcon = VolumeInspectorUtility.GetIcon(volumeAnchorPositionIconGUID);
+            volumeEllipseIcon = VolumeInspectorUtility.GetIcon(volumeEllipseIconGUID);
+            volumeFlexIcon = VolumeInspectorUtility.GetIcon(volumeFlexIconGUID);
+            volumeMeshIcon = VolumeInspectorUtility.GetIcon(volumeMeshIconGUID);
         }
 
         #endregion
