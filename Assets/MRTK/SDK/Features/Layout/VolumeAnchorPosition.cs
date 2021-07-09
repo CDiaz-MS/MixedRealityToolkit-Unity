@@ -121,13 +121,34 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => backPlateObject = value;
         }
 
+        [SerializeField]
+        private bool useScaleConversion = false;
+
+        public bool UseScaleConversion
+        {
+            get => useScaleConversion;
+            set => useScaleConversion = value;
+        }
+
+        [SerializeField]
+        private Vector3 scaleConversion = new Vector3();
+
+        public Vector3 ScaleConversion
+        {
+            get => scaleConversion;
+            set => scaleConversion = value;
+        }
+
         #region MonoBehaviour Methods
 
         public override void Update()
         {
             base.Update();
 
-            UpdateSizingBehaviors();
+            if (Application.isPlaying)
+            {
+                UpdateSizingBehaviors();
+            }
         }
 
         public void UpdateSizingBehaviors()
@@ -162,96 +183,115 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        private void SetMatchParentVolumeSize(VolumeAxis axis, bool includeScaleFactor = true)
+        private void SetMatchParentVolumeSize(VolumeAxis volumeAxis, bool includeScaleFactor = true)
         {
-            Vector3 newScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
-
-            Transform VolumeParentTransform = Volume.VolumeParentTransform;
-
-            if (axis == VolumeAxis.X)
+            if (VolumeParent)
             {
-                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
-                {
-                    newScale.x = includeScaleFactor ? (VolumeParentTransform.localScale.x / VolumeParentTransform.transform.lossyScale.x) * volumeSizeScaleFactorX : (VolumeParentTransform.localScale.x / VolumeParentTransform.transform.lossyScale.x);
+                Vector3 newScale = new Vector3(transform.localScale.x, transform.localScale.y, transform.localScale.z);
 
-                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
-                    // Check if the prefab is a flexible button
-                    if (gameObject.name.Contains("Flexible"))
-                    {
-                        newScale.x *= 31.25f;
-                    }
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
+                switch (volumeAxis)
                 {
-                    newScale.x = includeScaleFactor ? VolumeParentTransform.localScale.x * volumeSizeScaleFactorX : VolumeParentTransform.localScale.x;
-                
+                    case VolumeAxis.X:
+                        newScale.x = GetNewSizeMatch(volumeAxis, includeScaleFactor);
+                        break;
+                    case VolumeAxis.Y:
+                        newScale.y = GetNewSizeMatch(volumeAxis, includeScaleFactor);
+                        break;
+                    case VolumeAxis.Z:
+                        newScale.z = GetNewSizeMatch(volumeAxis, includeScaleFactor);
+                        break;
                 }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
-                {
-                    newScale.x = includeScaleFactor ? 1 * volumeSizeScaleFactorX: 1;
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
-                {
-                    VolumeBounds.Width = includeScaleFactor ? VolumeParent.VolumeSize.x * volumeSizeScaleFactorX : VolumeParent.VolumeSize.x;
-                }
+
+                transform.localScale = newScale;
+                Volume.OnVolumeSizeChanged.Invoke();
+            }
+        }
+
+        private float GetNewSizeMatch(VolumeAxis volumeAxis, bool includeScaleFactor)
+        {
+            float newAxisSizeValue = 0;
+
+            float volumeParentLocalScale = GetScaleFromVolumeAxis(volumeAxis, VolumeParentTransform.localScale);
+            float volumeParentLossyScale = GetScaleFromVolumeAxis(volumeAxis, VolumeParentTransform.lossyScale);
+            float volumeScaleFactor = GetScaleFactorFromVolumeAxis(volumeAxis);
+            float volumeParentSize = GetVolumeSizeFromVolumeAxis(volumeAxis, VolumeParent);
+
+            switch (VolumeSizeOrigin)
+            {
+                case VolumeSizeOrigin.ColliderBounds:
+                    newAxisSizeValue = includeScaleFactor ? 
+                        (volumeParentLocalScale / volumeParentLossyScale) * volumeScaleFactor
+                        : (volumeParentLocalScale / volumeParentLossyScale);
+                    break;
+                case VolumeSizeOrigin.LocalScale:
+                    newAxisSizeValue = includeScaleFactor ? volumeParentLocalScale * volumeScaleFactor : volumeParentLocalScale;
+                    break;
+                case VolumeSizeOrigin.RendererBounds:
+                    break;
+                case VolumeSizeOrigin.Custom:
+                    newAxisSizeValue = includeScaleFactor ? volumeParentSize * volumeScaleFactor : volumeParentSize;
+                    break;
+                case VolumeSizeOrigin.LossyScale:
+                default:
+                    newAxisSizeValue = includeScaleFactor ? volumeScaleFactor : 1;
+                    break;
             }
 
-            if (axis == VolumeAxis.Y)
+            if (UseScaleConversion)
             {
-                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
-                {
-                    newScale.y = includeScaleFactor ? (VolumeParentTransform.localScale.y / VolumeParentTransform.transform.lossyScale.y) * volumeSizeScaleFactorY : (VolumeParentTransform.localScale.y / VolumeParentTransform.transform.lossyScale.y);
-
-                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
-                    // Check if the prefab is a flexible button
-                    if (gameObject.name.Contains("Flexible"))
-                    {
-                        newScale.y *= 31.25f;
-                    }
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
-                {
-                    newScale.y = includeScaleFactor ? VolumeParentTransform.localScale.y * volumeSizeScaleFactorY : VolumeParentTransform.localScale.y;
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
-                {
-                    newScale.y = includeScaleFactor ? 1 * volumeSizeScaleFactorY : 1;
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
-                {
-                    VolumeBounds.Height = includeScaleFactor ? VolumeParent.VolumeSize.y * volumeSizeScaleFactorY : VolumeParent.VolumeSize.y;
-                }
+                newAxisSizeValue *= ScaleConversion.x;
             }
 
-            if (axis == VolumeAxis.Z)
+            return newAxisSizeValue;
+        }
+
+
+        private float GetScaleFromVolumeAxis(VolumeAxis volumeAxis, Vector3 scale)
+        {
+            if (volumeAxis == VolumeAxis.X)
             {
-                if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
-                {
-                    newScale.z = includeScaleFactor ? (VolumeParentTransform.localScale.z / VolumeParentTransform.transform.lossyScale.z) * volumeSizeScaleFactorZ : (VolumeParentTransform.localScale.z / VolumeParentTransform.transform.lossyScale.z);
-
-                    // The scale of buttons is 1 but the actual size is 32mm x 32mm and a conversion is needed
-                    // Check if the prefab is a flexible button
-                    if (gameObject.name.Contains("Flexible"))
-                    {
-                        newScale.z *= 62.5f;
-                    }
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
-                {
-                    newScale.z = includeScaleFactor ? VolumeParentTransform.localScale.z * volumeSizeScaleFactorZ : VolumeParentTransform.localScale.z;
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
-                {
-                    newScale.z = includeScaleFactor ? 1 * volumeSizeScaleFactorZ : 1;
-                }
-                else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
-                {
-                    VolumeBounds.Depth = includeScaleFactor ? VolumeParent.VolumeSize.z * volumeSizeScaleFactorZ : VolumeParent.VolumeSize.z;
-                }
+                return scale.x;
             }
+            else if (volumeAxis == VolumeAxis.Y)
+            {
+                return scale.y;
+            }
+            else
+            {
+                return scale.z;
+            }
+        }
 
-            transform.localScale = newScale;
-            Volume.OnVolumeSizeChanged.Invoke();
+        private float GetScaleFactorFromVolumeAxis(VolumeAxis volumeAxis)
+        {
+            if (volumeAxis == VolumeAxis.X)
+            {
+                return VolumeSizeScaleFactorX;
+            }
+            else if (volumeAxis == VolumeAxis.Y)
+            {
+                return VolumeSizeScaleFactorY;
+            }
+            else
+            {
+                return VolumeSizeScaleFactorZ;
+            }
+        }
+
+        private float GetVolumeSizeFromVolumeAxis(VolumeAxis volumeAxis, BaseVolume volume)
+        {
+            if (volumeAxis == VolumeAxis.X)
+            {
+                return volume.VolumeSize.x;
+            }
+            else if (volumeAxis == VolumeAxis.Y)
+            {
+                return volume.VolumeSize.y;
+            }
+            else
+            {
+                return volume.VolumeSize.z;
+            }
         }
 
         public void EqualizeVolumeSizeToParent()
@@ -310,16 +350,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
                 if (IsValidVector(newPosition))
                 {
-                    //VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
-                    
-                    //if (VolumeSizeOrigin != VolumeSizeOrigin.RendererBounds)
-                    {
-                        VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
-                    }
-                    //else
-                    //{
-                    //    //VolumePosition = newPosition - (Vector3.left * (newPosition - VolumeCenter).x); //- (newPosition - VolumeCenter);
-                    //}
+                    VolumePosition = AnchorPositionSmoothing.Smoothing && Application.isPlaying ? Vector3.Lerp(VolumePosition, newPosition, AnchorPositionSmoothing.LerpTime * Time.deltaTime) : newPosition;
                 }
             }
         }
