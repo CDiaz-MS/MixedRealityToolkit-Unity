@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
@@ -25,20 +26,23 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private void UpdateObjectPositions()
         {
-            Vector3[] positions = GetMeshPositions();
+            Tuple<Vector3[], Quaternion[]> positionsRotations = GetMeshPositionsRotations();
 
-            if (positions != null)
+            if (positionsRotations != null)
             {
-                Volume.SetChildVolumePositions(positions);
+                Volume.SetChildVolumePositions(positionsRotations.Item1);
+                Volume.SetChildVolumeRotations(positionsRotations.Item2);
             }
         }
 
-        private Vector3[] GetMeshPositions()
+        private Tuple<Vector3[],Quaternion[]> GetMeshPositionsRotations()
         {
             if (Mesh != null)
             {
                 Vector3[] vertices = mesh.vertices;
                 Vector3[] objectPositions = new Vector3[vertices.Length];
+
+                Quaternion[] rotations = new Quaternion[vertices.Length];
 
                 for (int i = 0; i < objectPositions.Length; i++)
                 {
@@ -59,12 +63,16 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     Debug.DrawRay(objectPositions[i], Vector3.down * 0.2f, Color.red);
                 }
 
-                return objectPositions;
+                for (int i = 0; i < normals.Length; i++)
+                {
+                    rotations[i] = Quaternion.FromToRotation(transform.up, normals[i]);
+
+                }
+
+                return Tuple.Create(objectPositions, rotations);
             }
 
             return null;
-
         }
-
     }
 }

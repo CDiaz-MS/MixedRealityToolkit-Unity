@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -16,6 +15,9 @@ using UnityEditor;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
+    /// <summary>
+    /// Core sizing component for a Volume.
+    /// </summary>
     [ExecuteAlways]
     public class BaseVolume : MonoBehaviour
     {
@@ -31,6 +33,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        [Tooltip("The sizing entry point for this Volume.")]
         private VolumeSizeOrigin volumeSizeOrigin = VolumeSizeOrigin.LossyScale;
 
         /// <summary>
@@ -47,10 +50,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        [Tooltip("The container definition.  Contains sizing values. ")]
         private VolumeBounds volumeBounds = new VolumeBounds(Vector3.one,Vector3.zero, null);
 
         /// <summary>
-        /// 
+        /// The container definition.  Contains sizing values. 
         /// </summary>
         public VolumeBounds VolumeBounds 
         {
@@ -61,9 +65,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         [SerializeField]
         private VolumeBounds marginBounds = new VolumeBounds(Vector3.zero, Vector3.zero, null);
 
-        /// <summary>
-        /// 
-        /// </summary>
         public VolumeBounds MarginBounds
         {
             // The margin bounds are going to be the volume bounds += 
@@ -96,7 +97,17 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public Vector3 VolumeCenter
         {
             get => volumeBounds.Center;
-            set => volumeBounds.Center = value;
+            set
+            {
+                volumeBounds.Center = value;
+
+                if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale ||
+                    VolumeSizeOrigin == VolumeSizeOrigin.LossyScale ||
+                    VolumeSizeOrigin == VolumeSizeOrigin.Custom)
+                {
+                    transform.position = volumeBounds.Center;
+                }
+            }
         }
 
         /// <summary>
@@ -210,8 +221,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        [Tooltip("List of the volume items for this container.  A child volume item is a direct child transform.")]
         private List<ChildVolumeItem> childVolumeItems = new List<ChildVolumeItem>();
 
+        /// <summary>
+        /// List of the volume items for this container.  A child volume item is a direct child transform.
+        /// </summary>
         public List<ChildVolumeItem> ChildVolumeItems
         {
             get => childVolumeItems;
@@ -226,8 +241,13 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         [SerializeField]
         private int childVolumeCount => ChildVolumeItems.Count;
 
-        protected string[] cornerNames = Enum.GetNames(typeof(CornerPoint)).ToArray();
-        protected string[] faceNames = Enum.GetNames(typeof(FacePoint)).ToArray();
+        /// <summary>
+        /// The count of items in the volume.  This value is equal to transfrom.childCount.
+        /// </summary>
+        public int ChildVolumeCount
+        {
+            get => childVolumeCount;
+        }
 
         public Transform rootTransform => transform.parent == null || (transform.parent.GetComponent<BaseVolume>() == null) ? transform : transform.parent;
 
@@ -288,6 +308,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public virtual void Update()
         {
+            SyncVolume();
+        }
+
+        public void SyncVolume()
+        {
             CheckPositionChange();
             CheckScaleChange();
             CheckChildCount();
@@ -331,6 +356,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             currentChildCount = transform.childCount;
         }
 
+        private void SyncVolumeHierarchy()
+        {
+            MaintainScaleChildItems();
+
+            UpdateVolumeBounds();
+            UpdateMarginBounds();
+        }
+
         protected virtual void OnEnable()
         {
             volumeID = GetInstanceID();
@@ -349,62 +382,52 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
-        public virtual void SyncVolumeHierarchy()
-        {
-            MaintainScaleChildItems();
-
-            UpdateVolumeBounds();
-            UpdateMarginBounds();
-        }
-
         private void Start()
         {
-            SyncVolumeHierarchy();
+            SyncVolume();
         }
 
         public void UpdateVolumeBounds()
         {
-            if (VolumeSizeOrigin == VolumeSizeOrigin.ColliderBounds)
+            switch (VolumeSizeOrigin)
             {
-                Collider collider = gameObject.transform.GetComponent<Collider>();
+                case VolumeSizeOrigin.ColliderBounds:
+                    Collider collider = gameObject.transform.GetComponent<Collider>();
 
-                if (collider != null)
-                {
-                    VolumeBounds.Size = collider.bounds.size;
-                    VolumeBounds.Center = collider.bounds.center;
-                }
-                else
-                {
-                    Debug.Log($"Attach an active collider to {gameObject.name} to use the ColliderBounds VolumeSizeOrigin");
-                }
-            }
-            else if (VolumeSizeOrigin == VolumeSizeOrigin.LocalScale)
-            {
-                VolumeBounds.Size = transform.localScale;
-                VolumeBounds.Center = transform.position;
-            }
-            else if (VolumeSizeOrigin == VolumeSizeOrigin.LossyScale)
-            {
-                VolumeBounds.Size = transform.lossyScale;
-                VolumeBounds.Center = transform.position;
-            }
-            else if (VolumeSizeOrigin == VolumeSizeOrigin.RendererBounds)
-            {
-                Renderer[] renderers = GetComponentsInChildren<Renderer>();
+                    if (collider)
+                    {
+                        VolumeBounds.Size = collider.bounds.size;
+                        VolumeBounds.Center = collider.bounds.center;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Attach an active collider to {gameObject.name} to use the ColliderBounds VolumeSizeOrigin");
+                    }
+                    break;
+                case VolumeSizeOrigin.LocalScale:
+                    VolumeBounds.Size = transform.localScale;
+                    VolumeBounds.Center = transform.position;
+                    break;
+                case VolumeSizeOrigin.LossyScale:
+                    VolumeBounds.Size = transform.lossyScale;
+                    VolumeBounds.Center = transform.position;
+                    break;
+                case VolumeSizeOrigin.RendererBounds:
+                    Renderer[] renderers = GetComponentsInChildren<Renderer>();
 
-                Bounds bounds = new Bounds();
-                if (renderers.Length != 0)
-                {
-                    bounds = renderers[0].bounds;
-                    foreach (Renderer r in renderers) { bounds.Encapsulate(r.bounds); }
-                }
+                    Bounds bounds = new Bounds();
+                    if (renderers.Length != 0)
+                    {
+                        bounds = renderers[0].bounds;
+                        foreach (Renderer r in renderers) { bounds.Encapsulate(r.bounds); }
+                    }
 
-                VolumeBounds.Size = bounds.size;
-                VolumeBounds.Center = bounds.center;
-            }
-            else if (VolumeSizeOrigin == VolumeSizeOrigin.Custom)
-            {
-                VolumeBounds.Center = transform.position;
+                    VolumeBounds.Size = bounds.size;
+                    VolumeBounds.Center = bounds.center;
+                    break;
+                case VolumeSizeOrigin.Custom:
+                    VolumeBounds.Center = transform.position;
+                    break;
             }
 
             MarginBounds.Center = VolumeBounds.Center;
@@ -414,8 +437,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                 MarginBounds.Size = VolumeBounds.Size;
             }
             
-
-
             OnVolumeSizeChanged.Invoke();
         }
 
@@ -428,42 +449,59 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                                     MarginBounds.Depth < VolumeBounds.Depth ? VolumeBounds.Depth : MarginBounds.Depth);
         }
 
+        /// <summary>
+        /// Gets the BaseVolume components on each ChildVolumeItem. If a BaseVolume component
+        /// is not attached to a child item, then it is not appended to the returned list. 
+        /// </summary>
+        /// <returns>A list of the BaseVolume components on each ChildVolumeItem</returns>
         public List<BaseVolume> GetChildVolumes()
         {
-            List<BaseVolume> uiVolumes = new List<BaseVolume>();
+            List<BaseVolume> volumes = new List<BaseVolume>();
             
-            foreach (var item in ChildVolumeItems)
+            ChildVolumeItems.ForEach((item) =>
             {
-                uiVolumes.Add(item.Volume);
-            }
+                if (item.Volume)
+                {
+                    volumes.Add(item.Volume);
+                }
+            });
 
-            return uiVolumes;
+            return volumes;
         }
 
+        /// <summary>
+        /// Gets the child transforms. 
+        /// </summary>
+        /// <param name="includeInactiveObjects">If true, then inactive gameobject transfroms will be included in the returned list.</param>
+        /// <returns>A list of child transforms</returns>
         public List<Transform> GetChildTransforms(bool includeInactiveObjects = true)
         {
-            List<Transform> uiVolumeTransforms = new List<Transform>();
+            List<Transform> volumeTransforms = new List<Transform>();
 
             ChildVolumeItems.ForEach((item) =>
             {
                 // Should inactive game object be included
                 if (includeInactiveObjects)
                 {
-                    uiVolumeTransforms.Add(item.Transform);
+                    volumeTransforms.Add(item.Transform);
                 }
                 else
                 {
                     // Check if the game object is active before adding
                     if (item.Transform.gameObject.activeSelf)
                     {
-                        uiVolumeTransforms.Add(item.Transform);
+                        volumeTransforms.Add(item.Transform);
                     }
                 }
             });
 
-            return uiVolumeTransforms;
+            return volumeTransforms;
         }
 
+        /// <summary>
+        /// Gets the active child game object count.
+        /// </summary>
+        /// <returns>The count of active child game objects in this volume</returns>
         public int GetActiveChildCount()
         {
             int count = 0; 
@@ -479,6 +517,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return count;
         }
 
+        /// <summary>
+        /// Update the ChildVolumeItems list in the current hierarchy.
+        /// </summary>
+        /// <param name="force"></param>
         public void SyncChildObjects(bool force = false)
         {
             currentChildCount = transform.childCount;
@@ -528,6 +570,52 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     {
                         ChildVolumeItems[i].Transform.position = positions[i];
                     }
+                }
+            }
+        }
+
+        //public void SetChildVolumePositionsTransition(Vector3[] positions, TransitionLogic transitionLogic)
+        //{
+        //    for (int i = 0; i < ChildVolumeItems.Count && i < positions.Length; i++)
+        //    {
+        //        if (ChildVolumeItems[i].Transform != null)
+        //        {
+        //            //if (transitionLogic.UseSmoothing && Application.isPlaying)
+        //            //{
+        //            //    ChildVolumeItems[i].Transform.position = Vector3.Lerp(ChildVolumeItems[i].Transform.position, positions[i], Time.deltaTime * transitionLogic.LerpTime);
+        //            //}
+        //            if (transitionLogic.UseCustomAnimationCurve && Application.isPlaying)
+        //            {
+        //                StartCoroutine(AnimatePosition(ChildVolumeItems[i].Transform, positions[i], transitionLogic));
+        //            }
+        //            else
+        //            {
+        //                ChildVolumeItems[i].Transform.position = positions[i];
+        //            }
+        //        }
+        //    }
+        //}
+
+        //private IEnumerator AnimatePosition(Transform transform, Vector3 targetPosition, TransitionLogic transitionLogic)
+        //{
+        //    startTime = Time.time;
+        //    float t = 0;
+
+        //    while (t <= transitionLogic.Duration)
+        //    {
+        //        t += Time.deltaTime;
+        //        transform.position = Vector3.Lerp(transform.position, targetPosition, transitionLogic.AnimationCurve.Evaluate(t) * transitionLogic.LerpTime);
+        //        yield return null;
+        //    }
+        //}
+
+        public void SetChildVolumeRotations(Quaternion[] rotations)
+        {
+            for (int i = 0; i < ChildVolumeItems.Count && i < rotations.Length; i++)
+            {
+                if (ChildVolumeItems[i].Transform != null)
+                {
+                    ChildVolumeItems[i].Transform.rotation = rotations[i];
                 }
             }
         }
@@ -711,7 +799,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             {
                 childVolumeItem.MaintainScale = maintainScale;
             }
-           
         }
 
         public bool GetMaintainScale(GameObject target)
@@ -726,7 +813,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             return false;
         }
-
 
         /// <summary>
         /// Get the occupied space along an axis.
@@ -769,7 +855,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         protected virtual void OnDrawGizmos()
         {
-            DrawCornerAndFacePoints();
             DrawVolumeBoundsContainer();
         }
 
@@ -783,29 +868,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             if (DrawVolumeBounds)
             {
                 VolumeBounds.DrawBounds(Color.yellow);
-            }
-        }
-
-        private void DrawCornerAndFacePoints()
-        {
-            float pointRadius = (VolumeBounds.Width + VolumeBounds.Height + VolumeBounds.Depth) * 0.01f;
-
-            if (DrawCornerPoints)
-            {
-                Gizmos.color = Color.magenta;
-                foreach (var point in VolumeCorners)
-                {
-                    Gizmos.DrawSphere(point, pointRadius);
-                }
-            }
-
-            if (DrawFacePoints)
-            {
-                Gizmos.color = Color.yellow;
-                foreach (var point in VolumeFaces)
-                {
-                    Gizmos.DrawSphere(point, pointRadius);
-                }
             }
         }
 

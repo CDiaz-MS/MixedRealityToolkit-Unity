@@ -26,7 +26,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public VolumeBounds VolumeBounds
         {
-            get => Volume?.VolumeBounds;
+            get => Volume.VolumeBounds;
         }
 
         public BaseVolume VolumeParent

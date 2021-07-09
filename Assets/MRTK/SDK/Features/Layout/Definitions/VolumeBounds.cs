@@ -24,8 +24,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        [Tooltip("Center of the Volume Bounds in world space not local space.")]
         private Vector3 center;
 
+        /// <summary>
+        /// Center of the Volume Bounds in world space not local space.
+        /// </summary>
         public Vector3 Center
         {
             get => center;
@@ -215,9 +219,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public bool Contains(Vector3 point)
         {
-            if ((point.x > GetFacePoint(FacePoint.Left).x && point.x < GetFacePoint(FacePoint.Right).x) &&
-                (point.y > GetFacePoint(FacePoint.Bottom).y && point.y < GetFacePoint(FacePoint.Top).y) &&
-                (point.z > GetFacePoint(FacePoint.Forward).z && point.z < GetFacePoint(FacePoint.Back).z))
+            if ((point.x >= GetFacePoint(FacePoint.Left).x && point.x <= GetFacePoint(FacePoint.Right).x) &&
+                (point.y >= GetFacePoint(FacePoint.Bottom).y && point.y <= GetFacePoint(FacePoint.Top).y) &&
+                (point.z >= GetFacePoint(FacePoint.Forward).z && point.z <= GetFacePoint(FacePoint.Back).z))
             {
   
                 return true;

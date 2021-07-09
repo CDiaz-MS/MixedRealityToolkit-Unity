@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -8,279 +9,248 @@ using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
-    public class VolumeFlex : VolumeGrid
-    { 
-        //[SerializeField]
-        //private float minimumXDistanceBetween = 0.3f;
+    public class VolumeFlex : BaseCustomVolume
+    {
+        [SerializeField]
+        private Vector3 spacing = new Vector3(0.01f, 0.01f, 0.01f);
 
-        //public float MinimumXDistanceBetween
-        //{
-        //    get => minimumXDistanceBetween;
-        //    set => minimumXDistanceBetween = value;
-        //}
+        public Vector3 Spacing
+        {
+            get => spacing;
+            set => spacing = value;
+        }
 
-        //[SerializeField]
-        //private float maximumXDistanceBetween = 0.3f;
+        [SerializeField]
+        private CornerPoint startCornerPoint = CornerPoint.LeftTopForward;
 
-        //public float MaximumXDistanceBetween
-        //{
-        //    get => maximumXDistanceBetween;
-        //    set => maximumXDistanceBetween = value;
-        //}
+        public CornerPoint StartCornerPoint
+        {
+            get => startCornerPoint;
+            set => startCornerPoint = value;
+        }
 
-        //[SerializeField]
-        //private float minimumXRemainingSpace = 0.3f;
+        [SerializeField]
+        private VolumeAxis primaryFlowAxis = VolumeAxis.X;
 
-        //public float MinimumXRemainingSpace
-        //{
-        //    get => minimumXRemainingSpace;
-        //    set => minimumXRemainingSpace = value;
-        //}
+        public VolumeAxis PrimaryFlowAxis
+        {
+            get => primaryFlowAxis;
+            set => primaryFlowAxis = value;
+        }
 
-        //[SerializeField]
-        //private float maximumXRemainingSpace = 0.3f;
+        [SerializeField]
+        private VolumeAxis secondaryFlowAxis = VolumeAxis.Y;
 
-        //public float MaximumXRemainingSpace
-        //{
-        //    get => maximumXRemainingSpace;
-        //    set => maximumXRemainingSpace = value;
-        //}
+        public VolumeAxis SecondaryFlowAxis
+        {
+            get => secondaryFlowAxis;
+            set => secondaryFlowAxis = value;
+        }
 
-        //[SerializeField]
-        //private float yOffsetMargin = 0.1f;
+        [SerializeField]
+        private VolumeAxis tertiaryFlowAxis = VolumeAxis.Z;
 
-        //public float YOffsetMargin
-        //{
-        //    get => yOffsetMargin;
-        //    set
-        //    {
-        //        yOffsetMargin = value;
-        //    }
-        //}
+        public VolumeAxis TertiaryFlowAxis
+        {
+            get => tertiaryFlowAxis;
+            set => tertiaryFlowAxis = value;
+        }
 
-        //[SerializeField]
-        //private float minXContainerDistance = 3f;
+        public List<Vector3> positions = new List<Vector3>();
 
-        //public float MinXContainerDistance
-        //{
-        //    get => minXContainerDistance;
-        //    set => minXContainerDistance = value;
-        //}
+        private int index = 0;
 
-        //[SerializeField]
-        //private float maxXContainerDistance = 3f;
+        private int Place(VolumeAxis currentAxis)
+        {
+            while (index < Volume.ChildVolumeCount)
+            {
+                // Calcualte next position, if it is good then add it to the positions list
+                Tuple<bool, Vector3> nextPositionTuple = IsNextPositionInBounds(currentAxis, positions[index - 1], ChildVolumeItems[index - 1], ChildVolumeItems[index]);
 
-        //public float MaxXContainerDistance
-        //{
-        //    get => maxXContainerDistance;
-        //    set => maxXContainerDistance = value;
-        //}
+                bool isNextPositionInBounds = nextPositionTuple.Item1;
+                Vector3 nextPosition = nextPositionTuple.Item2;
 
-        //protected override void OnDrawGizmos()
-        //{
-        //    base.OnDrawGizmos();
+                if (isNextPositionInBounds)
+                {
+                    positions.Add(nextPosition);
+                    index++;
+                }
+                else
+                {
+                    break;                    
+                }
+            }
 
-        //    if (DirectChildUIVolumes.Count >= 2)
-        //    {
-        //        for (int i = 0; i < DirectChildUIVolumes.Count; i++)
-        //        {
-        //            Vector3 point1;
-        //            Vector3 point2;
+            return index;
+        }
 
-        //            point1 = DirectChildUIVolumes[i].GetFacePoint(FacePoint.Right);
 
-        //            if ((i + 1) != DirectChildUIVolumes.Count)
-        //            {
-        //                point2 = DirectChildUIVolumes[i + 1].GetFacePoint(FacePoint.Left);
-        //            }
-        //            else
-        //            {
-        //                point2 = point1;
-        //            }
+        private Tuple<bool,Vector3> IsNextPositionInBounds(VolumeAxis currentAxis, Vector3 previousObjectPosition, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
+        {
+            Vector3 newPosition = previousObjectPosition;
 
-        //            Gizmos.DrawLine(point1, point2);
-        //        }
-        //    }
-        //}
+            if (PrimaryFlowAxis == VolumeAxis.X && SecondaryFlowAxis == VolumeAxis.Y)
+            {
+                float xIncrement = GetOffset(currentAxis, previousObject, currentObject);
 
-        //protected override void Start()
-        //{
-        //    base.Start();
-        //}
+                if (StartCornerPoint.ToString().Contains("Left"))
+                {
+                    newPosition += VolumeBounds.Right * xIncrement;
+                }
+                else if (StartCornerPoint.ToString().Contains("Right"))
+                {
+                    newPosition += VolumeBounds.Left * xIncrement;
+                }
+            }
+            else if (PrimaryFlowAxis == VolumeAxis.Y && SecondaryFlowAxis == VolumeAxis.X)
+            {
+                float yIncrement = GetOffset(currentAxis, previousObject, currentObject);
 
-        //public override void Update()
-        //{
-        //    base.Update();
+                if (StartCornerPoint.ToString().Contains("Top"))
+                {
+                    newPosition += VolumeBounds.Down * yIncrement;
+                }
+                else if (StartCornerPoint.ToString().Contains("Bottom"))
+                {
+                    newPosition += VolumeBounds.Up * yIncrement;
+                }
+            }
 
-        //    //float xDistance = GetCurrentXDistance();
+            //switch (currentAxis)
+            //{
+            //    case VolumeAxis.X:
+            //    case VolumeAxis.Y:
+            //        float xIncrement = GetOffset(currentAxis, previousObject);
+            //        newPosition += Vector3.right * xIncrement;
+            //        break;
 
-        //    //float yOffset = DirectChildUIVolumes[0].GetAxisDistance(VolumeAxis.Y) + YOffsetMargin;
+            //        //float yIncrement = GetOffset(currentAxis, previousObject);
+            //        //newPosition -= Vector3.up * yIncrement;
+            //        //break;
+            //    case VolumeAxis.Z:
+            //        float zIncrement = GetOffset(currentAxis, previousObject);
+            //        newPosition += Vector3.forward * zIncrement;
+            //        break;
+            //}
 
-        //    //float currentContainerWidth = GetAxisDistance(VolumeAxis.X);
+            // TO DO: Consider rotation 
+            if (Volume.VolumeBounds.Contains(newPosition))
+            {
+                return Tuple.Create(true, newPosition);
+            }
 
-        //    //float remainingSpace = GetRemainingSpace(VolumeAxis.X, GetChildUIVolumes());
+            newPosition = Vector3.zero;
+            return Tuple.Create(false, newPosition);
+        }
 
-        //    //if (remainingSpace >= MinimumXRemainingSpace && remainingSpace <= MaximumXRemainingSpace)
-        //    //{
-        //    //    Distribute(VolumeAxis.X);
-        //    //}
-        //    //else if (remainingSpace <= MinimumXRemainingSpace)
-        //    //{
-        //    //    List<Volume> transformsRow1 = DirectChildUIVolumes.Take(DirectChildUIVolumes.Count / 2).ToList();
+        private float GetOffset(VolumeAxis currentAxis, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
+        {
+            Transform currentObjectTransform = currentObject.Transform;
+            Transform previousObjectTransform = previousObject.Transform;
 
-        //    //    RowDistribution(VolumeAxis.X, transformsRow1);
+            bool useBaseVolumeSizes = previousObject.Volume && currentObject.Volume;
 
-        //    //    List<Volume> transformsRow2 = DirectChildUIVolumes.Skip(DirectChildUIVolumes.Count / 2).Take(DirectChildUIVolumes.Count / 2).ToList();
+            float offset = 0;
 
-        //    //    RowDistribution(VolumeAxis.X, transformsRow2, true);
-        //    //}
-        //}
+            switch (currentAxis)
+            {
+                case VolumeAxis.X:
+                    float xDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.x + currentObject.Volume.VolumeSize.x)
+                        : (previousObjectTransform.lossyScale.x + currentObjectTransform.lossyScale.x);
+                    xDistance *= 0.5f;
+                    offset = xDistance + Spacing.x;
+                    break;
+                case VolumeAxis.Y:
+                    float yDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.y + currentObject.Volume.VolumeSize.y)
+                        : (previousObjectTransform.lossyScale.y + currentObjectTransform.lossyScale.y);
+                    yDistance *= 0.5f;
+                    offset = yDistance + Spacing.y;
+                    break;
+                case VolumeAxis.Z:
+                    float zDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.z + currentObject.Volume.VolumeSize.z)
+                        : (previousObjectTransform.lossyScale.z + currentObjectTransform.lossyScale.z);
+                    zDistance *= 0.5f;
+                    offset = zDistance + Spacing.z;
+                    break;
+            }
 
-        //public float GetCurrentXDistance()
-        //{
-        //    // Get the x distance between the current objects
-        //    if (DirectChildUIVolumes.Count >= 2)
-        //    {
-        //        List<Vector3> distances = new List<Vector3>();
+            return offset;
+        }
 
-        //        for (int i = 0; i < DirectChildUIVolumes.Count; i++)
-        //        {
-        //            Vector3 point1;
-        //            Vector3 point2;
+        private void InitializePlacing()
+        {
+            Vector3 start = Volume.GetCornerPoint(StartCornerPoint);
 
-        //            point1 = DirectChildUIVolumes[i].GetFacePoint(FacePoint.Right);
-                    
-        //            if ((i + 1) != DirectChildUIVolumes.Count)
-        //            {
-        //                point2 = DirectChildUIVolumes[i + 1].GetFacePoint(FacePoint.Left);
-        //            }
-        //            else
-        //            {
-        //                point2 = point1;
-        //            }
+            positions.Add(start);
+            index++;
 
-        //            float distanceX = Vector3.Distance(point1, point2);
+            while (index < Volume.ChildVolumeCount)
+            {
+                Place(PrimaryFlowAxis);
 
-        //            Vector3 distance = new Vector3(distanceX, 0, 0);
+                if (PrimaryFlowAxis == VolumeAxis.X && SecondaryFlowAxis == VolumeAxis.Y)
+                {
+                    if (StartCornerPoint.ToString().Contains("Top"))
+                    {
+                        start += VolumeBounds.Down * Spacing.y;
+                    }
+                    else if (StartCornerPoint.ToString().Contains("Bottom"))
+                    {
+                        start += VolumeBounds.Up * Spacing.y;
+                    }
+                }
 
-        //            distances.Add(distance);
-        //        }
+                if (PrimaryFlowAxis == VolumeAxis.Y && SecondaryFlowAxis == VolumeAxis.X)
+                {
+                    if (StartCornerPoint.ToString().Contains("Left"))
+                    {
+                        start += VolumeBounds.Right * Spacing.x;
+                    }
+                    else if (StartCornerPoint.ToString().Contains("Right"))
+                    {
+                        start += VolumeBounds.Left * Spacing.x;
+                    }
+                }
 
-        //        return distances[0].x;
-        //    }
-        //    else
-        //    {
-        //        return -1;
-        //    }
-        //}
+                // Try Y Axis increment
+                //if (Volume.VolumeBounds.Contains(start))
+                {
+                    // New Row
+                    positions.Add(start);
 
-        //public void RowDistribution(VolumeAxis axis, List<Volume> childrenToDistribute, bool YSpace = false)
-        //{
-        //    //Vector3 allChildSize = GetAxisSurfaceArea(childrenToDistribute);
+                    //Place(SecondaryFlowAxis);
 
-        //    //// Offset the first item to appear in the container
-        //    //Bounds bounds = childrenToDistribute[0].transform.GetColliderBounds();
+                    index++;
+                }
 
-        //    //Vector3 startPosition;
-        //    //float axisPriorityDistance = GetAxisDistance(axis);
-        //    //float remainingSpace;
+                //start += Vector3.forward * depthIncrement;
 
-        //    //if (axis == VolumeAxis.X)
-        //    //{
-        //    //    startPosition = GetFacePoint(FacePoint.Left) + (Vector3.right * bounds.extents.x);
+                //// Try Z Axis increment
+                //if (Volume.VolumeBounds.Contains(start))
+                //{
+                //    positions.Add(start);
+                //    index++;
+                //}
+            }
 
-        //    //    if (SecondaryAxis == VolumeAxis.Y && YSpace)
-        //    //    {
-        //    //        startPosition.y -= YOffsetMargin;
-        //    //    }
-                
-        //    //    remainingSpace = axisPriorityDistance - allChildSize.x;
-        //    //}
-        //    //else if (axis == VolumeAxis.Y)
-        //    //{
-        //    //    startPosition = GetFacePoint(FacePoint.Top) + (Vector3.up * bounds.extents.y);
-        //    //    remainingSpace = axisPriorityDistance - allChildSize.y;
-        //    //}
-        //    //else
-        //    //{
-        //    //    startPosition = GetFacePoint(FacePoint.Forward) + (Vector3.forward * bounds.extents.z);
-        //    //    remainingSpace = axisPriorityDistance - allChildSize.z;
-        //    //}
+            index = 0;
+        }
 
-        //    //float increment = (allChildSize.x + remainingSpace) / childrenToDistribute.Count;
+        public override void Update()
+        {
+            if (Application.isPlaying)
+            {
+                UpdateFlex();
+            }
+        }
 
-        //    //foreach (Volume child in childrenToDistribute)
-        //    //{
-        //    //    if (child.UseAnchorPositioning)
-        //    //    {
-        //    //        child.UseAnchorPositioning = false;
-        //    //    }
+        public void UpdateFlex()
+        {
+            positions.Clear();
 
-        //    //    Vector3 newPosition = startPosition;
+            InitializePlacing();
 
-        //    //    if (newPosition.IsValidVector())
-        //    //    {
-        //    //        child.transform.position = DistributeSmoothing.Smoothing && Application.isPlaying ?
-        //    //            Vector3.Lerp(child.transform.position, newPosition, DistributeSmoothing.LerpTime * Time.deltaTime)
-        //    //            : newPosition;
-        //    //    }
-
-        //    //    if (axis == VolumeAxis.X)
-        //    //    {
-        //    //        startPosition.x += increment;
-        //    //    }
-        //    //    else if (axis == VolumeAxis.Y)
-        //    //    {
-        //    //        startPosition.y += increment;
-        //    //    }
-        //    //    else
-        //    //    {
-        //    //        startPosition.z += increment;
-        //    //    }
-        //    //}
-        //}
-
-        //private Vector3 GetAxisSurfaceArea(List<Volume> surfaceAreaList)
-        //{
-        //    List<Vector3> axisSizes = new List<Vector3>();
-
-        //    foreach (Volume childVolume in surfaceAreaList)
-        //    {
-        //        // Make sure each transform has this volume as the parent
-        //        if (childVolume.UIVolumeParentTransform != transform)
-        //        {
-        //            Debug.LogError($"{childVolume.UIVolumeParentTransform.gameObject} does not have {gameObject.name} as the parent");
-        //        }
-
-        //        Vector3 volumeSize = new Vector3(childVolume.GetAxisDistance(VolumeAxis.X), childVolume.GetAxisDistance(VolumeAxis.Y), childVolume.GetAxisDistance(VolumeAxis.Z));
-
-        //        axisSizes.Add(volumeSize);
-        //    }
-
-        //    Vector3 allChildSize = new Vector3(0, 0, 0);
-
-        //    // Get total child width based on container distance
-        //    axisSizes.ForEach((item) => allChildSize.x += item.x);
-        //    axisSizes.ForEach((item) => allChildSize.y += item.y);
-        //    axisSizes.ForEach((item) => allChildSize.z += item.z);
-
-        //    return allChildSize;
-        //}
-        
-        //public float GetRemainingSpace(VolumeAxis axis, List<Volume> uiVolume)
-        //{
-        //    if (axis == VolumeAxis.X)
-        //    {
-        //        return GetAxisDistance(VolumeAxis.X) - GetAxisSurfaceArea(uiVolume).x;
-        //    }
-        //    else if(axis == VolumeAxis.Y)
-        //    {
-        //        return GetAxisDistance(VolumeAxis.Y) - GetAxisSurfaceArea(uiVolume).y;
-        //    }
-        //    else
-        //    {
-        //        return GetAxisDistance(VolumeAxis.Z) - GetAxisSurfaceArea(uiVolume).z;
-        //    }
-        //}
+            Volume.SetChildVolumePositions(positions.ToArray());
+        }
     }
 }

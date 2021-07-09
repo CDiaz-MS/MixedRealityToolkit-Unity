@@ -3,12 +3,8 @@
 
 using System.Collections.Generic;
 using System.Linq;
-
 using UnityEngine;
 using UnityEngine.Events;
-
-#if UNITY_EDITOR
-#endif
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
 {
@@ -310,19 +306,11 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => useSmoothing = value;
         }
 
-        private Vector3 startingGridCalculationPosition;
-
-        public Vector3 StartingGridCalculationPosition
-        {
-            get => startingGridCalculationPosition;
-            set => startingGridCalculationPosition = value;
-        }
-
         public override void Update()
         {
             base.Update();
 
-            if (UpdateGrid && Application.isPlaying)
+            if (UpdateGrid)
             {
                 CreateGridSetPositions();
             }
@@ -330,10 +318,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             DrawGridCells();
         }
 
-        public virtual void CreateGridSetPositions()
+        public void CreateGridSetPositions()
         {
-            StartingGridCalculationPosition = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward);
-
             CreateGrid();
             SetObjectPositions();
         }
@@ -349,21 +335,26 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
         }
 
+        /// <summary>
+        /// Generate a grid of VolumeBounds with a coordinate system.  The cell with the coordinates of (1,1,1) will always
+        /// be the Top Left Forward corner of the volume. 
+        /// </summary>
+        /// <returns></returns>
         protected virtual List<VolumeGridNode> CreateGrid()
         {
             SetRowColDepthCount();
 
             gridDictionary.Clear();
 
-            Vector3 startBoundsPos = StartingGridCalculationPosition;
+            Vector3 startBoundsPos = VolumeBounds.GetCornerPoint(CornerPoint.LeftTopForward);
 
-            Vector3 initialYPosition = StartingGridCalculationPosition + (VolumeBounds.Down * BoundsHeightIncrement * 0.5f);
+            Vector3 initialYPosition = startBoundsPos + (VolumeBounds.Down * BoundsHeightIncrement * 0.5f);
             Vector3 incrementYPosition = initialYPosition;
 
-            Vector3 initialXPosition = StartingGridCalculationPosition + (VolumeBounds.Right * BoundsWidthIncrement * 0.5f);
+            Vector3 initialXPosition = startBoundsPos + (VolumeBounds.Right * BoundsWidthIncrement * 0.5f);
             Vector3 incrementXPosition = initialXPosition;
 
-            Vector3 initialZPosition = StartingGridCalculationPosition + (VolumeBounds.Back * BoundsDepthIncrement * 0.5f);
+            Vector3 initialZPosition = startBoundsPos + (VolumeBounds.Back * BoundsDepthIncrement * 0.5f);
             Vector3 incrementZPosition = initialZPosition;
 
             List<VolumeGridNode> nodes = new List<VolumeGridNode>();
@@ -479,62 +470,30 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Vector3[] positions = CalculateObjectFlowPositions();
 
+            int index = 0;
+
             if (PlaceDisabledTransforms && !DisableObjectsWithoutGridPosition)
             {
-                int i = 0;
-
                 foreach (var item in ChildVolumeItems)
                 {
                     if (item.Transform)
                     {
-                        VolumeGridNode cell = FindGridCellFromCenterPosition(positions[i]);
-
-                        SetNodeProperties(cell, item.Transform);
-
-                        if (Application.isPlaying && UseSmoothing)
-                        {
-                            item.Transform.position = Vector3.Lerp(item.Transform.position, positions[i], Time.deltaTime * SmoothingSpeed);
-                        }
-                        else
-                        {
-                            if (i < ChildVolumeItems.Count && i < positions.Length)
-                            {
-                                item.Transform.position = positions[i];
-                            }
-                        }
-
-                        i++;
+                        SetObjectPosition(item, positions, index);
+                        index++;
                     }
                 }
             }
 
             if (!PlaceDisabledTransforms)
             {
-                int i = 0;
-
                 foreach (var item in ChildVolumeItems)
                 {
                     if (item.Transform)
                     {
                         if (item.Transform.gameObject.activeSelf)
                         {
-                            VolumeGridNode cell = FindGridCellFromCenterPosition(positions[i]);
-
-                            SetNodeProperties(cell, item.Transform);
-
-                            if (Application.isPlaying && UseSmoothing)
-                            {
-                                item.Transform.position = Vector3.Lerp(item.Transform.position, positions[i], Time.deltaTime * SmoothingSpeed);
-                            }
-                            else
-                            {
-                                if (i < ChildVolumeItems.Count && i < positions.Length)
-                                {
-                                    item.Transform.position = positions[i];
-                                }
-                            }
-
-                            i++;
+                            SetObjectPosition(item, positions, index);
+                            index++;
                         }
                     }
                 }
@@ -543,6 +502,25 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             if (DisableObjectsWithoutGridPosition)
             {
                 DisableGridOverflowObjects();
+            }
+        }
+
+        private void SetObjectPosition(ChildVolumeItem item, Vector3[] positions, int index)
+        {
+            VolumeGridNode cell = FindGridCellFromCenterPosition(positions[index]);
+
+            SetNodeProperties(cell, item.Transform);
+
+            if (Application.isPlaying && UseSmoothing)
+            {
+                item.Transform.position = Vector3.Lerp(item.Transform.position, positions[index], Time.deltaTime * SmoothingSpeed);
+            }
+            else
+            {
+                if (index < ChildVolumeItems.Count && index < positions.Length)
+                {
+                    item.Transform.position = positions[index];
+                }
             }
         }
 
