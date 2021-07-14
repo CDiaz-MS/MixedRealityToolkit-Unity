@@ -21,6 +21,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
+        private StartingFlexPositionMode startingFlexPositionMode = StartingFlexPositionMode.CornerPoint;
+
+        public StartingFlexPositionMode StartingFlexPositionMode
+        {
+            get => startingFlexPositionMode;
+            set => startingFlexPositionMode = value;
+        }
+
+        [SerializeField]
         private CornerPoint startCornerPoint = CornerPoint.LeftTopForward;
 
         public CornerPoint StartCornerPoint
@@ -30,27 +39,63 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
-        private VolumeAxis primaryFlowAxis = VolumeAxis.X;
+        private FacePoint startFacePoint = FacePoint.Left;
 
-        public VolumeAxis PrimaryFlowAxis
+        public FacePoint StartFacePoint
+        {
+            get => startFacePoint;
+            set => startFacePoint = value;
+        }
+
+        [SerializeField]
+        private float startingXPositionOffset = 0;
+
+        public float StartingXPositionOffset
+        {
+            get => startingXPositionOffset;
+            set => startingXPositionOffset = value;
+        }
+
+        [SerializeField]
+        private float startingYPositionOffset = 0;
+
+        public float StartingYPositionOffset
+        {
+            get => startingYPositionOffset;
+            set => startingYPositionOffset = value;
+        }
+
+        [SerializeField]
+        private float startingZPositionOffset = 0;
+
+        public float StartingZPositionOffset
+        {
+            get => startingZPositionOffset;
+            set => startingZPositionOffset = value;
+        }
+
+        [SerializeField]
+        private VolumeFlowAxis primaryFlowAxis = VolumeFlowAxis.X;
+
+        public VolumeFlowAxis PrimaryFlowAxis
         {
             get => primaryFlowAxis;
             set => primaryFlowAxis = value;
         }
 
         [SerializeField]
-        private VolumeAxis secondaryFlowAxis = VolumeAxis.Y;
+        private VolumeFlowAxis secondaryFlowAxis = VolumeFlowAxis.Y;
 
-        public VolumeAxis SecondaryFlowAxis
+        public VolumeFlowAxis SecondaryFlowAxis
         {
             get => secondaryFlowAxis;
             set => secondaryFlowAxis = value;
         }
 
         [SerializeField]
-        private VolumeAxis tertiaryFlowAxis = VolumeAxis.Z;
+        private VolumeFlowAxis tertiaryFlowAxis = VolumeFlowAxis.Z;
 
-        public VolumeAxis TertiaryFlowAxis
+        public VolumeFlowAxis TertiaryFlowAxis
         {
             get => tertiaryFlowAxis;
             set => tertiaryFlowAxis = value;
@@ -60,11 +105,10 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private int index = 0;
 
-        private int Place(VolumeAxis currentAxis)
+        private int Place(VolumeFlowAxis currentAxis)
         {
             while (index < Volume.ChildVolumeCount)
             {
-                // Calcualte next position, if it is good then add it to the positions list
                 Tuple<bool, Vector3> nextPositionTuple = IsNextPositionInBounds(currentAxis, positions[index - 1], ChildVolumeItems[index - 1], ChildVolumeItems[index]);
 
                 bool isNextPositionInBounds = nextPositionTuple.Item1;
@@ -84,54 +128,33 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return index;
         }
 
-
-        private Tuple<bool,Vector3> IsNextPositionInBounds(VolumeAxis currentAxis, Vector3 previousObjectPosition, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
+        private Tuple<bool,Vector3> IsNextPositionInBounds(VolumeFlowAxis currentAxis, Vector3 previousObjectPosition, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
         {
             Vector3 newPosition = previousObjectPosition;
 
-            if (PrimaryFlowAxis == VolumeAxis.X && SecondaryFlowAxis == VolumeAxis.Y)
+            float offset = GetOffset(currentAxis, previousObject, currentObject);
+
+            switch (PrimaryFlowAxis)
             {
-                float xIncrement = GetOffset(currentAxis, previousObject, currentObject);
-
-                if (StartCornerPoint.ToString().Contains("Left"))
-                {
-                    newPosition += VolumeBounds.Right * xIncrement;
-                }
-                else if (StartCornerPoint.ToString().Contains("Right"))
-                {
-                    newPosition += VolumeBounds.Left * xIncrement;
-                }
+                case VolumeFlowAxis.X:
+                    newPosition += VolumeBounds.Right * offset;
+                    break;
+                case VolumeFlowAxis.NegativeX:
+                    newPosition += VolumeBounds.Left * offset;
+                    break;
+                case VolumeFlowAxis.Y:
+                    newPosition += VolumeBounds.Down * offset;
+                    break;
+                case VolumeFlowAxis.NegativeY:
+                    newPosition += VolumeBounds.Up * offset;
+                    break;
+                case VolumeFlowAxis.Z:
+                    newPosition += VolumeBounds.Forward * offset;
+                    break;
+                case VolumeFlowAxis.NegativeZ:
+                    newPosition += VolumeBounds.Back * offset;
+                    break;
             }
-            else if (PrimaryFlowAxis == VolumeAxis.Y && SecondaryFlowAxis == VolumeAxis.X)
-            {
-                float yIncrement = GetOffset(currentAxis, previousObject, currentObject);
-
-                if (StartCornerPoint.ToString().Contains("Top"))
-                {
-                    newPosition += VolumeBounds.Down * yIncrement;
-                }
-                else if (StartCornerPoint.ToString().Contains("Bottom"))
-                {
-                    newPosition += VolumeBounds.Up * yIncrement;
-                }
-            }
-
-            //switch (currentAxis)
-            //{
-            //    case VolumeAxis.X:
-            //    case VolumeAxis.Y:
-            //        float xIncrement = GetOffset(currentAxis, previousObject);
-            //        newPosition += Vector3.right * xIncrement;
-            //        break;
-
-            //        //float yIncrement = GetOffset(currentAxis, previousObject);
-            //        //newPosition -= Vector3.up * yIncrement;
-            //        //break;
-            //    case VolumeAxis.Z:
-            //        float zIncrement = GetOffset(currentAxis, previousObject);
-            //        newPosition += Vector3.forward * zIncrement;
-            //        break;
-            //}
 
             // TO DO: Consider rotation 
             if (Volume.VolumeBounds.Contains(newPosition))
@@ -143,7 +166,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return Tuple.Create(false, newPosition);
         }
 
-        private float GetOffset(VolumeAxis currentAxis, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
+        private float GetOffset(VolumeFlowAxis currentAxis, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
         {
             Transform currentObjectTransform = currentObject.Transform;
             Transform previousObjectTransform = previousObject.Transform;
@@ -152,21 +175,22 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             float offset = 0;
 
+            // TO DO - INCLUDE MARGIN
             switch (currentAxis)
             {
-                case VolumeAxis.X:
-                    float xDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.x + currentObject.Volume.VolumeSize.x)
+                case VolumeFlowAxis.X:
+                    float xDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.x + currentObject.Volume.VolumeSize.x) 
                         : (previousObjectTransform.lossyScale.x + currentObjectTransform.lossyScale.x);
                     xDistance *= 0.5f;
                     offset = xDistance + Spacing.x;
                     break;
-                case VolumeAxis.Y:
+                case VolumeFlowAxis.Y:
                     float yDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.y + currentObject.Volume.VolumeSize.y)
                         : (previousObjectTransform.lossyScale.y + currentObjectTransform.lossyScale.y);
                     yDistance *= 0.5f;
                     offset = yDistance + Spacing.y;
                     break;
-                case VolumeAxis.Z:
+                case VolumeFlowAxis.Z:
                     float zDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.z + currentObject.Volume.VolumeSize.z)
                         : (previousObjectTransform.lossyScale.z + currentObjectTransform.lossyScale.z);
                     zDistance *= 0.5f;
@@ -177,69 +201,102 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return offset;
         }
 
+
+        private Vector3 GetStartPosition()
+        {
+            if (StartingFlexPositionMode == StartingFlexPositionMode.CornerPoint)
+            {
+                return Volume.GetCornerPoint(StartCornerPoint);
+            }
+            else if (StartingFlexPositionMode == StartingFlexPositionMode.FacePoint)
+            {
+                return Volume.GetFacePoint(StartFacePoint);
+            }
+            else
+            {
+                Vector3 positionOffset = new Vector3(StartingXPositionOffset, StartingYPositionOffset, StartingZPositionOffset);
+                return Volume.VolumeCenter + positionOffset;
+            }
+        }
+
         private void InitializePlacing()
         {
-            Vector3 start = Volume.GetCornerPoint(StartCornerPoint);
+            Vector3 start = GetStartPosition();
 
             positions.Add(start);
             index++;
+
+            int tertiaryAxisIndex = 0;
 
             while (index < Volume.ChildVolumeCount)
             {
                 Place(PrimaryFlowAxis);
 
-                if (PrimaryFlowAxis == VolumeAxis.X && SecondaryFlowAxis == VolumeAxis.Y)
+                Vector3 newStartingPinPosition = GetNextPinPosition(start, SecondaryFlowAxis);
+
+                if (!Volume.VolumeBounds.Contains(newStartingPinPosition))
                 {
-                    if (StartCornerPoint.ToString().Contains("Top"))
+                    Vector3 zStartingPos = GetNextPinPosition(positions[tertiaryAxisIndex], TertiaryFlowAxis);
+                    tertiaryAxisIndex = index;
+
+                    if (!Volume.VolumeBounds.Contains(zStartingPos))
                     {
-                        start += VolumeBounds.Down * Spacing.y;
+                        break;
                     }
-                    else if (StartCornerPoint.ToString().Contains("Bottom"))
+                    else
                     {
-                        start += VolumeBounds.Up * Spacing.y;
+                        positions.Add(zStartingPos);
+
+                        start = zStartingPos;
                     }
                 }
-
-                if (PrimaryFlowAxis == VolumeAxis.Y && SecondaryFlowAxis == VolumeAxis.X)
+                else
                 {
-                    if (StartCornerPoint.ToString().Contains("Left"))
-                    {
-                        start += VolumeBounds.Right * Spacing.x;
-                    }
-                    else if (StartCornerPoint.ToString().Contains("Right"))
-                    {
-                        start += VolumeBounds.Left * Spacing.x;
-                    }
+                    positions.Add(newStartingPinPosition);
+
+                    start = newStartingPinPosition;
                 }
 
-                // Try Y Axis increment
-                //if (Volume.VolumeBounds.Contains(start))
-                {
-                    // New Row
-                    positions.Add(start);
-
-                    //Place(SecondaryFlowAxis);
-
-                    index++;
-                }
-
-                //start += Vector3.forward * depthIncrement;
-
-                //// Try Z Axis increment
-                //if (Volume.VolumeBounds.Contains(start))
-                //{
-                //    positions.Add(start);
-                //    index++;
-                //}
+                index++;
             }
 
             index = 0;
+        }
+
+        private Vector3 GetNextPinPosition(Vector3 groupStartPosition, VolumeFlowAxis currentFlowAxis)
+        {
+            Vector3 newPinPosition = groupStartPosition;
+
+            switch (currentFlowAxis)
+            {
+                case VolumeFlowAxis.X:
+                    newPinPosition += VolumeBounds.Right * Spacing.x;
+                    break;
+                case VolumeFlowAxis.NegativeX:
+                    newPinPosition += VolumeBounds.Left * Spacing.x;
+                    break;
+                case VolumeFlowAxis.Y:
+                    newPinPosition += VolumeBounds.Down * Spacing.y;
+                    break;
+                case VolumeFlowAxis.NegativeY:
+                    newPinPosition += VolumeBounds.Up * Spacing.y;
+                    break;
+                case VolumeFlowAxis.Z:
+                    newPinPosition += VolumeBounds.Forward * Spacing.z;
+                    break;
+                case VolumeFlowAxis.NegativeZ:
+                    newPinPosition += VolumeBounds.Back * Spacing.z;
+                    break;
+            }
+
+            return newPinPosition;
         }
 
         public override void Update()
         {
             if (Application.isPlaying)
             {
+                // Add events
                 UpdateFlex();
             }
         }

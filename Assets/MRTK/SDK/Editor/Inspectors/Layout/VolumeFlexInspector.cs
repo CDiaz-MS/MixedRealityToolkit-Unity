@@ -16,11 +16,20 @@ namespace Microsoft.MixedReality.Toolkit.Editor
         private VolumeFlex instanceFlex;
 
         private SerializedProperty spacing;
+        private SerializedProperty startingFlexPositionMode;
+
         private SerializedProperty startCornerPoint;
+        private SerializedProperty startFacePoint;
+        private SerializedProperty startingXPositionOffset;
+        private SerializedProperty startingYPositionOffset;
+        private SerializedProperty startingZPositionOffset;
         private SerializedProperty primaryFlowAxis;
         private SerializedProperty secondaryFlowAxis;
         private SerializedProperty tertiaryFlowAxis;
-        //private SerializedProperty useBaseVolumeSizes;
+
+        private SerializedProperty xAnchorPosition;
+        private SerializedProperty yAnchorPosition;
+        private SerializedProperty zAnchorPosition;
 
         private Texture flexXYIcon;
         private Texture flexYXIcon;
@@ -30,15 +39,25 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private const string FlexConfigurationsTitle = "Flex Configurations";
 
+        private const int minButtonHeight = 40;
+
         public void OnEnable()
         {
             instanceFlex = target as VolumeFlex;
             spacing = serializedObject.FindProperty("spacing");
+            startingFlexPositionMode = serializedObject.FindProperty("startingFlexPositionMode");
             startCornerPoint = serializedObject.FindProperty("startCornerPoint");
+            startFacePoint = serializedObject.FindProperty("startFacePoint");
+            startingXPositionOffset = serializedObject.FindProperty("startingXPositionOffset");
+            startingYPositionOffset = serializedObject.FindProperty("startingYPositionOffset");
+            startingZPositionOffset = serializedObject.FindProperty("startingZPositionOffset");
             primaryFlowAxis = serializedObject.FindProperty("primaryFlowAxis");
             secondaryFlowAxis = serializedObject.FindProperty("secondaryFlowAxis");
             tertiaryFlowAxis = serializedObject.FindProperty("tertiaryFlowAxis");
-            //useBaseVolumeSizes = serializedObject.FindProperty("useBaseVolumeSizes");
+
+            xAnchorPosition = serializedObject.FindProperty("xAnchorPosition");
+            yAnchorPosition = serializedObject.FindProperty("yAnchorPosition");
+            zAnchorPosition = serializedObject.FindProperty("zAnchorPosition");
         }
 
         public override void OnInspectorGUI()
@@ -47,7 +66,10 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             serializedObject.Update();
 
+            DrawFlexPositioningMode();
+
             DrawFlexSettings();
+
             DrawFlexConfigurations();
 
             serializedObject.ApplyModifiedProperties();
@@ -63,8 +85,6 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
         private void DrawFlexSettings()
         {
-            EditorGUILayout.PropertyField(startCornerPoint);
-
             EditorGUILayout.Space();
 
             EditorGUILayout.PropertyField(primaryFlowAxis);
@@ -73,7 +93,66 @@ namespace Microsoft.MixedReality.Toolkit.Editor
 
             EditorGUILayout.Space();
             EditorGUILayout.PropertyField(spacing);
-            //EditorGUILayout.PropertyField(useBaseVolumeSizes);
+        }
+
+        private void DrawFlexPositioningMode()
+        {
+            EditorGUILayout.PropertyField(startingFlexPositionMode);
+
+            Color previousGUIColor = GUI.color;
+
+            GUILayoutOption maxWidthPositioningMode = GUILayout.Width((EditorGUIUtility.currentViewWidth * 0.31f));
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                using (new EditorGUILayout.VerticalScope(maxWidthPositioningMode))
+                {
+                    DrawFlexEnumPositionButton(StartingFlexPositionMode.CornerPoint, new GUIContent("Corner Point"), previousGUIColor);
+
+                    EditorGUI.BeginDisabledGroup(startingFlexPositionMode.intValue != (int)StartingFlexPositionMode.CornerPoint);
+                    EditorGUILayout.LabelField("Start Corner Point", maxWidthPositioningMode);
+                    EditorGUILayout.PropertyField(startCornerPoint, new GUIContent(""));
+                    EditorGUI.EndDisabledGroup();
+                }
+
+                using (new EditorGUILayout.VerticalScope(maxWidthPositioningMode))
+                {
+                    DrawFlexEnumPositionButton(StartingFlexPositionMode.FacePoint, new GUIContent("Face Point"), previousGUIColor);
+
+                    EditorGUI.BeginDisabledGroup(startingFlexPositionMode.intValue != (int)StartingFlexPositionMode.FacePoint);
+                    EditorGUILayout.LabelField("Start Face Point", maxWidthPositioningMode);
+                    EditorGUILayout.PropertyField(startFacePoint, new GUIContent(""));
+                    EditorGUI.EndDisabledGroup();
+                }
+
+                using (new EditorGUILayout.VerticalScope(maxWidthPositioningMode))
+                {
+                    DrawFlexEnumPositionButton(StartingFlexPositionMode.CustomPointWithinBounds, new GUIContent("Custom Point"), previousGUIColor);
+
+                    Vector3 volumeBoundsSize = instanceFlex.VolumeBounds.Size * 0.5f;
+
+                    EditorGUI.BeginDisabledGroup(startingFlexPositionMode.intValue != (int)StartingFlexPositionMode.CustomPointWithinBounds);
+                    
+                    EditorGUILayout.LabelField("Starting X Position Offset", maxWidthPositioningMode);
+                    startingXPositionOffset.floatValue = EditorGUILayout.Slider("", startingXPositionOffset.floatValue, -volumeBoundsSize.x, volumeBoundsSize.x, maxWidthPositioningMode);
+
+                    EditorGUILayout.LabelField("Starting Y Position Offset", maxWidthPositioningMode);
+                    startingYPositionOffset.floatValue = EditorGUILayout.Slider("", startingYPositionOffset.floatValue, -volumeBoundsSize.y, volumeBoundsSize.y, maxWidthPositioningMode);
+
+                    EditorGUILayout.LabelField("Starting Z Position Offset", maxWidthPositioningMode);
+                    startingZPositionOffset.floatValue = EditorGUILayout.Slider("", startingZPositionOffset.floatValue, -volumeBoundsSize.z, volumeBoundsSize.z, maxWidthPositioningMode);
+
+                    EditorGUI.EndDisabledGroup();
+                }
+            }
+        }
+
+        private void DrawFlexEnumPositionButton(StartingFlexPositionMode startingFlexPositionModeVal, GUIContent buttonContent, Color previousGUIColor)
+        {
+            if (GUILayout.Button(buttonContent, GUILayout.MinHeight(minButtonHeight)))
+            {
+                startingFlexPositionMode.enumValueIndex = (int)startingFlexPositionModeVal;
+            }
         }
 
         private void DrawFlexConfigurations()
@@ -90,21 +169,20 @@ namespace Microsoft.MixedReality.Toolkit.Editor
                 image = flexYXIcon
             };
 
-
             VolumeInspectorUtility.DrawTitle(FlexConfigurationsTitle);
 
             using ( new EditorGUILayout.HorizontalScope())
             {
                 if (GUILayout.Button(flexXYContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(150)))
                 {
-                    primaryFlowAxis.enumValueIndex = (int)VolumeAxis.X;
-                    secondaryFlowAxis.enumValueIndex = (int)VolumeAxis.Y;
+                    primaryFlowAxis.enumValueIndex = (int)VolumeFlowAxis.X;
+                    secondaryFlowAxis.enumValueIndex = (int)VolumeFlowAxis.Y;
                 }
 
                 if (GUILayout.Button(flexYXContent, GUILayout.MaxHeight(100), GUILayout.MaxWidth(150)))
                 {
-                    primaryFlowAxis.enumValueIndex = (int)VolumeAxis.Y;
-                    secondaryFlowAxis.enumValueIndex = (int)VolumeAxis.X;
+                    primaryFlowAxis.enumValueIndex = (int)VolumeFlowAxis.Y;
+                    secondaryFlowAxis.enumValueIndex = (int)VolumeFlowAxis.X;
                 }
             }
         }
