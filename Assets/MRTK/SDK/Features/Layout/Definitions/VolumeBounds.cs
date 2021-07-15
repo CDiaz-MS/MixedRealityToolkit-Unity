@@ -124,6 +124,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             get => onBoundsSizeChanged;
         }
 
+        private float containsThreshold = -0.0001f;
+
         public VolumeBounds(Vector3 boundsSize, Vector3 boundsCenter, Transform boundsHostTransform)
         {
             Size = boundsSize;
@@ -217,6 +219,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return (GetFacePoint(p1) + GetFacePoint(p2)) * 0.5f;
         }
 
+        /// <summary>
+        /// Determine if the given point is contained this VolumeBounds. The rotation of the VolumeBounds container
+        /// is included in the calculation. 
+        /// </summary>
+        /// <param name="point">The point to determine if it is contained in the VolumeBoudns</param>
+        /// <returns>True if the point is contained in the bounds, false otherwise</returns>
         public bool Contains(Vector3 point)
         {
             bool resultLeft = IsPointWithinSpace(point, FacePoint.Left, Right);
@@ -245,9 +253,9 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private bool IsPointWithinSpace(Vector3 point, FacePoint facePoint, Vector3 direction)
         {
-            Vector3 diff = (point - GetFacePoint(facePoint)).normalized;
-            float dot = Vector3.Dot(direction, diff);
-            return dot >= 0;
+            Vector3 pointDirection = (point - GetFacePoint(facePoint)).normalized;
+            float result = Vector3.Dot(direction, pointDirection);
+            return result >= containsThreshold;
         }
 
         public void DrawBounds(Color color)

@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace Microsoft.MixedReality.Toolkit.UI.Layout
@@ -48,30 +46,30 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         }
 
         [SerializeField]
-        private float startingXPositionOffset = 0;
+        private float startingXPositionOffsetPercentage = 0;
 
-        public float StartingXPositionOffset
+        public float StartingXPositionOffsetPercentage
         {
-            get => startingXPositionOffset;
-            set => startingXPositionOffset = value;
+            get => startingXPositionOffsetPercentage;
+            set => startingXPositionOffsetPercentage = value;
         }
 
         [SerializeField]
-        private float startingYPositionOffset = 0;
+        private float startingYPositionOffsetPercentage = 0;
 
-        public float StartingYPositionOffset
+        public float StartingYPositionOffsetPercentage
         {
-            get => startingYPositionOffset;
-            set => startingYPositionOffset = value;
+            get => startingYPositionOffsetPercentage;
+            set => startingYPositionOffsetPercentage = value;
         }
 
         [SerializeField]
-        private float startingZPositionOffset = 0;
+        private float startingZPositionOffsetPercentage = 0;
 
-        public float StartingZPositionOffset
+        public float StartingZPositionOffsetPercentage
         {
-            get => startingZPositionOffset;
-            set => startingZPositionOffset = value;
+            get => startingZPositionOffsetPercentage;
+            set => startingZPositionOffsetPercentage = value;
         }
 
         [SerializeField]
@@ -101,11 +99,31 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             set => tertiaryFlowAxis = value;
         }
 
+        [SerializeField]
+        private bool updateFlex = true;
+
+        public bool UpdateFlex
+        {
+            get => updateFlex;
+            set => updateFlex = value;
+        }
+
+        public Vector3 StartingPositionPercentages
+        {
+            get => new Vector3(startingXPositionOffsetPercentage, startingYPositionOffsetPercentage, startingZPositionOffsetPercentage);
+            set
+            {
+                startingXPositionOffsetPercentage = value.x;
+                startingYPositionOffsetPercentage = value.y;
+                startingZPositionOffsetPercentage = value.z;
+            }
+        }
+
         public List<Vector3> positions = new List<Vector3>();
 
         private int index = 0;
 
-        private int Place(VolumeFlowAxis currentAxis)
+        private int CalculatePositionsAlongAxis(VolumeFlowAxis currentAxis)
         {
             while (index < Volume.ChildVolumeCount)
             {
@@ -156,7 +174,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
                     break;
             }
 
-            // TO DO: Consider rotation 
             if (Volume.VolumeBounds.Contains(newPosition))
             {
                 return Tuple.Create(true, newPosition);
@@ -201,7 +218,6 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return offset;
         }
 
-
         private Vector3 GetStartPosition()
         {
             if (StartingFlexPositionMode == StartingFlexPositionMode.CornerPoint)
@@ -214,8 +230,14 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             }
             else
             {
-                Vector3 positionOffset = new Vector3(StartingXPositionOffset, StartingYPositionOffset, StartingZPositionOffset);
-                return Volume.VolumeCenter + positionOffset;
+                // Calculate custom starting position based on percentages relative to the Volume Bounds Rotation (transform.Rotation)
+                Vector3 targetPosition = Vector3.Scale(Volume.VolumeSize, StartingPositionPercentages) * 0.5f;
+                Vector3 positionOffset = Volume.VolumeCenter + targetPosition;
+                Vector3 direction = (targetPosition).normalized;
+                float distance = Vector3.Distance(positionOffset, Volume.VolumeCenter);
+                Vector3 positionOffsetWithRotation = Volume.VolumeCenter + ( Volume.VolumeBounds.Rotation * (direction * distance));
+                
+                return positionOffsetWithRotation;
             }
         }
 
@@ -230,31 +252,34 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
             while (index < Volume.ChildVolumeCount)
             {
-                Place(PrimaryFlowAxis);
+                // Calculate positions along the given axis until we have reached the end of the bounds
+                CalculatePositionsAlongAxis(PrimaryFlowAxis);
 
-                Vector3 newStartingPinPosition = GetNextPinPosition(start, SecondaryFlowAxis);
+                // Move the next starting position along the secondary axis
+                Vector3 nextStartingPinPosition = GetNextPinPosition(start, SecondaryFlowAxis);
 
-                if (!Volume.VolumeBounds.Contains(newStartingPinPosition))
+                if (!Volume.VolumeBounds.Contains(nextStartingPinPosition))
                 {
-                    Vector3 zStartingPos = GetNextPinPosition(positions[tertiaryAxisIndex], TertiaryFlowAxis);
+                    // Move to the next starting position along the tertiary axis
+                    Vector3 tertiaryStartingPinPosition = GetNextPinPosition(positions[tertiaryAxisIndex], TertiaryFlowAxis);
                     tertiaryAxisIndex = index;
 
-                    if (!Volume.VolumeBounds.Contains(zStartingPos))
+                    if (!Volume.VolumeBounds.Contains(tertiaryStartingPinPosition))
                     {
                         break;
                     }
                     else
                     {
-                        positions.Add(zStartingPos);
+                        positions.Add(tertiaryStartingPinPosition);
 
-                        start = zStartingPos;
+                        start = tertiaryStartingPinPosition;
                     }
                 }
                 else
                 {
-                    positions.Add(newStartingPinPosition);
+                    positions.Add(nextStartingPinPosition);
 
-                    start = newStartingPinPosition;
+                    start = nextStartingPinPosition;
                 }
 
                 index++;
@@ -296,12 +321,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             if (Application.isPlaying)
             {
-                // Add events
-                UpdateFlex();
+                if (UpdateFlex)
+                {
+                    // Add events
+                    UpdateVolumeFlex();
+                }
             }
         }
 
-        public void UpdateFlex()
+        public void UpdateVolumeFlex()
         {
             positions.Clear();
 
