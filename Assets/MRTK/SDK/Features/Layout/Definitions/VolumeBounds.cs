@@ -219,11 +219,15 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         public bool Contains(Vector3 point)
         {
-            if ((point.x >= GetFacePoint(FacePoint.Left).x && point.x <= GetFacePoint(FacePoint.Right).x) &&
-                (point.y >= GetFacePoint(FacePoint.Bottom).y && point.y <= GetFacePoint(FacePoint.Top).y) &&
-                (point.z >= GetFacePoint(FacePoint.Forward).z && point.z <= GetFacePoint(FacePoint.Back).z))
+            bool resultLeft = IsPointWithinSpace(point, FacePoint.Left, Right);
+            bool resultRight = IsPointWithinSpace(point, FacePoint.Right, Left);
+            bool resultTop = IsPointWithinSpace(point, FacePoint.Top, Down);
+            bool resultDown = IsPointWithinSpace(point, FacePoint.Bottom, Up);
+            bool resultForward = IsPointWithinSpace(point, FacePoint.Forward, Back);
+            bool resultBack = IsPointWithinSpace(point, FacePoint.Back, Forward);
+
+            if (resultLeft && resultRight && resultTop && resultDown && resultForward && resultBack)
             {
-  
                 return true;
             }
 
@@ -239,6 +243,12 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             return false;
         }
 
+        private bool IsPointWithinSpace(Vector3 point, FacePoint facePoint, Vector3 direction)
+        {
+            Vector3 diff = (point - GetFacePoint(facePoint)).normalized;
+            float dot = Vector3.Dot(direction, diff);
+            return dot >= 0;
+        }
 
         public void DrawBounds(Color color)
         {
