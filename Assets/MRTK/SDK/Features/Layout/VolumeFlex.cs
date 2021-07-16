@@ -10,7 +10,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
     public class VolumeFlex : BaseCustomVolume
     {
         [SerializeField]
-        private Vector3 spacing = new Vector3(0.01f, 0.01f, 0.01f);
+        private Vector3 spacing = new Vector3();
 
         public Vector3 Spacing
         {
@@ -123,6 +123,8 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private int index = 0;
 
+        private Vector3 currentMaxSizes = new Vector3();
+
         private int CalculatePositionsAlongAxis(VolumeFlowAxis currentAxis)
         {
             while (index < Volume.ChildVolumeCount)
@@ -185,37 +187,67 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
 
         private float GetOffset(VolumeFlowAxis currentAxis, ChildVolumeItem previousObject, ChildVolumeItem currentObject)
         {
-            Transform currentObjectTransform = currentObject.Transform;
-            Transform previousObjectTransform = previousObject.Transform;
+            Vector3 currentObjectLossyScale = currentObject.Transform.lossyScale;
+            Vector3 previousObjectLossyScale = previousObject.Transform.lossyScale;
 
+            // Determine if the current and previous object have a BaseVolume attached
             bool useBaseVolumeSizes = previousObject.Volume && currentObject.Volume;
 
             float offset = 0;
 
-            // TO DO - INCLUDE MARGIN
+            // If the the current object has a BaseVolume attached, then use the Volume Size to calculate the offset.  Otherwise,
+            // use the object's lossy scale to calculate the offset.
+            float xDistanceOffset = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.x + currentObject.Volume.VolumeSize.x) * 0.5f
+                : (previousObjectLossyScale.x + currentObjectLossyScale.x) * 0.5f;
+
+            float yDistanceOffset = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.y + currentObject.Volume.VolumeSize.y) * 0.5f
+                : (previousObjectLossyScale.y + currentObjectLossyScale.y) * 0.5f;
+
+            float zDistanceOffset = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.z + currentObject.Volume.VolumeSize.z) * 0.5f
+                : (previousObjectLossyScale.z + currentObjectLossyScale.z) * 0.5f;
+
             switch (currentAxis)
             {
                 case VolumeFlowAxis.X:
-                    float xDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.x + currentObject.Volume.VolumeSize.x) 
-                        : (previousObjectTransform.lossyScale.x + currentObjectTransform.lossyScale.x);
-                    xDistance *= 0.5f;
-                    offset = xDistance + Spacing.x;
+                    // If the current and previous objects have a BaseVolume attached, then consider margin in the offset calculation
+                    float horizontalMarginOffset = useBaseVolumeSizes ? (previousObject.Volume.Margin.Right + currentObject.Volume.Margin.Left) : 0;
+                    offset = xDistanceOffset + Spacing.x + horizontalMarginOffset;
+                    break;
+                case VolumeFlowAxis.NegativeX:
+                    float horizontalMarginOffsetNegative = useBaseVolumeSizes ? (previousObject.Volume.Margin.Left + currentObject.Volume.Margin.Right) : 0;
+                    offset = xDistanceOffset + Spacing.x + horizontalMarginOffsetNegative;
                     break;
                 case VolumeFlowAxis.Y:
-                    float yDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.y + currentObject.Volume.VolumeSize.y)
-                        : (previousObjectTransform.lossyScale.y + currentObjectTransform.lossyScale.y);
-                    yDistance *= 0.5f;
-                    offset = yDistance + Spacing.y;
+                    float verticalMarginOffset = useBaseVolumeSizes ? (previousObject.Volume.Margin.Bottom + currentObject.Volume.Margin.Top) : 0;
+                    offset = yDistanceOffset + Spacing.y + verticalMarginOffset;
+                    break;
+                case VolumeFlowAxis.NegativeY:
+                    float verticalMarginOffsetNegative = useBaseVolumeSizes ? (previousObject.Volume.Margin.Top + currentObject.Volume.Margin.Bottom) : 0;
+                    offset = yDistanceOffset + Spacing.y + verticalMarginOffsetNegative;
                     break;
                 case VolumeFlowAxis.Z:
-                    float zDistance = useBaseVolumeSizes ? (previousObject.Volume.VolumeSize.z + currentObject.Volume.VolumeSize.z)
-                        : (previousObjectTransform.lossyScale.z + currentObjectTransform.lossyScale.z);
-                    zDistance *= 0.5f;
-                    offset = zDistance + Spacing.z;
+                    float depthMarginOffset = useBaseVolumeSizes ? (previousObject.Volume.Margin.Top + currentObject.Volume.Margin.Bottom) : 0;
+                    offset = zDistanceOffset + Spacing.z + depthMarginOffset;
+                    break;
+                case VolumeFlowAxis.NegativeZ:
+                    float depthMarginOffsetNegative = useBaseVolumeSizes ? (previousObject.Volume.Margin.Top + currentObject.Volume.Margin.Bottom) : 0;
+                    offset = zDistanceOffset + Spacing.z + depthMarginOffsetNegative;
                     break;
             }
 
+            UpdateMaxSizes(useBaseVolumeSizes ? previousObject.Volume.VolumeSize : previousObjectLossyScale);
+
             return offset;
+        }
+
+
+        private void UpdateMaxSizes(Vector3 size)
+        {
+            // Use the largest size of an object in a group to determine the spacing offset
+            currentMaxSizes = new Vector3(
+                currentMaxSizes.x < size.x ? size.x : currentMaxSizes.x,
+                currentMaxSizes.y < size.y ? size.y : currentMaxSizes.y,
+                currentMaxSizes.z < size.z ? size.z : currentMaxSizes.z);
         }
 
         private Vector3 GetStartPosition()
@@ -245,41 +277,45 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         {
             Vector3 start = GetStartPosition();
 
-            positions.Add(start);
-            index++;
-
             int tertiaryAxisIndex = 0;
 
             while (index < Volume.ChildVolumeCount)
             {
-                // Calculate positions along the given axis until we have reached the end of the bounds
-                CalculatePositionsAlongAxis(PrimaryFlowAxis);
-
-                // Move the next starting position along the secondary axis
-                Vector3 nextStartingPinPosition = GetNextPinPosition(start, SecondaryFlowAxis);
-
-                if (!Volume.VolumeBounds.Contains(nextStartingPinPosition))
+                if (index == 0)
                 {
-                    // Move to the next starting position along the tertiary axis
-                    Vector3 tertiaryStartingPinPosition = GetNextPinPosition(positions[tertiaryAxisIndex], TertiaryFlowAxis);
-                    tertiaryAxisIndex = index;
-
-                    if (!Volume.VolumeBounds.Contains(tertiaryStartingPinPosition))
-                    {
-                        break;
-                    }
-                    else
-                    {
-                        positions.Add(tertiaryStartingPinPosition);
-
-                        start = tertiaryStartingPinPosition;
-                    }
+                    positions.Add(start);
                 }
                 else
                 {
-                    positions.Add(nextStartingPinPosition);
+                    // Calculate positions along the given axis until we have reached the end of the bounds
+                    CalculatePositionsAlongAxis(PrimaryFlowAxis);
 
-                    start = nextStartingPinPosition;
+                    // Move the next starting position along the secondary axis
+                    Vector3 nextStartingPinPosition = GetNextPinPosition(start, SecondaryFlowAxis);
+
+                    if (!Volume.VolumeBounds.Contains(nextStartingPinPosition))
+                    {
+                        // Move to the next starting position along the tertiary axis
+                        Vector3 tertiaryStartingPinPosition = GetNextPinPosition(positions[tertiaryAxisIndex], TertiaryFlowAxis);
+                        tertiaryAxisIndex = index;
+
+                        if (!Volume.VolumeBounds.Contains(tertiaryStartingPinPosition))
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            positions.Add(tertiaryStartingPinPosition);
+
+                            start = tertiaryStartingPinPosition;
+                        }
+                    }
+                    else
+                    {
+                        positions.Add(nextStartingPinPosition);
+
+                        start = nextStartingPinPosition;
+                    }
                 }
 
                 index++;
@@ -295,22 +331,22 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
             switch (currentFlowAxis)
             {
                 case VolumeFlowAxis.X:
-                    newPinPosition += VolumeBounds.Right * Spacing.x;
+                    newPinPosition += VolumeBounds.Right * (currentMaxSizes.x + Spacing.x);
                     break;
                 case VolumeFlowAxis.NegativeX:
-                    newPinPosition += VolumeBounds.Left * Spacing.x;
+                    newPinPosition += VolumeBounds.Left * (currentMaxSizes.x + Spacing.x);
                     break;
                 case VolumeFlowAxis.Y:
-                    newPinPosition += VolumeBounds.Down * Spacing.y;
+                    newPinPosition += VolumeBounds.Down * (currentMaxSizes.y + Spacing.y);
                     break;
                 case VolumeFlowAxis.NegativeY:
-                    newPinPosition += VolumeBounds.Up * Spacing.y;
+                    newPinPosition += VolumeBounds.Up * (currentMaxSizes.y + Spacing.y);
                     break;
                 case VolumeFlowAxis.Z:
-                    newPinPosition += VolumeBounds.Forward * Spacing.z;
+                    newPinPosition += VolumeBounds.Back * (currentMaxSizes.z + Spacing.z);
                     break;
                 case VolumeFlowAxis.NegativeZ:
-                    newPinPosition += VolumeBounds.Back * Spacing.z;
+                    newPinPosition += VolumeBounds.Forward * (currentMaxSizes.z + Spacing.z);
                     break;
             }
 
@@ -332,6 +368,7 @@ namespace Microsoft.MixedReality.Toolkit.UI.Layout
         public void UpdateVolumeFlex()
         {
             positions.Clear();
+            currentMaxSizes = Vector3.zero;
 
             InitializePlacing();
 
